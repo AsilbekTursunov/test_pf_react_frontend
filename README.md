@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plan-Fact Dashboard
 
-## Getting Started
+Интерактивная панель управления для анализа финансовых показателей с графиками и фильтрами.
 
-First, run the development server:
+## Особенности
+
+- 📊 Интерактивные графики с Chart.js
+- 🎛️ Фиксированная панель фильтров
+- 📅 Выбор временного диапазона
+- 💬 Виджет чата
+- 📱 Адаптивный дизайн
+- ⚡ Построено на Next.js 16
+
+## Технологии
+
+- **Next.js 16** - React фреймворк
+- **Chart.js** - Библиотека графиков
+- **Tailwind CSS** - Стилизация
+- **Lucide React** - Иконки
+
+## Запуск проекта
 
 ```bash
+# Установка зависимостей
+npm install
+
+# Запуск в режиме разработки
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Сборка для продакшена
+npm run build
+
+# Запуск продакшен версии
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Структура проекта
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+├── app/
+│   ├── layout.jsx          # Основной лейаут
+│   ├── page.jsx           # Главная страница с дашбордом
+│   ├── pokazateli/        # Страница показателей (редирект)
+│   └── lib/               # Утилиты
+├── components/
+│   ├── Header.jsx         # Шапка сайта
+│   ├── ChatWidget.jsx     # Виджет чата
+│   └── charts/            # Компоненты графиков
+└── public/                # Статические файлы
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Деплой
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Проект настроен для деплоя на Vercel и других платформах.
