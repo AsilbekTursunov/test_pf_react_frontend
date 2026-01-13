@@ -15,6 +15,9 @@ import {
   Tooltip,
   Legend,
   Filler,
+  BarController,
+  LineController,
+  DoughnutController,
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 
@@ -29,7 +32,10 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  BarController,
+  LineController,
+  DoughnutController
 )
 
 // Плагин для пунктирных границ столбцов
@@ -64,7 +70,36 @@ const dashedBorderPlugin = {
   }
 }
 
-ChartJS.register(dashedBorderPlugin)
+// Плагин для квадратиков в графиках
+const squareMarkersPlugin = {
+  id: 'squareMarkers',
+  afterDatasetsDraw(chart) {
+    const { ctx, data } = chart
+    
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex)
+      if (meta.type === 'bar' && dataset.data) {
+        meta.data.forEach((bar, index) => {
+          if (dataset.data[index] > 0) {
+            // Рисуем случайные квадратики внутри столбцов
+            const numSquares = Math.floor(Math.random() * 3) + 1
+            for (let i = 0; i < numSquares; i++) {
+              const x = bar.x - bar.width/4 + Math.random() * (bar.width/2)
+              const y = bar.y + Math.random() * (bar.base - bar.y)
+              
+              ctx.save()
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+              ctx.fillRect(x - 1, y - 1, 2, 2)
+              ctx.restore()
+            }
+          }
+        })
+      }
+    })
+  }
+}
+
+ChartJS.register(dashedBorderPlugin, squareMarkersPlugin)
 
 export default function DashboardPage() {
   const [activeMethod, setActiveMethod] = useState('accrual')
