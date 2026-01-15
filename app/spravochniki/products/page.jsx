@@ -334,9 +334,9 @@ export default function ProductsPage() {
                                       key={product.id} 
                                       className="border-b border-slate-100 hover:bg-slate-50/50"
                                       style={{
-                                        animation: closingGroups.includes(groupName)
-                                          ? `fadeSlideOut 0.15s ease-in ${index * 0.02}s backwards`
-                                          : `fadeSlideUp 0.2s ease-out ${index * 0.04}s backwards`
+                                        animation: !closingGroups.includes(groupName)
+                                          ? `fadeSlideUp 0.2s ease-out ${index * 0.04}s backwards`
+                                          : undefined
                                       }}
                                     >
                                       <td className="w-12 px-4 py-4">

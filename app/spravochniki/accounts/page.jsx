@@ -454,9 +454,9 @@ export default function AccountsPage() {
                                       key={child.id} 
                                       className="border-b border-slate-100 hover:bg-slate-50/50 bg-white"
                                       style={{
-                                        animation: closingEntities.includes(entity.id)
-                                          ? `fadeSlideOut 0.15s ease-in ${childIndex * 0.02}s backwards`
-                                          : `fadeSlideUp 0.2s ease-out ${childIndex * 0.04}s backwards`
+                                        animation: !closingEntities.includes(entity.id)
+                                          ? `fadeSlideUp 0.2s ease-out ${childIndex * 0.04}s backwards`
+                                          : undefined
                                       }}
                                     >
                                       <td className="w-12 px-4 py-4 relative">
