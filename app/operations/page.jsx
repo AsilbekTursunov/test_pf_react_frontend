@@ -29,9 +29,30 @@ export default function OperationsPage() {
   const [selectedDatePaymentRange, setSelectedDatePaymentRange] = useState(null)
   const [selectedDateStartRange, setSelectedDateStartRange] = useState(null)
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0))
-  const [showCalendar, setShowCalendar] = useState(false)
+  const [activeInput, setActiveInput] = useState(null) // 'start' or 'end'
+  const [tempStartDate, setTempStartDate] = useState(null)
+  const [tempEndDate, setTempEndDate] = useState(null)
+  const [isClosing, setIsClosing] = useState(false)
   const datePickerRef = useRef(null)
   const dateStartPickerRef = useRef(null)
+  
+  const closeDatePaymentModal = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsDatePaymentModalOpen(false)
+      setIsClosing(false)
+      setActiveInput(null)
+    }, 200)
+  }
+  
+  const closeDateStartModal = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsDateStartModalOpen(false)
+      setIsClosing(false)
+      setActiveInput(null)
+    }, 200)
+  }
   
   const [openParameterDropdown, setOpenParameterDropdown] = useState(null)
   const [selectedAccounts, setSelectedAccounts] = useState({
@@ -48,9 +69,8 @@ export default function OperationsPage() {
     function handleClickOutside(event) {
       if (datePickerRef.current && !datePickerRef.current.contains(event.target) &&
           dateStartPickerRef.current && !dateStartPickerRef.current.contains(event.target)) {
-        setIsDatePaymentModalOpen(false)
-        setIsDateStartModalOpen(false)
-        setShowCalendar(false)
+        closeDatePaymentModal()
+        closeDateStartModal()
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -99,6 +119,8 @@ export default function OperationsPage() {
   const [expandedRows, setExpandedRows] = useState([])
   const [openModal, setOpenModal] = useState(null)
   const [modalType, setModalType] = useState(null)
+  const [isModalClosing, setIsModalClosing] = useState(false)
+  const [isModalOpening, setIsModalOpening] = useState(false)
   
   const toggleOperation = (id) => {
     setSelectedOperations(prev => 
@@ -114,6 +136,10 @@ export default function OperationsPage() {
 
   const openOperationModal = (operation) => {
     setOpenModal(operation)
+    setIsModalClosing(false)
+    setIsModalOpening(true)
+    // Блокируем скролл страницы
+    document.body.style.overflow = 'hidden'
     // Определяем тип модалки по типу операции
     if (operation.type === 'transfer') {
       setModalType('accrual')
@@ -124,6 +150,20 @@ export default function OperationsPage() {
     } else {
       setModalType('payment')
     }
+    // Запускаем анимацию появления
+    setTimeout(() => {
+      setIsModalOpening(false)
+    }, 50)
+  }
+
+  const closeOperationModal = () => {
+    setIsModalClosing(true)
+    // Разблокируем скролл страницы
+    document.body.style.overflow = 'auto'
+    setTimeout(() => {
+      setOpenModal(null)
+      setIsModalClosing(false)
+    }, 300) // Длительность анимации
   }
 
   const selectedTotal = operations
@@ -186,7 +226,14 @@ export default function OperationsPage() {
             {/* Тип операции */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <input type="checkbox" checked readOnly className="w-4 h-4 rounded border-slate-300" />
+                <div className="relative">
+                  <input type="checkbox" checked readOnly className="peer sr-only" />
+                  <div className="w-4 h-4 rounded border-2 flex items-center justify-center transition-all bg-[#17a2b8] border-[#17a2b8]">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
                 <h3 className="text-[13px] font-medium text-slate-900">Начисление</h3>
               </div>
               <div className="space-y-2.5">
@@ -278,8 +325,9 @@ export default function OperationsPage() {
                   <button 
                     onClick={() => {
                       setIsDatePaymentModalOpen(!isDatePaymentModalOpen)
-                      setIsDateStartModalOpen(false)
-                      setShowCalendar(false)
+                      if (isDateStartModalOpen) {
+                        closeDateStartModal()
+                      }
                     }}
                     className="flex items-center gap-2 px-3 py-2 w-full text-left text-[13px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded hover:border-slate-300 transition-colors"
                   >
@@ -294,47 +342,54 @@ export default function OperationsPage() {
 
                   {/* Date Picker Dropdown */}
                   {isDatePaymentModalOpen && (
-                    <div className="fixed left-[280px] bg-white rounded-lg shadow-xl border border-slate-200 z-[1000] w-[600px]" style={{ top: datePickerRef.current?.getBoundingClientRect().bottom + 8 + 'px' }}>
+                    <div 
+                      key="date-payment-modal"
+                      className="fixed left-[280px] bg-white rounded-lg shadow-xl border border-slate-200 z-[1000]" 
+                      style={{ 
+                        top: datePickerRef.current?.getBoundingClientRect().bottom + 8 + 'px',
+                        width: activeInput ? '600px' : '440px',
+                        animation: isClosing ? 'fadeSlideOut 0.2s ease-in' : 'fadeSlideIn 0.25s ease-out'
+                      }}
+                    >
                       <div className="p-4">
                         <h3 className="text-[14px] font-normal text-slate-500 mb-3">Укажите период</h3>
                         
                         <div className="flex gap-3">
                           {/* Quick Ranges */}
-                          <div className="flex-1 grid grid-cols-2 gap-2">
+                          <div className="flex-1 grid grid-cols-2 gap-1.5">
                             {quickDateRanges.map((range, idx) => (
                               <button
                                 key={idx}
                                 onClick={() => {
                                   const dateRange = range.getValue()
                                   setSelectedDatePaymentRange(dateRange)
-                                  setIsDatePaymentModalOpen(false)
-                                  setShowCalendar(false)
+                                  closeDatePaymentModal()
                                 }}
-                                className="px-3 py-2 text-[13px] text-[#17a2b8] bg-[#f0f9fa] rounded hover:bg-[#e0f3f5] transition-colors text-left font-normal"
+                                className="px-3 py-1.5 text-[13px] text-[#17a2b8] bg-slate-50 hover:bg-[#e8f4f6] transition-colors text-left font-normal rounded"
                               >
                                 {range.label}
                               </button>
                             ))}
                           </div>
 
-                          {/* Calendar - показывается только при клике на поля */}
-                          {showCalendar && (
-                            <div className="w-[260px] border-l border-slate-200 pl-3">
-                              <div className="flex items-center justify-between mb-3">
+                          {/* Calendar - показывается только когда активен инпут */}
+                          {activeInput && (
+                            <div className="w-[240px] bg-slate-50 rounded p-2.5" style={{ animation: 'fadeSlideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                              <div className="flex items-center justify-between mb-2">
                                 <button 
                                   onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                                  className="text-slate-600 hover:text-slate-900 text-[14px] w-6 h-6 flex items-center justify-center"
+                                  className="text-slate-600 hover:text-slate-900 text-[14px] w-5 h-5 flex items-center justify-center"
                                 >
-                                  ‹
+                                  «
                                 </button>
-                                <span className="text-[13px] font-medium text-slate-900">
-                                  {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                                <span className="text-[12px] font-medium text-slate-900">
+                                  {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
                                 </span>
                                 <button 
                                   onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                                  className="text-slate-600 hover:text-slate-900 text-[14px] w-6 h-6 flex items-center justify-center"
+                                  className="text-slate-600 hover:text-slate-900 text-[14px] w-5 h-5 flex items-center justify-center"
                                 >
-                                  ›
+                                  »
                                 </button>
                               </div>
 
@@ -346,7 +401,7 @@ export default function OperationsPage() {
                                 ))}
                               </div>
 
-                              <div className="grid grid-cols-7 gap-1">
+                              <div className="grid grid-cols-7 gap-0.5">
                                 {Array.from({ length: 35 }, (_, i) => {
                                   const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
                                   const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
@@ -354,15 +409,28 @@ export default function OperationsPage() {
                                   const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum)
                                   const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
                                   const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
+                                  const isSelected = (tempStartDate && date.toDateString() === tempStartDate.toDateString()) || 
+                                                     (tempEndDate && date.toDateString() === tempEndDate.toDateString())
 
                                   return (
                                     <button
                                       key={i}
                                       disabled={!isCurrentMonth}
+                                      onClick={() => {
+                                        if (isCurrentMonth) {
+                                          if (activeInput === 'start') {
+                                            setTempStartDate(date)
+                                          } else if (activeInput === 'end') {
+                                            setTempEndDate(date)
+                                          }
+                                        }
+                                      }}
                                       className={cn(
-                                        "aspect-square flex items-center justify-center text-[11px] rounded hover:bg-slate-100 transition-colors",
-                                        !isCurrentMonth && "text-slate-300 cursor-default hover:bg-transparent",
-                                        isToday && "bg-[#ffd54f] font-semibold hover:bg-[#ffca28]"
+                                        "aspect-square flex items-center justify-center text-[11px] rounded transition-colors",
+                                        !isCurrentMonth && "text-slate-300 cursor-default",
+                                        isCurrentMonth && !isToday && !isSelected && "text-slate-700 hover:bg-white cursor-pointer",
+                                        isToday && !isSelected && "bg-[#ffd54f] text-slate-900 font-semibold hover:bg-[#ffca28] cursor-pointer",
+                                        isSelected && "bg-[#17a2b8] text-white font-semibold cursor-pointer"
                                       )}
                                     >
                                       {isCurrentMonth ? dayNum : ''}
@@ -377,8 +445,11 @@ export default function OperationsPage() {
                         {/* Date Inputs */}
                         <div className="flex items-center gap-2 mt-3">
                           <button
-                            onClick={() => setShowCalendar(true)}
-                            className="flex-1 flex items-center gap-2 px-3 py-2 border-2 border-[#17a2b8] rounded hover:bg-slate-50 transition-colors"
+                            onClick={() => setActiveInput('start')}
+                            className={cn(
+                              "flex-1 flex items-center gap-2 px-3 py-2 border rounded transition-colors",
+                              activeInput === 'start' ? "border-[#17a2b8] bg-[#f0f9fa]" : "border-slate-300 hover:bg-slate-50"
+                            )}
                           >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -386,12 +457,17 @@ export default function OperationsPage() {
                               <line x1="8" y1="2" x2="8" y2="6"></line>
                               <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
-                            <span className="text-[12px] text-slate-500">Начало периода</span>
+            <span className="text-[13px] text-slate-700">
+                              {tempStartDate ? tempStartDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Начало периода'}
+                            </span>
                           </button>
-                          <span className="text-slate-400 text-[12px]">—</span>
+                          <span className="text-slate-400 text-[14px]">—</span>
                           <button
-                            onClick={() => setShowCalendar(true)}
-                            className="flex-1 flex items-center gap-2 px-3 py-2 border border-slate-300 rounded hover:bg-slate-50 transition-colors"
+                            onClick={() => setActiveInput('end')}
+                            className={cn(
+                              "flex-1 flex items-center gap-2 px-3 py-2 border rounded transition-colors",
+                              activeInput === 'end' ? "border-[#17a2b8] bg-[#f0f9fa]" : "border-slate-300 hover:bg-slate-50"
+                            )}
                           >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -399,7 +475,9 @@ export default function OperationsPage() {
                               <line x1="8" y1="2" x2="8" y2="6"></line>
                               <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
-                            <span className="text-[12px] text-slate-500">Конец периода</span>
+                            <span className="text-[13px] text-slate-700">
+                              {tempEndDate ? tempEndDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Конец периода'}
+                            </span>
                           </button>
                         </div>
 
@@ -407,19 +485,22 @@ export default function OperationsPage() {
                         <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-slate-200">
                           <button
                             onClick={() => {
-                              setIsDatePaymentModalOpen(false)
-                              setShowCalendar(false)
+                              setTempStartDate(null)
+                              setTempEndDate(null)
+                              closeDatePaymentModal()
                             }}
-                            className="px-4 py-1.5 text-[13px] text-slate-600 hover:text-slate-800 font-normal"
+                            className="px-4 py-1.5 text-[14px] text-slate-600 hover:text-slate-800 font-normal"
                           >
                             Сбросить
                           </button>
                           <button
                             onClick={() => {
-                              setIsDatePaymentModalOpen(false)
-                              setShowCalendar(false)
+                              if (tempStartDate && tempEndDate) {
+                                setSelectedDatePaymentRange({ start: tempStartDate, end: tempEndDate })
+                              }
+                              closeDatePaymentModal()
                             }}
-                            className="px-4 py-1.5 text-[13px] bg-[#17a2b8] text-white rounded hover:bg-[#138496] font-normal"
+                            className="px-5 py-1.5 text-[14px] bg-[#17a2b8] text-white rounded hover:bg-[#138496] font-normal"
                           >
                             Применить
                           </button>
@@ -488,8 +569,9 @@ export default function OperationsPage() {
                   <button 
                     onClick={() => {
                       setIsDateStartModalOpen(!isDateStartModalOpen)
-                      setIsDatePaymentModalOpen(false)
-                      setShowCalendar(false)
+                      if (isDatePaymentModalOpen) {
+                        closeDatePaymentModal()
+                      }
                     }}
                     className="flex items-center gap-2 px-3 py-2 w-full text-left text-[13px] text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded hover:border-slate-300 transition-colors"
                   >
@@ -504,117 +586,165 @@ export default function OperationsPage() {
 
                   {/* Date Picker Dropdown */}
                   {isDateStartModalOpen && (
-                    <div className="fixed left-[280px] bg-white rounded-lg shadow-xl border border-slate-200 z-[1000] w-[600px]" style={{ top: dateStartPickerRef.current?.getBoundingClientRect().bottom + 8 + 'px' }}>
+                    <div 
+                      key="date-start-modal"
+                      className="fixed left-[280px] bg-white rounded-lg shadow-xl border border-slate-200 z-[1000]" 
+                      style={{ 
+                        top: dateStartPickerRef.current?.getBoundingClientRect().bottom + 8 + 'px',
+                        width: activeInput ? '600px' : '440px',
+                        animation: isClosing ? 'fadeSlideOut 0.2s ease-in' : 'fadeSlideIn 0.25s ease-out'
+                      }}
+                    >
                       <div className="p-4">
                         <h3 className="text-[14px] font-normal text-slate-500 mb-3">Укажите период</h3>
                         
                         <div className="flex gap-3">
                           {/* Quick Ranges */}
-                          <div className="flex-1 grid grid-cols-2 gap-2">
+                          <div className="flex-1 grid grid-cols-2 gap-1.5">
                             {quickDateRanges.map((range, idx) => (
                               <button
                                 key={idx}
                                 onClick={() => {
                                   const dateRange = range.getValue()
                                   setSelectedDateStartRange(dateRange)
-                                  setIsDateStartModalOpen(false)
+                                  closeDateStartModal()
                                 }}
-                                className="px-3 py-2 text-[13px] text-[#17a2b8] bg-[#f0f9fa] rounded hover:bg-[#e0f3f5] transition-colors text-left font-normal"
+                                className="px-3 py-1.5 text-[13px] text-[#17a2b8] bg-slate-50 hover:bg-[#e8f4f6] transition-colors text-left font-normal rounded"
                               >
                                 {range.label}
                               </button>
                             ))}
                           </div>
 
-                          {/* Calendar */}
-                          <div className="w-[260px] border-l border-slate-200 pl-3">
-                            <div className="flex items-center justify-between mb-3">
-                              <button 
-                                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                                className="text-slate-600 hover:text-slate-900 text-[14px] w-6 h-6 flex items-center justify-center"
-                              >
-                                ‹
-                              </button>
-                              <span className="text-[13px] font-medium text-slate-900">
-                                {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
-                              </span>
-                              <button 
-                                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                                className="text-slate-600 hover:text-slate-900 text-[14px] w-6 h-6 flex items-center justify-center"
-                              >
-                                ›
-                              </button>
-                            </div>
+                          {/* Calendar - показывается только когда активен инпут */}
+                          {activeInput && (
+                            <div className="w-[240px] bg-slate-50 rounded p-2.5" style={{ animation: 'fadeSlideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                              <div className="flex items-center justify-between mb-2">
+                                <button 
+                                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                                  className="text-slate-600 hover:text-slate-900 text-[14px] w-5 h-5 flex items-center justify-center"
+                                >
+                                  «
+                                </button>
+                                <span className="text-[12px] font-medium text-slate-900">
+                                  {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
+                                </span>
+                                <button 
+                                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                                  className="text-slate-600 hover:text-slate-900 text-[14px] w-5 h-5 flex items-center justify-center"
+                                >
+                                  »
+                                </button>
+                              </div>
 
-                            <div className="grid grid-cols-7 gap-1 mb-2">
-                              {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
-                                <div key={day} className="text-center text-[10px] text-slate-500 font-medium py-1">
-                                  {day}
-                                </div>
-                              ))}
-                            </div>
+                              <div className="grid grid-cols-7 gap-0.5 mb-1.5">
+                                {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
+                                  <div key={day} className="text-center text-[9px] text-slate-500 font-medium py-0.5">
+                                    {day}
+                                  </div>
+                                ))}
+                              </div>
 
-                            <div className="grid grid-cols-7 gap-1">
-                              {Array.from({ length: 35 }, (_, i) => {
-                                const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-                                const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
-                                const dayNum = i - startDay + 1
-                                const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum)
-                                const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
-                                const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
+                              <div className="grid grid-cols-7 gap-0.5">
+                                {Array.from({ length: 35 }, (_, i) => {
+                                  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+                                  const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
+                                  const dayNum = i - startDay + 1
+                                  const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum)
+                                  const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
+                                  const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
+                                  const isSelected = (tempStartDate && date.toDateString() === tempStartDate.toDateString()) || 
+                                                     (tempEndDate && date.toDateString() === tempEndDate.toDateString())
 
-                                return (
-                                  <button
-                                    key={i}
-                                    disabled={!isCurrentMonth}
-                                    className={cn(
-                                      "aspect-square flex items-center justify-center text-[11px] rounded hover:bg-slate-100 transition-colors",
-                                      !isCurrentMonth && "text-slate-300 cursor-default hover:bg-transparent",
-                                      isToday && "bg-[#ffd54f] font-semibold hover:bg-[#ffca28]"
-                                    )}
-                                  >
-                                    {isCurrentMonth ? dayNum : ''}
-                                  </button>
-                                )
-                              })}
+                                  return (
+                                    <button
+                                      key={i}
+                                      disabled={!isCurrentMonth}
+                                      onClick={() => {
+                                        if (isCurrentMonth) {
+                                          if (activeInput === 'start') {
+                                            setTempStartDate(date)
+                                          } else if (activeInput === 'end') {
+                                            setTempEndDate(date)
+                                          }
+                                        }
+                                      }}
+                                      className={cn(
+                                        "aspect-square flex items-center justify-center text-[11px] rounded transition-colors",
+                                        !isCurrentMonth && "text-slate-300 cursor-default",
+                                        isCurrentMonth && !isToday && !isSelected && "text-slate-700 hover:bg-white cursor-pointer",
+                                        isToday && !isSelected && "bg-[#ffd54f] text-slate-900 font-semibold hover:bg-[#ffca28] cursor-pointer",
+                                        isSelected && "bg-[#17a2b8] text-white font-semibold cursor-pointer"
+                                      )}
+                                    >
+                                      {isCurrentMonth ? dayNum : ''}
+                                    </button>
+                                  )
+                                })}
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
 
                         {/* Date Inputs */}
                         <div className="flex items-center gap-2 mt-3">
-                          <div className="flex-1 flex items-center gap-2 px-3 py-2 border-2 border-[#17a2b8] rounded">
+                          <button
+                            onClick={() => setActiveInput('start')}
+                            className={cn(
+                              "flex-1 flex items-center gap-2 px-3 py-2 border rounded transition-colors",
+                              activeInput === 'start' ? "border-[#17a2b8] bg-[#f0f9fa]" : "border-slate-300 hover:bg-slate-50"
+                            )}
+                          >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                               <line x1="16" y1="2" x2="16" y2="6"></line>
                               <line x1="8" y1="2" x2="8" y2="6"></line>
                               <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
-                            <span className="text-[12px] text-slate-500">Начало периода</span>
-                          </div>
-                          <span className="text-slate-400 text-[12px]">—</span>
-                          <div className="flex-1 flex items-center gap-2 px-3 py-2 border border-slate-300 rounded">
+                            <span className="text-[13px] text-slate-700">
+                              {tempStartDate ? tempStartDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Начало периода'}
+                            </span>
+                          </button>
+                          <span className="text-slate-400 text-[14px]">—</span>
+                          <button
+                            onClick={() => setActiveInput('end')}
+                            className={cn(
+                              "flex-1 flex items-center gap-2 px-3 py-2 border rounded transition-colors",
+                              activeInput === 'end' ? "border-[#17a2b8] bg-[#f0f9fa]" : "border-slate-300 hover:bg-slate-50"
+                            )}
+                          >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                               <line x1="16" y1="2" x2="16" y2="6"></line>
                               <line x1="8" y1="2" x2="8" y2="6"></line>
                               <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
-                            <span className="text-[12px] text-slate-500">Конец периода</span>
-                          </div>
+                            <span className="text-[13px] text-slate-700">
+                              {tempEndDate ? tempEndDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Конец периода'}
+                            </span>
+                          </button>
                         </div>
 
                         {/* Actions */}
                         <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-slate-200">
                           <button
-                            onClick={() => setIsDateStartModalOpen(false)}
-                            className="px-4 py-1.5 text-[13px] text-slate-600 hover:text-slate-800 font-normal"
+                            onClick={() => {
+                              setTempStartDate(null)
+                              setTempEndDate(null)
+                              closeDateStartModal()
+                            }}
+                            className="px-4 py-1.5 text-[14px] text-slate-600 hover:text-slate-800 font-normal"
                           >
                             Сбросить
                           </button>
                           <button
-                            onClick={() => setIsDateStartModalOpen(false)}
-                            className="px-4 py-1.5 text-[13px] bg-[#17a2b8] text-white rounded hover:bg-[#138496] font-normal"
+                            onClick={() => {
+                              if (tempStartDate && tempEndDate) {
+                                setSelectedDateStartRange({ start: tempStartDate, end: tempEndDate })
+                              }
+                              closeDateStartModal()
+                            }}
+                            className="px-5 py-1.5 text-[14px] bg-[#17a2b8] text-white rounded hover:bg-[#138496] font-normal"
                           >
                             Применить
                           </button>
@@ -1202,10 +1332,25 @@ export default function OperationsPage() {
       {openModal && (
         <>
           {/* Полупрозрачный фон справа от модалки */}
-          <div className="fixed left-[90px] top-[64px] right-0 bottom-0 z-40 pointer-events-none -mt-[9px]" style={{ backgroundColor: 'lab(34.66 -0.95 -5.29 / 0.78)' }}></div>
+          <div 
+            onClick={closeOperationModal}
+            className={cn(
+              "fixed left-[90px] top-[64px] right-0 bottom-0 z-40 cursor-pointer -mt-[9px] transition-opacity duration-300",
+              isModalClosing ? "opacity-0" : "opacity-100"
+            )}
+            style={{ backgroundColor: 'lab(34.66 -0.95 -5.29 / 0.78)' }}
+          ></div>
 
           {/* Modal - 80% ширины от области контента */}
-          <div className="fixed left-[90px] top-[64px] bottom-0 w-[80%] bg-white shadow-2xl z-50 flex pointer-events-auto -mt-[9px]">
+          <div 
+            className={cn(
+              "fixed left-[90px] top-[64px] bottom-0 bg-white shadow-2xl z-50 flex pointer-events-auto -mt-[9px] transition-all duration-300 ease-out origin-left",
+              isModalOpening ? "w-0 opacity-0" : isModalClosing ? "w-0 opacity-0" : "w-[80%] opacity-100"
+            )}
+            style={{ 
+              clipPath: isModalOpening || isModalClosing ? 'inset(0 100% 0 0)' : 'inset(0 0 0 0)'
+            }}
+          >
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Header */}
@@ -1213,7 +1358,7 @@ export default function OperationsPage() {
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-[20px] font-semibold text-slate-900">Редактирование операции</h2>
                   <button 
-                    onClick={() => setOpenModal(null)}
+                    onClick={closeOperationModal}
                     className="text-slate-400 hover:text-slate-600 text-[20px]"
                   >
                     ✕
@@ -1715,32 +1860,12 @@ export default function OperationsPage() {
               {/* Footer */}
               <div className="border-t border-slate-200 px-6 py-4 flex items-center justify-end bg-white">
                 <button 
-                  onClick={() => setOpenModal(null)}
+                  onClick={closeOperationModal}
                   className="px-5 py-2 text-[13px] text-[#17a2b8] hover:text-[#138496] font-medium"
                 >
                   Отменить
                 </button>
               </div>
-            </div>
-
-            {/* Right Sidebar - File Upload Area */}
-            <div className="w-[320px] bg-[#5a5a5a] text-white flex flex-col items-center justify-center p-6 text-center flex-shrink-0">
-              <svg className="w-16 h-16 mb-4 text-white opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <p className="text-[13px] mb-4 opacity-80">
-                Прикрепляйте к операциям файлы,<br />
-                например, акты или счета, добавляйте<br />
-                комментарии
-              </p>
-              <p className="text-[11px] opacity-60 mb-2">Не более 10 файлов к операции</p>
-              <p className="text-[11px] opacity-60 mb-4">Максимальный размер файла — 5 МБ</p>
-              <p className="text-[10px] opacity-50">
-                Поддерживаемые форматы:<br />
-                pdf, doc, docx, xls, xlsx, jpeg,<br />
-                png, zip, rar, txt, csv, xml
-              </p>
             </div>
           </div>
         </>

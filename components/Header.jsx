@@ -16,6 +16,7 @@ export function Header() {
     const [isViewOpen, setIsViewOpen] = useState(false)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+    const [isEntitiesDropdownOpen, setIsEntitiesDropdownOpen] = useState(false)
 
     const helpRef = useRef(null)
     const balanceRef = useRef(null)
@@ -117,46 +118,51 @@ export function Header() {
                                 
                                 <div className="mt-8">
                                     <div className="relative">
-                                        <button className="w-full flex items-center justify-between p-3 bg-[#17a2b8] text-white rounded-lg hover:bg-[#138496] transition-colors">
+                                        <button 
+                                            onClick={() => setIsEntitiesDropdownOpen(!isEntitiesDropdownOpen)}
+                                            className="w-full flex items-center justify-between p-3 bg-[#17a2b8] text-white rounded-lg hover:bg-[#138496] transition-colors"
+                                        >
                                             <span className="text-[14px] font-medium">Юрлица и счета</span>
-                                            <ChevronDown size={16} />
+                                            <ChevronDown size={16} className={cn("transition-transform duration-200", isEntitiesDropdownOpen && "rotate-180")} />
                                         </button>
                                         
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 z-[70] overflow-hidden">
-                                            <div className="p-4 border-b border-slate-100">
-                                                <div className="relative">
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="Поиск по списку"
-                                                        className="w-full pl-10 pr-4 py-2 border border-[#17a2b8] rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#17a2b8]/20"
-                                                    />
-                                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                            <circle cx="11" cy="11" r="8"></circle>
-                                                            <path d="m21 21-4.35-4.35"></path>
-                                                        </svg>
+                                        {isEntitiesDropdownOpen && (
+                                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 z-[70] overflow-hidden">
+                                                <div className="p-4 border-b border-slate-100">
+                                                    <div className="relative">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Поиск по списку"
+                                                            className="w-full pl-10 pr-4 py-2 border border-[#17a2b8] rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#17a2b8]/20"
+                                                        />
+                                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                <circle cx="11" cy="11" r="8"></circle>
+                                                                <path d="m21 21-4.35-4.35"></path>
+                                                            </svg>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                
+                                                <div className="max-h-[300px] overflow-y-auto">
+                                                    {[
+                                                        'ИП Алексеенко Михаил Фе...',
+                                                        'Сейф',
+                                                        'Альфа банк',
+                                                        'Карта физ. лица',
+                                                        'ООО "Прометей"',
+                                                        'Т-Банк'
+                                                    ].map((item, idx) => (
+                                                        <button 
+                                                            key={idx}
+                                                            className="w-full text-left px-4 py-3 text-[14px] text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-b-0"
+                                                        >
+                                                            {item}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            
-                                            <div className="max-h-[300px] overflow-y-auto">
-                                                {[
-                                                    'ИП Алексеенко Михаил Фе...',
-                                                    'Сейф',
-                                                    'Альфа банк',
-                                                    'Карта физ. лица',
-                                                    'ООО "Прометей"',
-                                                    'Т-Банк'
-                                                ].map((item, idx) => (
-                                                    <button 
-                                                        key={idx}
-                                                        className="w-full text-left px-4 py-3 text-[14px] text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-b-0"
-                                                    >
-                                                        {item}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -11,6 +11,7 @@ import MetricsPanel from '@/components/dashboard/MetricsPanel'
 import ChartSection from '@/components/dashboard/ChartSection'
 import RangeSlider from '@/components/dashboard/RangeSlider'
 import CashFlowSection from '@/components/dashboard/CashFlowSection'
+import { PageLoader } from '@/components/PageLoader'
 import { cn } from '@/app/lib/utils'
 
 // Импортируем все функции данных и опций
@@ -38,6 +39,8 @@ import {
 } from '@/lib/allChartData'
 
 export default function DashboardPage() {
+  const [isPageLoading, setIsPageLoading] = useState(true)
+  
   const dashboardState = useDashboardData()
   const {
     activeMethod,
@@ -84,8 +87,18 @@ export default function DashboardPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [setIsDateRangeOpen])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white relative">
+      <PageLoader isLoading={isPageLoading} />
+      
+      <div className={`transition-opacity duration-500 ${isPageLoading ? 'opacity-0' : 'opacity-100'}`}>
       {/* Loading Progress Bar */}
       {isLoading && (
         <div className="fixed top-[55px] left-[90px] right-0 h-1 bg-slate-200 z-50">
@@ -425,6 +438,7 @@ export default function DashboardPage() {
             <Chart type="bar" data={getProjectsChartData()} options={projectsChartOptions} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
