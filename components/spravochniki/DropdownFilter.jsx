@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/app/lib/utils'
 
-export function DropdownFilter({ label, options, selectedValues, onChange, placeholder = "Выберите..." }) {
+export function DropdownFilter({ label, options, selectedValues, onChange, placeholder = "Выберите...", grouped = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [openUpward, setOpenUpward] = useState(false)
   const dropdownRef = useRef(null)
@@ -21,7 +21,7 @@ export function DropdownFilter({ label, options, selectedValues, onChange, place
   useEffect(() => {
     if (isOpen && dropdownRef.current) {
       const rect = dropdownRef.current.getBoundingClientRect()
-      const dropdownHeight = Math.min(options.length * 40 + 16, 300) // высота элемента * кол-во + padding
+      const dropdownHeight = Math.min(options.length * 40 + 16, 300)
       const spaceBelow = window.innerHeight - rect.bottom
       const spaceAbove = rect.top
       
@@ -39,6 +39,16 @@ export function DropdownFilter({ label, options, selectedValues, onChange, place
 
   const selectedCount = selectedValues.length
   const displayText = selectedCount > 0 ? `Выбрано: ${selectedCount}` : placeholder
+
+  // Group options by group field if grouped is true
+  const groupedOptions = grouped 
+    ? options.reduce((acc, option) => {
+        const group = option.group || 'Без группы'
+        if (!acc[group]) acc[group] = []
+        acc[group].push(option)
+        return acc
+      }, {})
+    : { 'all': options }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -68,33 +78,42 @@ export function DropdownFilter({ label, options, selectedValues, onChange, place
           }}
         >
           <div className="p-2">
-            {options.map((option) => (
-              <label 
-                key={option.value} 
-                className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 rounded cursor-pointer group"
-              >
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={selectedValues.includes(option.value)}
-                    onChange={() => toggleOption(option.value)}
-                    className="peer sr-only"
-                  />
-                  <div className={cn(
-                    "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
-                    selectedValues.includes(option.value)
-                      ? "bg-[#17a2b8] border-[#17a2b8]"
-                      : "border-slate-300 group-hover:border-slate-400"
-                  )}>
-                    {selectedValues.includes(option.value) && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
+            {Object.entries(groupedOptions).map(([groupName, groupItems]) => (
+              <div key={groupName}>
+                {grouped && (
+                  <div className="px-3 py-1.5 text-[11px] font-medium text-slate-500 bg-slate-50 sticky top-0">
+                    {groupName}
                   </div>
-                </div>
-                <span className="text-[13px] text-slate-700">{option.label}</span>
-              </label>
+                )}
+                {groupItems.map((option) => (
+                  <label 
+                    key={option.value} 
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 rounded cursor-pointer group"
+                  >
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={selectedValues.includes(option.value)}
+                        onChange={() => toggleOption(option.value)}
+                        className="peer sr-only"
+                      />
+                      <div className={cn(
+                        "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                        selectedValues.includes(option.value)
+                          ? "bg-[#17a2b8] border-[#17a2b8]"
+                          : "border-slate-300 group-hover:border-slate-400"
+                      )}>
+                        {selectedValues.includes(option.value) && (
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-[13px] text-slate-700">{option.label}</span>
+                  </label>
+                ))}
+              </div>
             ))}
           </div>
         </div>

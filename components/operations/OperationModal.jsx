@@ -1,8 +1,37 @@
 "use client"
 
 import { cn } from '@/app/lib/utils'
+import { GroupedSelect } from '@/components/common/GroupedSelect'
+import { TreeSelect } from '@/components/common/TreeSelect'
+import { useCounterAgents, useLegalEntitiesWithAccounts, useProjects, useFinancialAccounts } from '@/hooks/useDashboard'
 
 export function OperationModal({ operation, modalType, isClosing, isOpening, onClose }) {
+  // Fetch data from API
+  const { data: counterAgentsData, isLoading: loadingCounterAgents } = useCounterAgents()
+  const { data: legalEntitiesData, isLoading: loadingLegalEntities } = useLegalEntitiesWithAccounts()
+  const { data: projectsData, isLoading: loadingProjects } = useProjects()
+  const { data: financialAccountsData, isLoading: loadingFinancialAccounts } = useFinancialAccounts()
+
+  // Extract and transform data from API responses
+  const counterAgents = (counterAgentsData?.data?.data?.data || []).map(item => ({
+    guid: item.guid,
+    label: item.name,
+    group: item.group || 'Без группы'
+  }))
+  
+  const legalEntities = (legalEntitiesData?.data?.data?.data || []).map(item => ({
+    guid: item.guid,
+    label: item.name,
+    group: item.group || 'Без группы'
+  }))
+  
+  const projects = (projectsData?.data?.data?.data || []).map(item => ({
+    guid: item.guid,
+    label: item.name
+  }))
+  
+  const financialAccounts = financialAccountsData?.data?.data?.data || []
+
   if (!operation) return null
 
   return (
@@ -92,15 +121,18 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
               {/* Счет и юрлицо */}
               <div className="flex items-center gap-4">
                 <label className="w-[140px] text-[13px] text-slate-900">Счет и юрлицо</label>
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    value={operation.account}
-                    readOnly
-                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#17a2b8]"
-                  />
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">✕</button>
-                </div>
+                <GroupedSelect
+                  data={legalEntities}
+                  value={operation.accountId}
+                  onChange={(value) => console.log('Selected account:', value)}
+                  placeholder="Выберите счет..."
+                  groupBy={true}
+                  labelKey="label"
+                  valueKey="guid"
+                  groupKey="group"
+                  loading={loadingLegalEntities}
+                  className="flex-1"
+                />
               </div>
 
               {/* Сумма */}
@@ -132,37 +164,47 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
               {/* Контрагент */}
               <div className="flex items-center gap-4">
                 <label className="w-[140px] text-[13px] text-slate-900">Контрагент</label>
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    value={operation.kontragent}
-                    readOnly
-                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#17a2b8]"
-                  />
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">✕</button>
-                </div>
+                <GroupedSelect
+                  data={counterAgents}
+                  value={operation.kontragentId}
+                  onChange={(value) => console.log('Selected counteragent:', value)}
+                  placeholder="Выберите контрагента..."
+                  groupBy={true}
+                  labelKey="label"
+                  valueKey="guid"
+                  groupKey="group"
+                  loading={loadingCounterAgents}
+                  className="flex-1"
+                />
               </div>
 
               {/* Статья */}
               <div className="flex items-center gap-4">
                 <label className="w-[140px] text-[13px] text-slate-900">Статья</label>
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    value={operation.category}
-                    readOnly
-                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#17a2b8]"
-                  />
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">✕</button>
-                </div>
+                <TreeSelect
+                  data={financialAccounts}
+                  value={operation.categoryId}
+                  onChange={(value) => console.log('Selected category:', value)}
+                  placeholder="Выберите статью..."
+                  loading={loadingFinancialAccounts}
+                  className="flex-1"
+                />
               </div>
 
               {/* Проект */}
               <div className="flex items-center gap-4">
                 <label className="w-[140px] text-[13px] text-slate-900">Проект</label>
-                <select className="flex-1 px-3 py-2 text-[13px] text-slate-500 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#17a2b8]">
-                  <option>{operation.project || 'Не выбран'}</option>
-                </select>
+                <GroupedSelect
+                  data={projects}
+                  value={operation.projectId}
+                  onChange={(value) => console.log('Selected project:', value)}
+                  placeholder="Не выбран"
+                  groupBy={false}
+                  labelKey="label"
+                  valueKey="guid"
+                  loading={loadingProjects}
+                  className="flex-1"
+                />
               </div>
 
               {/* Сделка закупки */}

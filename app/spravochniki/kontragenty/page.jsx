@@ -8,9 +8,15 @@ import { ViewToggle } from '@/components/spravochniki/ViewToggle'
 import { DataTable } from '@/components/spravochniki/DataTable'
 import { DropdownFilter } from '@/components/spravochniki/DropdownFilter'
 import { DateRangePicker } from '@/components/spravochniki/DateRangePicker'
+import { useCounterAgents } from '@/hooks/useDashboard'
 
 export default function KontragentsPage() {
   const router = useRouter()
+  
+  // Fetch counter agents from API
+  const { data: counterAgentsData, isLoading } = useCounterAgents()
+  const counterAgents = counterAgentsData?.data?.data?.data || []
+  
   const [isFilterOpen, setIsFilterOpen] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [view, setView] = useState('list')
@@ -44,16 +50,12 @@ export default function KontragentsPage() {
     { value: 'prochiye', label: 'Прочие' }
   ]
 
-  const kontragentOptions = [
-    { value: 'korolev', label: 'Королев А. А.' },
-    { value: 'voda', label: 'ООО Вода' },
-    { value: 'biznes', label: 'ООО Бизнес Сити' },
-    { value: 'toplivo', label: 'ООО Топливная компания' },
-    { value: 'muravyeva', label: 'ИП Муравьева Анна' },
-    { value: 'prometey', label: 'ООО Прометей' },
-    { value: 'sber', label: 'Сбербанк' },
-    { value: 'komus', label: 'ООО Комус' }
-  ]
+  // Convert API data to dropdown format with grouping
+  const kontragentOptions = counterAgents.map(ca => ({
+    value: ca.guid,
+    label: ca.label,
+    group: ca.group || 'Без группы'
+  }))
 
   const entityOptions = [
     { value: 'ip_ivanov', label: 'ИП Иванов Иван Иванович' },
@@ -80,18 +82,13 @@ export default function KontragentsPage() {
     { value: 'salary', label: 'ЗП отдел продаж [Расходы]' }
   ]
 
+  // Mock table data (not using API data for table)
   const kontragents = [
-    { id: 1, name: 'Королев А. А.', type: 'Покупатель', inn: '772345678901', phone: '+7 (495) 123-45-67', balance: '+198 620' },
-    { id: 2, name: 'ООО Вода', type: 'Поставщик', inn: '7723456789', phone: '+7 (495) 234-56-78', balance: '-6 000' },
-    { id: 3, name: 'ООО Бизнес Сити', type: 'Поставщик', inn: '7723456790', phone: '+7 (495) 345-67-89', balance: '-48 600' },
-    { id: 4, name: 'ООО Топливная компания', type: 'Поставщик', inn: '7723456791', phone: '+7 (495) 456-78-90', balance: '-10 000' },
-    { id: 5, name: 'ИП Муравьева Анна', type: 'Поставщик', inn: '772345678902', phone: '+7 (495) 567-89-01', balance: '-21 400' },
-    { id: 6, name: 'ООО Прометей', type: 'Покупатель', inn: '7723456792', phone: '+7 (495) 678-90-12', balance: '+80 000' },
-    { id: 7, name: 'Сбербанк', type: 'Поставщик', inn: '7707083893', phone: '+7 (495) 789-01-23', balance: '-10 425' },
-    { id: 8, name: 'ООО Комус', type: 'Поставщик', inn: '7723456793', phone: '+7 (495) 890-12-34', balance: '-14 789' },
-    { id: 9, name: 'Листьева А.И.', type: 'Сотрудник', inn: '772345678903', phone: '+7 (495) 901-23-45', balance: '-50 000' },
-    { id: 10, name: 'Петренко Нина Семеновна', type: 'Сотрудник', inn: '772345678904', phone: '+7 (495) 012-34-56', balance: '-52 000' },
-    { id: 11, name: 'Яндекс Директ', type: 'Поставщик', inn: '7736207543', phone: '+7 (495) 123-45-68', balance: '-50 000' }
+    { id: 1, name: 'ООО "Прометей"', type: 'Поставщик', inn: '7701234567', phone: '+7 (495) 123-45-67', balance: '+150 000' },
+    { id: 2, name: 'ИП Иванов Иван Иванович', type: 'Клиент', inn: '770987654321', phone: '+7 (495) 987-65-43', balance: '-50 000' },
+    { id: 3, name: 'ООО "Альфа"', type: 'Поставщик', inn: '7702345678', phone: '+7 (495) 234-56-78', balance: '0' },
+    { id: 4, name: 'Петров А.А.', type: 'Сотрудник', inn: '771234567890', phone: '+7 (495) 345-67-89', balance: '+25 000' },
+    { id: 5, name: 'ООО "Бета"', type: 'Клиент', inn: '7703456789', phone: '+7 (495) 456-78-90', balance: '+100 000' }
   ]
 
   const columns = [
@@ -135,6 +132,7 @@ export default function KontragentsPage() {
               selectedValues={selectedKontragents}
               onChange={setSelectedKontragents}
               placeholder="Контрагенты"
+              grouped={true}
             />
             <DropdownFilter
               label="Юрлица"

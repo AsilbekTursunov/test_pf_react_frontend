@@ -2,8 +2,35 @@
 
 import { useState, useRef, useEffect, Fragment } from 'react'
 import { cn } from '@/app/lib/utils'
+import { useCounterAgents, useLegalEntitiesWithAccounts, useProjects, useFinancialAccounts } from '@/hooks/useDashboard'
 
 export default function OperationsPage() {
+  // Fetch data from API
+  const { data: counterAgentsData } = useCounterAgents()
+  const { data: legalEntitiesData } = useLegalEntitiesWithAccounts()
+  const { data: projectsData } = useProjects()
+  const { data: financialAccountsData } = useFinancialAccounts()
+
+  // Extract and transform data from API responses
+  const counterAgents = (counterAgentsData?.data?.data?.data || []).map(item => ({
+    guid: item.guid,
+    label: item.name,
+    group: item.group || 'Без группы'
+  }))
+  
+  const legalEntities = (legalEntitiesData?.data?.data?.data || []).map(item => ({
+    guid: item.guid,
+    label: item.name,
+    group: item.group || 'Без группы'
+  }))
+  
+  const projects = (projectsData?.data?.data?.data || []).map(item => ({
+    guid: item.guid,
+    label: item.name
+  }))
+  
+  const financialAccounts = financialAccountsData?.data?.data?.data || []
+
   const [isFilterOpen, setIsFilterOpen] = useState(true)
   const [selectedFilters, setSelectedFilters] = useState({
     postupleniye: true,
@@ -63,6 +90,9 @@ export default function OperationsPage() {
     prometey: true,
     tbank: true
   })
+  const [selectedCounterAgents, setSelectedCounterAgents] = useState({})
+  const [selectedFinancialAccounts, setSelectedFinancialAccounts] = useState({})
+  const [selectedProjects, setSelectedProjects] = useState({})
   const parameterDropdownRef = useRef(null)
 
   useEffect(() => {
@@ -913,24 +943,206 @@ export default function OperationsPage() {
                   )}
                 </div>
 
-                <button className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors">
-                  <span>Контрагенты</span>
-                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <button className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors">
-                  <span>Статьи учета</span>
-                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <button className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors">
-                  <span>Проекты</span>
-                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                {/* Контрагенты */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setOpenParameterDropdown(openParameterDropdown === 'counteragents' ? null : 'counteragents')}
+                    className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    <span>Контрагенты</span>
+                    <svg className={cn("w-3.5 h-3.5 text-slate-400 transition-transform", openParameterDropdown === 'counteragents' && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {openParameterDropdown === 'counteragents' && (
+                    <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-lg shadow-xl border border-slate-200 z-[1000] max-h-[400px] overflow-hidden flex flex-col">
+                      <div className="p-3 border-b border-slate-200">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Поиск по списку"
+                            className="w-full pl-9 pr-3 py-2 text-[13px] text-slate-400 border border-slate-300 rounded-lg focus:outline-none focus:ring-0 focus:border-slate-400"
+                          />
+                          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      <div className="px-3 py-2 bg-white border-b border-slate-200">
+                        <button 
+                          onClick={() => {
+                            const allSelected = {}
+                            counterAgents.forEach(ca => allSelected[ca.guid] = true)
+                            setSelectedCounterAgents(allSelected)
+                          }}
+                          className="text-[14px] text-[#17a2b8] hover:text-[#138496] font-normal"
+                        >
+                          Выбрать все
+                        </button>
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto bg-slate-50">
+                        <div className="p-2">
+                          {/* Group counteragents by group field */}
+                          {Object.entries(
+                            counterAgents.reduce((acc, ca) => {
+                              const group = ca.group || 'Без группы'
+                              if (!acc[group]) acc[group] = []
+                              acc[group].push(ca)
+                              return acc
+                            }, {})
+                          ).map(([groupName, items]) => (
+                            <div key={groupName} className="mb-1">
+                              <div className="px-3 py-2 text-[14px] font-semibold text-slate-900">
+                                {groupName}
+                              </div>
+                              {items.map((ca) => (
+                                <label key={ca.guid} className="flex items-center gap-3 py-2 px-6 cursor-pointer hover:bg-white rounded transition-colors group">
+                                  <div className="relative flex-shrink-0">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedCounterAgents[ca.guid] || false}
+                                      onChange={() => setSelectedCounterAgents(prev => ({ ...prev, [ca.guid]: !prev[ca.guid] }))}
+                                      className="peer sr-only"
+                                    />
+                                    <div className={cn(
+                                      "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                                      selectedCounterAgents[ca.guid] 
+                                        ? "bg-[#17a2b8] border-[#17a2b8]" 
+                                        : "border-slate-300 bg-white group-hover:border-slate-400"
+                                    )}>
+                                      {selectedCounterAgents[ca.guid] && (
+                                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <span className="text-[13px] text-slate-700">{ca.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Статьи учета */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setOpenParameterDropdown(openParameterDropdown === 'categories' ? null : 'categories')}
+                    className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    <span>Статьи учета</span>
+                    <svg className={cn("w-3.5 h-3.5 text-slate-400 transition-transform", openParameterDropdown === 'categories' && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {openParameterDropdown === 'categories' && (
+                    <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-lg shadow-xl border border-slate-200 z-[1000] max-h-[400px] overflow-hidden flex flex-col">
+                      <div className="p-3 border-b border-slate-200">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Поиск по списку"
+                            className="w-full pl-9 pr-3 py-2 text-[13px] text-slate-400 border border-slate-300 rounded-lg focus:outline-none focus:ring-0 focus:border-slate-400"
+                          />
+                          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto bg-slate-50">
+                        <div className="p-2 text-[13px] text-slate-600">
+                          Древовидная структура статей учета
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Проекты */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setOpenParameterDropdown(openParameterDropdown === 'projects' ? null : 'projects')}
+                    className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    <span>Проекты</span>
+                    <svg className={cn("w-3.5 h-3.5 text-slate-400 transition-transform", openParameterDropdown === 'projects' && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {openParameterDropdown === 'projects' && (
+                    <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-lg shadow-xl border border-slate-200 z-[1000] max-h-[400px] overflow-hidden flex flex-col">
+                      <div className="p-3 border-b border-slate-200">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Поиск по списку"
+                            className="w-full pl-9 pr-3 py-2 text-[13px] text-slate-400 border border-slate-300 rounded-lg focus:outline-none focus:ring-0 focus:border-slate-400"
+                          />
+                          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      <div className="px-3 py-2 bg-white border-b border-slate-200">
+                        <button 
+                          onClick={() => {
+                            const allSelected = {}
+                            projects.forEach(p => allSelected[p.guid] = true)
+                            setSelectedProjects(allSelected)
+                          }}
+                          className="text-[14px] text-[#17a2b8] hover:text-[#138496] font-normal"
+                        >
+                          Выбрать все
+                        </button>
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto bg-slate-50">
+                        <div className="p-2">
+                          {projects.map((project) => (
+                            <label key={project.guid} className="flex items-center gap-3 py-2 px-3 cursor-pointer hover:bg-white rounded transition-colors group">
+                              <div className="relative flex-shrink-0">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedProjects[project.guid] || false}
+                                  onChange={() => setSelectedProjects(prev => ({ ...prev, [project.guid]: !prev[project.guid] }))}
+                                  className="peer sr-only"
+                                />
+                                <div className={cn(
+                                  "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                                  selectedProjects[project.guid] 
+                                    ? "bg-[#17a2b8] border-[#17a2b8]" 
+                                    : "border-slate-300 bg-white group-hover:border-slate-400"
+                                )}>
+                                  {selectedProjects[project.guid] && (
+                                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-[13px] text-slate-700">{project.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <button className="w-full text-left text-[13px] text-slate-600 flex items-center justify-between py-2 px-3 rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors">
                   <span>Сделки</span>
                   <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,9 +1,14 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/app/lib/utils'
+import { useFinancialAccounts } from '@/hooks/useDashboard'
 
 export default function TransactionCategoriesPage() {
+  // Fetch financial accounts from API
+  const { data: financialAccountsData, isLoading } = useFinancialAccounts()
+  const financialAccounts = financialAccountsData?.data?.data?.data || []
+  
   const [activeTab, setActiveTab] = useState('income')
   const [expandedCategories, setExpandedCategories] = useState([1, 2, 3])
   const [closingCategories, setClosingCategories] = useState([])
@@ -41,132 +46,43 @@ export default function TransactionCategoriesPage() {
     }
   }
 
-  const categoriesByTab = {
-    income: [
-      { id: 1, name: 'Услуги ремонта', hasMenu: true },
-      { id: 2, name: 'Поступление от заказчика', hasMenu: true },
-      { 
-        id: 3, 
-        name: 'Прочие доходы', 
-        hasLock: true,
-        children: [
-          { id: 31, name: 'Проценты по выданным займам', hasMenu: true },
-          { id: 32, name: 'Курсовая разница (+)', badge: 'скоро', hasLock: true }
-        ]
+  // Convert API tree data to tab structure
+  const categoriesByTab = {}
+  
+  financialAccounts.forEach(rootNode => {
+    let tabKey = 'income'
+    
+    // Map root types to tabs
+    if (rootNode.type === 'Доходы' || rootNode.value === 'root_income') {
+      tabKey = 'income'
+    } else if (rootNode.type === 'Расходы' || rootNode.value === 'root_expenses') {
+      tabKey = 'expense'
+    } else if (rootNode.type === 'Активы' || rootNode.value === 'root_assets') {
+      tabKey = 'assets'
+    } else if (rootNode.type === 'Обязательства' || rootNode.value === 'root_obligations') {
+      tabKey = 'liabilities'
+    } else if (rootNode.type === 'Капитал' || rootNode.value === 'root_capital') {
+      tabKey = 'capital'
+    }
+    
+    // Convert tree structure to flat structure with children
+    const convertNode = (node, parentId = null) => {
+      const converted = {
+        id: node.value,
+        name: node.title,
+        hasMenu: node.selectable,
+        hasLock: !node.selectable,
+        children: node.children && node.children.length > 0 
+          ? node.children.map(child => convertNode(child, node.value))
+          : undefined
       }
-    ],
-    expense: [
-      { id: 1, name: 'ГСМ', hasMenu: true },
-      { id: 2, name: 'Аренда склада', hasMenu: true },
-      { id: 3, name: 'Кровельное покрытие', hasMenu: true },
-      { id: 4, name: 'Перекрытия', hasMenu: true },
-      { id: 5, name: 'Утепление', hasMenu: true },
-      { 
-        id: 6, 
-        name: 'Отделка',
-        children: [
-          { id: 61, name: 'Черновая отделка', hasMenu: true },
-          { id: 62, name: 'Чистовая отделка', hasMenu: true }
-        ]
-      },
-      { id: 7, name: 'Доставка стройматериалов', hasMenu: true },
-      { id: 8, name: 'Вывоз мусора', hasMenu: true },
-      { id: 9, name: 'Расходники', hasMenu: true },
-      { id: 10, name: 'Электрика', hasMenu: true }
-    ],
-    assets: [
-      { 
-        id: 1, 
-        name: 'Оборотные активы',
-        badge: 'Операционный поток',
-        children: [
-          { id: 11, name: 'Денежные средства', hasLock: true },
-          { 
-            id: 12, 
-            name: 'Дебиторская задолженность',
-            children: [
-              { id: 121, name: 'Денежная', hasLock: true },
-              { id: 122, name: 'Неденежная', hasLock: true }
-            ]
-          },
-          { id: 13, name: 'Запасы', hasLock: true },
-          { 
-            id: 14, 
-            name: 'Другие оборотные',
-            children: [
-              { id: 141, name: 'Заготовые платежи', hasMenu: true },
-              { id: 142, name: 'Выданные займы (до 1 года)', hasMenu: true }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 2, 
-        name: 'Внеоборотные активы',
-        badge: 'Инвестиционный поток',
-        children: [
-          { 
-            id: 21, 
-            name: 'Основные средства',
-            children: [
-              { id: 211, name: 'Оборудование', hasMenu: true },
-              { id: 212, name: 'Транспорт', hasMenu: true }
-            ]
-          },
-          { id: 22, name: 'Другие внеоборотные', hasLock: true }
-        ]
-      }
-    ],
-    liabilities: [
-      { 
-        id: 1, 
-        name: 'Краткосрочные обязательства',
-        badge: 'Операционный поток',
-        children: [
-          { 
-            id: 11, 
-            name: 'Кредиторская задолженность',
-            hasLock: true
-          },
-          { 
-            id: 12, 
-            name: 'Другие краткосрочные',
-            children: [
-              { id: 121, name: 'Платежи третьим лицам', hasLock: true },
-              { id: 122, name: 'Полученные займы (до 1 года)', hasMenu: true }
-            ]
-          }
-        ]
-      },
-      { 
-        id: 2, 
-        name: 'Долгосрочные обязательства',
-        badge: 'Финансовый поток',
-        children: [
-          { 
-            id: 21, 
-            name: 'Кредиты',
-            hasLock: true,
-            children: [
-              { id: 211, name: 'Кредит от 19.05.2025', hasMenu: true },
-              { id: 212, name: 'Кредит от 04.02.2025', hasMenu: true }
-            ]
-          },
-          { 
-            id: 22, 
-            name: 'Другие долгосрочные',
-            hasLock: true
-          }
-        ]
-      }
-    ],
-    capital: [
-      { id: 1, name: 'Вложения учредителей', hasLock: true },
-      { id: 2, name: 'Нераспределенная прибыль', hasLock: true },
-      { id: 3, name: 'Дивиденды', hasLock: true },
-      { id: 4, name: 'Другие статьи капитала', hasLock: true }
-    ]
-  }
+      return converted
+    }
+    
+    if (rootNode.children) {
+      categoriesByTab[tabKey] = rootNode.children.map(child => convertNode(child))
+    }
+  })
 
   const categories = categoriesByTab[activeTab] || []
 
