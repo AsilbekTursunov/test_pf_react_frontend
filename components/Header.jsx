@@ -813,7 +813,7 @@ export function Header() {
                                             document.cookie = 'isAuthenticated=; path=/; max-age=0'
                                             localStorage.removeItem('isAuthenticated')
                                             localStorage.removeItem('userEmail')
-                                            window.location.href = '/login'
+                                            window.location.href = '/pages/auth'
                                         }}
                                         disabled={isLoggingOut}
                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-red-600 hover:bg-red-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"

@@ -18,25 +18,25 @@ import {
 import { cn } from '@/app/lib/utils'
 
 const navItems = [
-    { icon: LineChart, label: 'Показатели', href: '/', hasPage: true },
-    { icon: RefreshCw, label: 'Операции', href: '/operations', hasPage: true },
-    { icon: Database, label: 'Продажи', href: '/prodazhi', hasPage: false },
-    { icon: CalendarCheck, label: 'Закупки', href: '/zakupki', hasPage: false },
-    { icon: Briefcase, label: 'Взаиморасчеты', href: '/vzaimoraschety', hasPage: false },
-    { icon: ClipboardList, label: 'Товары и услуги', href: '/tovary', hasPage: false },
-    { icon: Library, label: 'Контрагенты', href: '/kontragenty', hasPage: false },
+    { icon: LineChart, label: 'Показатели', href: '/pages/dashboard', hasPage: true },
+    { icon: RefreshCw, label: 'Операции', href: '/pages/operations', hasPage: true },
+    { icon: Database, label: 'Продажи', href: '/pages/sales', hasPage: false },
+    { icon: CalendarCheck, label: 'Закупки', href: '/pages/purchases', hasPage: false },
+    { icon: Briefcase, label: 'Взаиморасчеты', href: '/pages/mutual-settlements', hasPage: false },
+    { icon: ClipboardList, label: 'Товары и услуги', href: '/pages/products', hasPage: false },
+    { icon: Library, label: 'Контрагенты', href: '/pages/counterparties', hasPage: false },
     { 
         icon: Settings, 
         label: 'Справочники', 
-        href: '/spravochniki',
+        href: '/pages/directories',
         hasPage: true,
         submenu: [
-            { label: 'Контрагенты', href: '/spravochniki/kontragenty', hasPage: true },
-            { label: 'Учетные статьи', href: '/spravochniki/transaction-categories', hasPage: true },
-            { label: 'Мои счета', href: '/spravochniki/accounts', hasPage: true },
-            { label: 'Мои юрлица', href: '/spravochniki/legal-entities', hasPage: true },
-            { label: 'Товары', href: '/spravochniki/products', hasPage: true },
-            { label: 'Услуги', href: '/spravochniki/products/services', hasPage: true }
+            { label: 'Контрагенты', href: '/pages/directories/counterparties', hasPage: true },
+            { label: 'Учетные статьи', href: '/pages/directories/transaction-categories', hasPage: true },
+            { label: 'Мои счета', href: '/pages/directories/accounts', hasPage: true },
+            { label: 'Мои юрлица', href: '/pages/directories/legal-entities', hasPage: true },
+            { label: 'Товары', href: '/pages/directories/products', hasPage: true },
+            { label: 'Услуги', href: '/pages/directories/products/services', hasPage: true }
         ]
     },
 ]

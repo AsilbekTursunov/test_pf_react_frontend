@@ -1,0 +1,299 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc; // slate-50
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.breadcrumbs {
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0; // slate-200
+  padding: 0.5rem 1.5rem;
+}
+
+.breadcrumbsContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+}
+
+.breadcrumbLink {
+  color: #64748b; // slate-500
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #334155; // slate-700
+  }
+}
+
+.breadcrumbSeparator {
+  color: #94a3b8; // slate-400
+}
+
+.breadcrumbCurrent {
+  color: #0f172a; // slate-900
+}
+
+.header {
+  background-color: #f8fafc; // slate-50
+  padding: 1.25rem 1.5rem;
+  flex-shrink: 0;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #0f172a; // slate-900
+}
+
+.dateInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: #64748b; // slate-500
+}
+
+.dateText {
+  color: #475569; // slate-600
+}
+
+.methodSelect {
+  padding: 0.375rem 0.75rem;
+  font-size: 12px;
+  color: #334155; // slate-700
+  background-color: white;
+  border: 1px solid #cbd5e1; // slate-300
+  border-radius: 0.25rem;
+  transition: border-color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #94a3b8; // slate-400
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #17a2b8;
+  }
+}
+
+.statsGrid {
+  display: flex;
+  gap: 1rem;
+}
+
+.financialCard {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0; // slate-200
+  padding: 1rem;
+  min-width: 200px;
+}
+
+.financialCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.financialItem {
+  // Empty, used for structure
+}
+
+.financialItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.financialItemDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.financialItemLabel {
+  font-size: 13px;
+  color: #334155; // slate-700
+}
+
+.financialItemValue {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0f172a; // slate-900
+}
+
+.financialItemCurrency {
+  font-size: 16px;
+  color: #94a3b8; // slate-400
+}
+
+.debitCreditColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 180px;
+}
+
+.debitCreditCard {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0; // slate-200
+  padding: 1rem;
+  flex: 1;
+}
+
+.debitCreditTitle {
+  font-size: 14px;
+  color: #334155; // slate-700
+  margin-bottom: 0.375rem;
+}
+
+.debitCreditValue {
+  font-size: 13px;
+  color: #94a3b8; // slate-400
+}
+
+.infoCard {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0; // slate-200
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.infoCardTop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.infoCardText {
+  font-size: 13px;
+  color: #94a3b8; // slate-400
+}
+
+.infoCardTextRight {
+  text-align: right;
+}
+
+.infoCardTextCenter {
+  text-align: center;
+}
+
+.operationsSection {
+  flex: 1;
+  background-color: white;
+}
+
+.operationsContent {
+  padding: 1.25rem 1.5rem;
+}
+
+.operationsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.operationsTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a; // slate-900
+}
+
+.filtersButton {
+  font-size: 13px;
+  color: #17a2b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}
+
+.filtersRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.filterSelect {
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #475569; // slate-600
+  background-color: white;
+  border: 1px solid #cbd5e1; // slate-300
+  border-radius: 0.25rem;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+  }
+}
+
+.footer {
+  background-color: white;
+  border-top: 1px solid #e2e8f0; // slate-200
+  padding: 0.75rem 1.5rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.footerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.footerStats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.footerText {
+  color: #475569; // slate-600
+}
+
+.footerTextBold {
+  font-weight: 500;
+  color: #0f172a; // slate-900
+}
+
+.footerTextGreen {
+  font-weight: 500;
+  color: #16a34a; // green-600
+}

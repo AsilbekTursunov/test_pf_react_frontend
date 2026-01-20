@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
-  const isLoginPage = pathname === '/login'
+  const isLoginPage = pathname === '/pages/auth'
 
   return (
     <html lang="en">

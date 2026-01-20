@@ -6,37 +6,37 @@ export default function SpravochnikiPage() {
   const sections = [
     { 
       title: 'Контрагенты', 
-      href: '/spravochniki/kontragenty',
+      href: '/pages/directories/counterparties',
       description: 'Управление покупателями, поставщиками и сотрудниками',
       icon: '👥'
     },
     { 
       title: 'Учетные статьи', 
-      href: '/spravochniki/transaction-categories',
+      href: '/pages/directories/transaction-categories',
       description: 'Категории доходов, расходов, активов и обязательств',
       icon: '📊'
     },
     { 
       title: 'Мои счета', 
-      href: '/spravochniki/accounts',
+      href: '/pages/directories/accounts',
       description: 'Наличные и безналичные счета',
       icon: '💳'
     },
     { 
       title: 'Мои юрлица', 
-      href: '/spravochniki/legal-entities',
+      href: '/pages/directories/legal-entities',
       description: 'Юридические лица и ИП',
       icon: '🏢'
     },
     { 
       title: 'Товары', 
-      href: '/spravochniki/products',
+      href: '/pages/directories/products',
       description: 'Каталог товаров и материалов',
       icon: '📦'
     },
     { 
       title: 'Услуги', 
-      href: '/spravochniki/products/services',
+      href: '/pages/directories/products/services',
       description: 'Каталог услуг',
       icon: '🛠️'
     }

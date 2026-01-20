@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/app/lib/utils'
+import styles from './auth.module.scss'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -51,7 +52,7 @@ export default function LoginPage() {
       document.cookie = 'isAuthenticated=true; path=/; max-age=86400'
       localStorage.setItem('isAuthenticated', 'true')
       localStorage.setItem('userEmail', 'demo-guest@planfact.io')
-      router.push('/')
+      router.push('/pages/dashboard')
     } else {
       setError('Неверный логин или пароль')
       setIsSubmitting(false)
@@ -65,21 +66,11 @@ export default function LoginPage() {
         {/* Form container */}
         <div className="w-full max-w-md">
           <div 
-            className="bg-white rounded-3xl p-10 border border-slate-200"
-            style={{
-              animation: 'fadeSlideUp 0.8s ease-out',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.04)'
-            }}
+            className={cn("bg-white rounded-3xl p-10 border border-slate-200", styles.formContainer)}
           >
             {/* Logo/Title */}
             <div className="mb-10">
-              <h1 className="text-4xl font-bold text-slate-900 mb-3"
-                style={{
-                  background: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
+              <h1 className={cn("text-4xl font-bold text-slate-900 mb-3", styles.titleGradient)}
               >
                 ПланФакт
               </h1>
@@ -194,11 +185,7 @@ export default function LoginPage() {
                 
                 {/* Pulsing glow */}
                 {!isSubmitting && (
-                  <div className="absolute inset-0 rounded-xl bg-[#17a2b8]/20 -z-10 blur-xl"
-                    style={{
-                      animation: 'pulse 3s ease-in-out infinite'
-                    }}
-                  />
+                  <div className={cn("absolute inset-0 rounded-xl bg-[#17a2b8]/20 -z-10 blur-xl", styles.pulsingGlow)} />
                 )}
               </div>
             </form>
@@ -221,41 +208,20 @@ export default function LoginPage() {
           <div 
             className={cn(
               "absolute w-[500px] h-[500px] rounded-full blur-3xl transition-all duration-1000 ease-out",
-              focusedField === 'username' ? "scale-125 opacity-30" : "scale-100 opacity-15"
+              focusedField === 'username' ? styles.gradientOrb1Focused : styles.gradientOrb1Unfocused
             )}
-            style={{
-              background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)',
-              top: '20%',
-              left: '20%',
-              animation: 'float 10s ease-in-out infinite'
-            }}
           />
           
           <div 
             className={cn(
               "absolute w-[400px] h-[400px] rounded-full blur-3xl transition-all duration-1000 ease-out",
-              focusedField === 'password' ? "scale-125 opacity-30" : "scale-100 opacity-15"
+              focusedField === 'password' ? styles.gradientOrb2Focused : styles.gradientOrb2Unfocused
             )}
-            style={{
-              background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)',
-              bottom: '20%',
-              right: '20%',
-              animation: 'float 12s ease-in-out infinite reverse'
-            }}
           />
 
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 opacity-5">
-            <div 
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `
-                  linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-                  linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
-                `,
-                backgroundSize: '100px 100px'
-              }}
-            />
+            <div className={cn("absolute inset-0", styles.gridPattern)} />
           </div>
 
           {/* Floating geometric shapes */}
@@ -272,29 +238,45 @@ export default function LoginPage() {
             { left: 50, top: 80 },
             { left: 75, top: 75 },
             { left: 30, top: 85 }
-          ].map((pos, i) => (
-            <div
-              key={i}
-              className="absolute"
-              style={{
-                left: `${pos.left}%`,
-                top: `${pos.top}%`,
-                animation: `float ${10 + i * 1.5}s ease-in-out infinite`,
-                animationDelay: `${i * 0.5}s`
-              }}
-            >
+          ].map((pos, i) => {
+            const width = i % 3 === 0 ? '48px' : i % 3 === 1 ? '40px' : '32px';
+            const height = i % 3 === 0 ? '48px' : i % 3 === 1 ? '40px' : '32px';
+            const borderRadius = i % 2 === 0 ? '50%' : '25%';
+            const floatDuration = `${10 + i * 1.5}s`;
+            const rotateDuration = `${15 + i * 2}s`;
+            const delay = `${i * 0.5}s`;
+            
+            return (
               <div
-                className="border-2 border-white/20 backdrop-blur-sm"
+                key={i}
+                className={cn("absolute", styles.floatingShape)}
                 style={{
-                  width: i % 3 === 0 ? '48px' : i % 3 === 1 ? '40px' : '32px',
-                  height: i % 3 === 0 ? '48px' : i % 3 === 1 ? '40px' : '32px',
-                  borderRadius: i % 2 === 0 ? '50%' : '25%',
-                  animation: `rotate ${15 + i * 2}s linear infinite`,
-                  background: 'rgba(255,255,255,0.05)'
+                  '--shape-left': `${pos.left}%`,
+                  '--shape-top': `${pos.top}%`,
+                  '--shape-duration': floatDuration,
+                  '--shape-delay': delay,
+                  animation: 'float var(--shape-duration) ease-in-out infinite'
                 }}
-              />
-            </div>
-          ))}
+              >
+                <div
+                  className={cn(
+                    "border-2 border-white/20 backdrop-blur-sm",
+                    styles.shapeInner
+                  )}
+                  style={{
+                    '--shape-width': width,
+                    '--shape-height': height,
+                    '--shape-border-radius': borderRadius,
+                    '--shape-rotate-duration': rotateDuration,
+                    width: 'var(--shape-width)',
+                    height: 'var(--shape-height)',
+                    borderRadius: 'var(--shape-border-radius)',
+                    animation: 'rotate var(--shape-rotate-duration) linear infinite'
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Content overlay */}
@@ -302,17 +284,8 @@ export default function LoginPage() {
           <div className="max-w-2xl w-full text-center">
             {/* Animated logo/icon */}
             <div className="mb-6 relative">
-              <div 
-                className="w-20 h-20 mx-auto relative"
-                style={{
-                  animation: 'float 6s ease-in-out infinite'
-                }}
-              >
-                <div className="absolute inset-0 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/30" 
-                  style={{
-                    animation: 'rotate 20s linear infinite'
-                  }}
-                />
+              <div className={cn("w-20 h-20 mx-auto relative", styles.logoContainer)}>
+                <div className={cn("absolute inset-0 bg-white/20 rounded-2xl backdrop-blur-sm border border-white/30", styles.logoInner)} />
                 <div className="absolute inset-2 bg-white/10 rounded-xl flex items-center justify-center">
                   <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -321,12 +294,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <h2 className="text-4xl font-bold mb-4 leading-tight"
-              style={{
-                animation: 'fadeSlideUp 0.8s ease-out',
-                textShadow: '0 2px 20px rgba(0,0,0,0.2)'
-              }}
-            >
+            <h2 className={cn("text-4xl font-bold mb-4 leading-tight", styles.welcomeTitle)}>
               Добро пожаловать в ПланФакт!
             </h2>
             
@@ -369,12 +337,8 @@ export default function LoginPage() {
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="absolute inset-0 flex flex-col items-center justify-center gap-4"
-                    style={{
-                      animation: `textRotate 16s ease-in-out infinite`,
-                      animationDelay: `${index * 4}s`,
-                      opacity: 0
-                    }}
+                    className={cn("absolute inset-0 flex flex-col items-center justify-center gap-4", styles.rotatingTextItem)}
+                    data-index={index}
                   >
                     <div className="text-white drop-shadow-lg">{item.icon}</div>
                     <p className="text-2xl text-white font-semibold px-8 drop-shadow-lg">
@@ -395,10 +359,8 @@ export default function LoginPage() {
               ].map((stat, index) => (
                 <div
                   key={index}
-                  className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105"
-                  style={{
-                    animation: `fadeSlideUp 0.6s ease-out ${0.8 + index * 0.1}s backwards`
-                  }}
+                  className={cn("bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105", styles.statCard)}
+                  data-index={index}
                 >
                   <div className="text-3xl font-bold text-white mb-1">{stat.number}</div>
                   <div className="text-sm text-white/70">{stat.label}</div>
@@ -408,114 +370,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
-          }
-          25% {
-            transform: translateY(-20px) translateX(10px);
-          }
-          50% {
-            transform: translateY(-10px) translateX(-10px);
-          }
-          75% {
-            transform: translateY(-30px) translateX(5px);
-          }
-        }
-
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.25;
-          }
-          50% {
-            transform: scale(1.05);
-            opacity: 0.35;
-          }
-        }
-
-        @keyframes rotate {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes gridMove {
-          from {
-            transform: rotateX(60deg) translateZ(-100px) translateY(0);
-          }
-          to {
-            transform: rotateX(60deg) translateZ(-100px) translateY(80px);
-          }
-        }
-
-        @keyframes slideDown {
-          0% {
-            transform: translateY(-100%) rotate(15deg);
-            opacity: 0;
-          }
-          50% {
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh) rotate(15deg);
-            opacity: 0;
-          }
-        }
-
-        @keyframes ping {
-          75%, 100% {
-            transform: scale(2);
-            opacity: 0;
-          }
-        }
-
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-
-        @keyframes textRotate {
-          0% {
-            opacity: 0;
-            transform: translateY(30px) scale(0.9);
-          }
-          5% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-          20% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-          25% {
-            opacity: 0;
-            transform: translateY(-30px) scale(0.9);
-          }
-          26%, 100% {
-            opacity: 0;
-            transform: translateY(30px) scale(0.9);
-          }
-        }
-
-        @keyframes gradientShift {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-      `}</style>
     </div>
   )
 }

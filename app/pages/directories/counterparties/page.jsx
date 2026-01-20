@@ -9,6 +9,7 @@ import { DataTable } from '@/components/spravochniki/DataTable'
 import { DropdownFilter } from '@/components/spravochniki/DropdownFilter'
 import { DateRangePicker } from '@/components/spravochniki/DateRangePicker'
 import { useCounterAgents } from '@/hooks/useDashboard'
+import styles from './counterparties.module.scss'
 
 export default function KontragentsPage() {
   const router = useRouter()
@@ -101,7 +102,15 @@ export default function KontragentsPage() {
       label: 'Баланс', 
       sortable: true,
       render: (value) => (
-        <span className={value.startsWith('+') ? 'text-green-600' : value.startsWith('-') ? 'text-red-600' : ''}>
+        <span
+          className={
+            value.startsWith('+')
+              ? styles.balancePositive
+              : value.startsWith('-')
+              ? styles.balanceNegative
+              : ''
+          }
+        >
           {value}
         </span>
       )
@@ -115,7 +124,7 @@ export default function KontragentsPage() {
   })
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className={styles.container}>
       <FilterSidebar isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)}>
         <FilterSection title="Параметры">
           <div className="space-y-3">
@@ -189,17 +198,17 @@ export default function KontragentsPage() {
         </FilterSection>
       </FilterSidebar>
 
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className={styles.content}>
         {/* Fixed Header */}
-        <div className="bg-white border-b border-slate-200 px-6 py-3 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <h1 className="text-[18px] font-semibold text-slate-900">Контрагенты</h1>
+        <div className={styles.header}>
+          <div className={styles.headerInner}>
+            <h1 className={styles.headerTitle}>Контрагенты</h1>
             
-            <div className="flex items-center gap-3">
+            <div className={styles.headerControls}>
               <select
                 value={accountingMethod}
                 onChange={(e) => setAccountingMethod(e.target.value)}
-                className="px-3 py-1.5 text-[13px] text-slate-700 bg-white border border-slate-300 rounded hover:border-slate-400 transition-colors focus:outline-none focus:border-[#17a2b8] focus:ring-1 focus:ring-[#17a2b8]"
+                className={styles.methodSelect}
               >
                 <option value="cash">Учет по денежному потоку</option>
                 <option value="accrual">Учет по начислению</option>
@@ -213,7 +222,7 @@ export default function KontragentsPage() {
                 placeholder="Поиск по названию или контрагенту" 
               />
 
-              <button className="text-slate-400 hover:text-slate-600 transition-colors">
+              <button className={styles.iconButton}>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="12" cy="12" r="1"></circle>
                   <circle cx="12" cy="5" r="1"></circle>
@@ -225,42 +234,42 @@ export default function KontragentsPage() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-auto min-h-0">
-          <div className="p-6">
+        <div className={styles.tableArea}>
+          <div className={styles.tablePadding}>
             <DataTable 
               columns={columns}
               data={filteredData}
               selectedRows={selectedRows}
               onSelectRow={setSelectedRows}
-              onRowClick={(row) => router.push(`/spravochniki/kontragenty/${row.id}`)}
+              onRowClick={(row) => router.push(`/pages/directories/counterparties/${row.id}`)}
             />
           </div>
         </div>
 
         {/* Fixed Stats Bar (Footer) */}
-        <div className="bg-slate-100 border-t border-slate-200 px-6 py-2.5 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 text-[13px]">
-              <span className="text-slate-700">
-                <span className="font-medium text-slate-900">{selectedRows.length > 0 ? selectedRows.length : kontragents.length}</span> контрагент{selectedRows.length === 1 ? '' : 'ов'}
+        <div className={styles.footer}>
+          <div className={styles.footerInner}>
+            <div className={styles.footerStats}>
+              <span className={styles.footerText}>
+                <span className={styles.footerTextStrong}>{selectedRows.length > 0 ? selectedRows.length : kontragents.length}</span> контрагент{selectedRows.length === 1 ? '' : 'ов'}
               </span>
-              <span className="text-slate-600">
-                Дебиторка: <span className="font-medium text-slate-900">454 470 ₽</span>
+              <span className={styles.footerText}>
+                Дебиторка: <span className={styles.footerTextStrong}>454 470 ₽</span>
               </span>
-              <span className="text-slate-600">
-                Кредиторка: <span className="font-medium text-slate-900">589 288 ₽</span>
+              <span className={styles.footerText}>
+                Кредиторка: <span className={styles.footerTextStrong}>589 288 ₽</span>
               </span>
-              <span className="text-slate-600">
-                Поступления: <span className="font-medium text-slate-900">23 798 000 ₽</span>
+              <span className={styles.footerText}>
+                Поступления: <span className={styles.footerTextStrong}>23 798 000 ₽</span>
               </span>
-              <span className="text-slate-600">
-                Выплаты: <span className="font-medium text-slate-900">21 044 348 ₽</span>
+              <span className={styles.footerText}>
+                Выплаты: <span className={styles.footerTextStrong}>21 044 348 ₽</span>
               </span>
-              <span className="text-slate-600">
-                Разница: <span className="font-medium text-green-600">+2 753 652 ₽</span>
+              <span className={styles.footerText}>
+                Разница: <span className={styles.footerTextPositive}>+2 753 652 ₽</span>
               </span>
             </div>
-            <button className="text-slate-400 hover:text-slate-600 transition-colors">
+            <button className={styles.iconButton}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <circle cx="12" cy="12" r="1"></circle>
                 <circle cx="19" cy="12" r="1"></circle>
