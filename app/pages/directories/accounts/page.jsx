@@ -1,16 +1,26 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react'
-import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/spravochniki/FilterSidebar'
-import { SearchBar } from '@/components/spravochniki/SearchBar'
-import { DataTable } from '@/components/spravochniki/DataTable'
-import { DropdownFilter } from '@/components/spravochniki/DropdownFilter'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/directories/FilterSidebar/FilterSidebar'
+import { SearchBar } from '@/components/directories/SearchBar/SearchBar'
+import { DataTable } from '@/components/directories/DataTable/DataTable'
+import { DropdownFilter } from '@/components/directories/DropdownFilter/DropdownFilter'
+import { useBankAccounts } from '@/hooks/useDashboard'
 import { cn } from '@/app/lib/utils'
 import styles from './accounts.module.scss'
 
 export default function AccountsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  
+  // Fetch bank accounts from API
+  const { data: bankAccountsData, isLoading: isLoadingBankAccounts } = useBankAccounts({
+    limit: 100,
+    offset: 0,
+    search: searchQuery
+  })
+
+  const bankAccountsItems = bankAccountsData?.data?.data?.response || []
   const [selectedRows, setSelectedRows] = useState([])
   const [accountingMethod, setAccountingMethod] = useState('cash')
   const [isMethodDropdownOpen, setIsMethodDropdownOpen] = useState(false)
@@ -59,36 +69,19 @@ export default function AccountsPage() {
     setFilters(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const accounts = [
-    { 
-      id: 1, 
-      name: 'ИП Алексеенко Михаил Федорович ...', 
-      type: 'entity',
-      group: null,
-      initialBalance: '0 ₽',
-      currentBalance: '862 668 ₽',
-      accountType: '',
-      children: [
-        { id: 11, name: 'Альфа банк', group: '–', initialBalance: '0 ₽', currentBalance: '930 894 ₽', accountType: 'Безналичный' },
-        { id: 12, name: 'Карта физ. лица', group: '–', initialBalance: '0 ₽', currentBalance: '110 000 ₽', accountType: 'Наличный' },
-        { id: 13, name: 'Сейф', group: '–', initialBalance: '0 ₽', currentBalance: '-178 226 ₽', accountType: 'Безналичный' }
-      ]
-    },
-    { 
-      id: 2, 
-      name: 'ООО "Прометей" (3)', 
-      type: 'entity',
-      group: null,
-      initialBalance: '0 ₽',
-      currentBalance: '1 912 384 ₽',
-      accountType: '',
-      children: [
-        { id: 21, name: 'Наличка', group: '–', initialBalance: '0 ₽', currentBalance: '1 197 063 ₽', accountType: 'Безналичный' },
-        { id: 22, name: 'Сбер', group: '–', initialBalance: '0 ₽', currentBalance: '450 067 ₽', accountType: 'Безналичный' },
-        { id: 23, name: 'Т-Банк', group: '–', initialBalance: '0 ₽', currentBalance: '265 254 ₽', accountType: 'Безналичный' }
-      ]
-    }
-  ]
+  // Convert bank accounts API data to component format
+  const accounts = useMemo(() => {
+    return bankAccountsItems.map((item, index) => ({
+      id: item.guid || `account-${index}`,
+      name: item.nazvanie || 'Без названия',
+      type: 'account',
+      currentBalance: item.balans != null ? `${item.balans.toLocaleString('ru-RU')} ${item.currenies_id_data?.kod || ''}` : null,
+      accountType: item.currenies_id_data?.nazvanie || null,
+      accountNumber: item.nomer_scheta ? String(item.nomer_scheta) : null,
+      currency: item.currenies_id_data || null,
+      children: undefined
+    }))
+  }, [bankAccountsItems])
 
   const [expandedEntities, setExpandedEntities] = useState([1, 2])
   const [closingEntities, setClosingEntities] = useState([])
@@ -176,8 +169,9 @@ export default function AccountsPage() {
   }
 
   const totalCurrentBalance = accounts.reduce((sum, entity) => {
+    if (!entity.currentBalance) return sum
     const balance = parseFloat(entity.currentBalance.replace(/[^\d.-]/g, ''))
-    return sum + balance
+    return sum + (isNaN(balance) ? 0 : balance)
   }, 0)
 
   return (
@@ -313,11 +307,12 @@ export default function AccountsPage() {
             <table className={styles.table}>
               <thead className={styles.tableHead}>
                 <tr>
-                  <th className={cn(styles.tableHeaderCell, styles.checkbox)}>
+                  <th className={cn(styles.tableHeaderCell)}>
                     <div 
                       onClick={toggleSelectAll}
                       className={cn(
                         styles.checkbox,
+                        styles.headerCheckbox,
                         allSelected() ? styles.selected : styles.unselected
                       )}
                     >
@@ -354,17 +349,36 @@ export default function AccountsPage() {
                   </th>
                   <th className={styles.tableHeaderCell}>
                     <button className={styles.tableHeaderButton}>
-                      Название юрлица
+                      Название
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   </th>
-                  <th className={styles.tableHeaderCell}>Группа</th>
-                  <th className={cn(styles.tableHeaderCell, styles.right)}>Начальный остаток</th>
-                  <th className={cn(styles.tableHeaderCell, styles.right)}>Текущий остаток</th>
-                  <th className={styles.tableHeaderCell}>Тип</th>
-                  <th className={styles.tableHeaderCell}>Реквизиты</th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Номер счета
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={cn(styles.tableHeaderCell, styles.right)}>
+                    <button className={styles.tableHeaderButton}>
+                      Баланс
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Валюта
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -388,41 +402,45 @@ export default function AccountsPage() {
                         </div>
                       </td>
                       <td className={cn(styles.tableCell, styles.childExpandCell)}>
-                        <button
-                          onClick={() => toggleEntity(entity.id)}
-                          className={styles.expandButton}
-                        >
-                          <div className={styles.expandIcon}>
-                            <svg className={styles.expandIconHorizontal} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                            </svg>
-                            <svg 
-                              className={cn(
-                                styles.expandIconVertical,
-                                isEntityExpanded(entity.id) ? styles.expanded : styles.collapsed
-                              )}
-                              fill="none" 
-                              viewBox="0 0 24 24" 
-                              stroke="currentColor" 
-                              strokeWidth="2.5"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4" />
-                            </svg>
-                          </div>
-                        </button>
+                        {entity.children && entity.children.length > 0 ? (
+                          <button
+                            onClick={() => toggleEntity(entity.id)}
+                            className={styles.expandButton}
+                          >
+                            <div className={styles.expandIcon}>
+                              <svg className={styles.expandIconHorizontal} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                              </svg>
+                              <svg 
+                                className={cn(
+                                  styles.expandIconVertical,
+                                  isEntityExpanded(entity.id) ? styles.expanded : styles.collapsed
+                                )}
+                                fill="none" 
+                                viewBox="0 0 24 24" 
+                                stroke="currentColor" 
+                                strokeWidth="2.5"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4" />
+                              </svg>
+                            </div>
+                          </button>
+                        ) : (
+                          <div className={styles.emptyExpandCell}></div>
+                        )}
                       </td>
                       <td className={cn(styles.tableCell, styles.text)}>{entity.name}</td>
-                      <td className={cn(styles.tableCell, styles.textMuted, styles.textCenter)}>{entity.group || '–'}</td>
-                      <td className={cn(styles.tableCell, styles.textMuted, styles.textRight)}>{entity.initialBalance}</td>
-                      <td className={cn(styles.tableCell, styles.text, styles.fontMedium, styles.textRight)}>{entity.currentBalance}</td>
-                      <td className={cn(styles.tableCell, styles.textMuted)}>{entity.accountType}</td>
-                      <td className={cn(styles.tableCell, styles.textMuted)}></td>
+                      <td className={cn(styles.tableCell, styles.textMuted)}>{entity.accountNumber || '–'}</td>
+                      <td className={cn(styles.tableCell, styles.text, styles.fontMedium, styles.textRight)}>
+                        {entity.currentBalance || '–'}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.textMuted)}>{entity.accountType || '–'}</td>
                     </tr>
 
                     {/* Children Rows Wrapper */}
                     {(isEntityExpanded(entity.id) || closingEntities.includes(entity.id)) && entity.children && (
                       <tr>
-                        <td colSpan={8} className={styles.childrenWrapper}>
+                        <td colSpan={6} className={styles.childrenWrapper}>
                           <div 
                             className={cn(
                               styles.childrenContainer,
@@ -475,15 +493,15 @@ export default function AccountsPage() {
                                         ></div>
                                       </td>
                                       <td className={cn(styles.tableCell, styles.text)}>{child.name}</td>
-                                      <td className={cn(styles.tableCell, styles.textMuted, styles.textCenter)}>{child.group}</td>
-                                      <td className={cn(styles.tableCell, styles.textMuted, styles.textRight)}>{child.initialBalance}</td>
+                                      <td className={cn(styles.tableCell, styles.textMuted)}>{child.accountNumber || '–'}</td>
                                       <td className={cn(
                                         styles.tableCell,
+                                        styles.text,
+                                        styles.fontMedium,
                                         styles.textRight,
-                                        child.currentBalance.includes('-') ? styles.balanceNegative : styles.balancePositive
-                                      )}>{child.currentBalance}</td>
-                                      <td className={cn(styles.tableCell, styles.textMuted)}>{child.accountType}</td>
-                                      <td className={cn(styles.tableCell, styles.textMuted)}></td>
+                                        child.currentBalance && child.currentBalance.includes('-') ? styles.balanceNegative : styles.balancePositive
+                                      )}>{child.currentBalance || '–'}</td>
+                                      <td className={cn(styles.tableCell, styles.textMuted)}>{child.accountType || '–'}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -501,12 +519,25 @@ export default function AccountsPage() {
         </div>
 
         {/* Footer - Always visible at bottom */}
-        <div className={styles.footer}>
+        <div className={cn(styles.footer, isFilterOpen && styles.footerWithFilter)}>
           <div className={styles.footerText}>
-            <span className={styles.footerTextBold}>6 счетов</span>
+            <span className={styles.footerTextBold}>
+              {bankAccountsData?.data?.data?.count || 0} {bankAccountsData?.data?.data?.count === 1 ? 'счет' : bankAccountsData?.data?.data?.count && bankAccountsData.data.data.count < 5 ? 'счета' : 'счетов'}
+            </span>
           </div>
           <div className={styles.footerTextMuted}>
-            Текущий остаток: <span className={styles.footerTextBold}>2 775 052 ₽</span>
+            {isLoadingBankAccounts ? (
+              'Загрузка...'
+            ) : (
+              <>
+                Текущий остаток: <span className={styles.footerTextBold}>
+                  {accounts.reduce((sum, acc) => {
+                    const balance = parseFloat((acc.currentBalance || '0').replace(/[^\d.-]/g, ''))
+                    return sum + (isNaN(balance) ? 0 : balance)
+                  }, 0).toLocaleString('ru-RU')} ₽
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>

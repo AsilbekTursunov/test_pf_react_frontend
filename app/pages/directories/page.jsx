@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import styles from './directories.module.scss'
 
 export default function SpravochnikiPage() {
   const sections = [
@@ -43,26 +44,26 @@ export default function SpravochnikiPage() {
   ]
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
-          <h1 className="text-[20px] font-semibold text-slate-900">Справочники</h1>
-          <p className="text-[14px] text-slate-600 mt-1">Управление основными данными системы</p>
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Справочники</h1>
+          <p className={styles.subtitle}>Управление основными данными системы</p>
         </div>
 
-        <div className="flex-1 overflow-auto p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={styles.contentArea}>
+          <div className={styles.grid}>
             {sections.map((section) => (
               <Link
                 key={section.href}
                 href={section.href}
-                className="bg-white rounded-lg border border-slate-200 p-6 hover:border-[#17a2b8] hover:shadow-md transition-all group"
+                className={styles.card}
               >
-                <div className="text-3xl mb-3">{section.icon}</div>
-                <h2 className="text-[16px] font-semibold text-slate-900 mb-2 group-hover:text-[#17a2b8] transition-colors">
+                <div className={styles.cardIcon}>{section.icon}</div>
+                <h2 className={styles.cardTitle}>
                   {section.title}
                 </h2>
-                <p className="text-[13px] text-slate-600">
+                <p className={styles.cardDescription}>
                   {section.description}
                 </p>
               </Link>

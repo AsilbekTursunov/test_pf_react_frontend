@@ -1,0 +1,516 @@
+.overlay {
+  position: fixed;
+  left: 90px;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  cursor: pointer;
+  margin-top: -9px;
+  transition: opacity 0.3s;
+  background-color: lab(34.66 -0.95 -5.29 / 0.78);
+
+  &.closing {
+    opacity: 0;
+  }
+
+  &.opening {
+    opacity: 1;
+  }
+}
+
+.modal {
+  position: fixed;
+  left: 90px;
+  top: 64px;
+  bottom: 0;
+  background-color: white;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  margin-top: -9px;
+  transition: all 0.3s ease-out;
+  transform-origin: left;
+  overflow: hidden;
+
+  &.opening {
+    width: 0;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  &.closing {
+    width: 0;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  &.open {
+    width: 45%;
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.modalContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+  max-height: 100vh;
+}
+
+.header {
+  padding: 1rem 1.5rem 0 1.5rem;
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.headerDate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.closeButton {
+  color: #94a3b8;
+  font-size: 20px;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.headerIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: white;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  border-radius: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.inactive {
+    color: #475569;
+    background-color: transparent;
+  }
+
+  &.active {
+    color: white;
+  }
+}
+
+.tabIncome {
+  &.active {
+    background-color: #28a745;
+  }
+}
+
+.tabPayment {
+  &.active {
+    background-color: #dc3545;
+  }
+}
+
+.tabTransfer {
+  &.active {
+    background-color: #6c757d;
+  }
+}
+
+.tabAccrual {
+  &.active {
+    background-color: #6c757d;
+  }
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: white;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.formRowStart {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.label {
+  width: 140px;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.labelWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.labelIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #94a3b8;
+}
+
+.labelSpacer {
+  width: 140px;
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  background-color: white;
+
+  &::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #17a2b8;
+  }
+
+  &[type="date"] {
+    color: #0f172a;
+    
+    &::-webkit-calendar-picker-indicator {
+      opacity: 1;
+      cursor: pointer;
+    }
+    
+    &:invalid {
+      color: #94a3b8;
+    }
+    
+    &::-webkit-datetime-edit-text {
+      color: #0f172a;
+    }
+    
+    &::-webkit-datetime-edit-month-field,
+    &::-webkit-datetime-edit-day-field,
+    &::-webkit-datetime-edit-year-field {
+      color: #0f172a;
+    }
+  }
+
+  &[type="number"] {
+    color: #0f172a;
+    
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+
+  &.readonly {
+    color: #64748b;
+  }
+}
+
+.inputGroup {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  
+  .checkboxLabel {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+}
+
+.inputText {
+  font-size: 13px;
+  color: #475569;
+}
+
+.button {
+  font-size: 13px;
+  color: #17a2b8;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}
+
+.buttonSecondary {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}
+
+.select {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #17a2b8;
+  }
+}
+
+.textarea {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  resize: none;
+  margin-bottom: 1rem;
+
+  &::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #17a2b8;
+  }
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.sectionLine {
+  flex: 1;
+  height: 1px;
+  background-color: #e2e8f0;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.calendarButton {
+  padding: 0.5rem;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: #94a3b8;
+    color: #64748b;
+  }
+}
+
+.calendarIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  accent-color: #17a2b8;
+}
+
+.footer {
+  border-top: 1px solid #e2e8f0;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.saveButton {
+  padding: 0.5rem 1.25rem;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+  background-color: #17a2b8;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #138496;
+  }
+}
+
+.cancelButton {
+  padding: 0.5rem 1.25rem;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    color: #1e293b;
+  }
+}

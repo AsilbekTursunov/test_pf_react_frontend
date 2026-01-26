@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/app/lib/utils'
+import { useLogin } from '@/hooks/useAuth'
 import styles from './auth.module.scss'
 
 export default function LoginPage() {
@@ -13,9 +14,11 @@ export default function LoginPage() {
   })
   const [error, setError] = useState('')
   const [focusedField, setFocusedField] = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [particles, setParticles] = useState([])
   const [leftParticles, setLeftParticles] = useState([])
+  
+  // Login mutation
+  const loginMutation = useLogin()
 
   // Generate particles only on client side
   useEffect(() => {
@@ -42,25 +45,25 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsSubmitting(true)
+    setError('')
     
-    // Simulate loading
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    if (formData.username === 'admin123' && formData.password === 'admin123') {
-      // Set cookie for middleware
-      document.cookie = 'isAuthenticated=true; path=/; max-age=86400'
-      localStorage.setItem('isAuthenticated', 'true')
-      localStorage.setItem('userEmail', 'demo-guest@planfact.io')
+    try {
+      await loginMutation.mutateAsync({
+        username: formData.username,
+        password: formData.password,
+      })
+      
+      // Redirect to dashboard on success
       router.push('/pages/dashboard')
-    } else {
-      setError('Неверный логин или пароль')
-      setIsSubmitting(false)
+    } catch (error) {
+      console.error('Login error:', error)
+      const errorMessage = error.message || 'Ошибка при входе'
+      setError(errorMessage)
     }
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" style={{ height: '100vh', overflow: 'hidden' }}>
       {/* Left Side - Login Form */}
       <div className="w-1/2 flex items-center justify-center p-12 bg-white">
         {/* Form container */}
@@ -164,13 +167,13 @@ export default function LoginPage() {
               <div className="relative">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={loginMutation.isPending}
                   className="w-full bg-gradient-to-r from-[#17a2b8] to-[#138496] text-white py-3.5 rounded-xl font-medium hover:shadow-xl hover:shadow-[#17a2b8]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
                 >
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   
-                  {isSubmitting ? (
+                  {loginMutation.isPending ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -184,18 +187,11 @@ export default function LoginPage() {
                 </button>
                 
                 {/* Pulsing glow */}
-                {!isSubmitting && (
+                {!loginMutation.isPending && (
                   <div className={cn("absolute inset-0 rounded-xl bg-[#17a2b8]/20 -z-10 blur-xl", styles.pulsingGlow)} />
                 )}
               </div>
             </form>
-
-            {/* Demo Credentials */}
-            <div className="mt-8 p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200">
-              <p className="text-xs text-slate-600 text-center">
-                <span className="font-medium">Демо доступ:</span> admin123 / admin123
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -251,11 +247,13 @@ export default function LoginPage() {
                 key={i}
                 className={cn("absolute", styles.floatingShape)}
                 style={{
-                  '--shape-left': `${pos.left}%`,
-                  '--shape-top': `${pos.top}%`,
-                  '--shape-duration': floatDuration,
-                  '--shape-delay': delay,
-                  animation: 'float var(--shape-duration) ease-in-out infinite'
+                  left: `${pos.left}%`,
+                  top: `${pos.top}%`,
+                  animationName: 'float',
+                  animationDuration: floatDuration,
+                  animationTimingFunction: 'ease-in-out',
+                  animationIterationCount: 'infinite',
+                  animationDelay: delay
                 }}
               >
                 <div
@@ -264,14 +262,13 @@ export default function LoginPage() {
                     styles.shapeInner
                   )}
                   style={{
-                    '--shape-width': width,
-                    '--shape-height': height,
-                    '--shape-border-radius': borderRadius,
-                    '--shape-rotate-duration': rotateDuration,
-                    width: 'var(--shape-width)',
-                    height: 'var(--shape-height)',
-                    borderRadius: 'var(--shape-border-radius)',
-                    animation: 'rotate var(--shape-rotate-duration) linear infinite'
+                    width: width,
+                    height: height,
+                    borderRadius: borderRadius,
+                    animationName: 'rotate',
+                    animationDuration: rotateDuration,
+                    animationTimingFunction: 'linear',
+                    animationIterationCount: 'infinite'
                   }}
                 />
               </div>

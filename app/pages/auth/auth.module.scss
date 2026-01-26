@@ -138,6 +138,7 @@
   top: 20%;
   left: 20%;
   animation: float 10s ease-in-out infinite;
+  will-change: transform;
 }
 
 .gradientOrb1Focused {
@@ -157,6 +158,7 @@
   bottom: 20%;
   right: 20%;
   animation: float 12s ease-in-out infinite reverse;
+  will-change: transform;
 }
 
 .gradientOrb2Focused {
@@ -180,10 +182,12 @@
 
 .logoContainer {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .logoInner {
   animation: rotate 20s linear infinite;
+  will-change: transform;
 }
 
 .welcomeTitle {
@@ -234,40 +238,11 @@
 
 .floatingShape {
   position: absolute;
-  
-  &[data-left] {
-    left: var(--shape-left);
-  }
-  
-  &[data-top] {
-    top: var(--shape-top);
-  }
-  
-  &[data-delay] {
-    animation-delay: var(--shape-delay);
-  }
-  
-  &[data-duration] {
-    animation-duration: var(--shape-duration);
-  }
+  will-change: transform;
+  animation: float 10s ease-in-out infinite;
 }
 
 .shapeInner {
   background: rgba(255, 255, 255, 0.05);
-  
-  &[data-width] {
-    width: var(--shape-width);
-  }
-  
-  &[data-height] {
-    height: var(--shape-height);
-  }
-  
-  &[data-border-radius] {
-    border-radius: var(--shape-border-radius);
-  }
-  
-  &[data-rotate-duration] {
-    animation-duration: var(--shape-rotate-duration);
-  }
+  will-change: transform;
 }

@@ -1,0 +1,119 @@
+"use client"
+
+import { useState, useRef, useEffect } from 'react'
+import { cn } from '@/app/lib/utils'
+import styles from './DropdownFilter.module.scss'
+
+export function DropdownFilter({ label, options, selectedValues, onChange, placeholder = "Выберите...", grouped = false }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [openUpward, setOpenUpward] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect()
+      const dropdownHeight = Math.min(options.length * 40 + 16, 300)
+      const spaceBelow = window.innerHeight - rect.bottom
+      const spaceAbove = rect.top
+      
+      setOpenUpward(spaceBelow < dropdownHeight && spaceAbove > spaceBelow)
+    }
+  }, [isOpen, options.length])
+
+  const toggleOption = (value) => {
+    if (selectedValues.includes(value)) {
+      onChange(selectedValues.filter(v => v !== value))
+    } else {
+      onChange([...selectedValues, value])
+    }
+  }
+
+  const selectedCount = selectedValues.length
+  const displayText = selectedCount > 0 ? `Выбрано: ${selectedCount}` : placeholder
+
+  // Group options by group field if grouped is true
+  const groupedOptions = grouped 
+    ? options.reduce((acc, option) => {
+        const group = option.group || 'Без группы'
+        if (!acc[group]) acc[group] = []
+        acc[group].push(option)
+        return acc
+      }, {})
+    : { 'all': options }
+
+  return (
+    <div className={styles.container} ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={styles.button}
+      >
+        <span className={cn(styles.buttonText, selectedCount === 0 && styles.empty)}>{displayText}</span>
+        <svg 
+          className={cn(styles.buttonIcon, isOpen && styles.open)} 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div 
+          className={cn(
+            styles.dropdown,
+            openUpward ? styles.openUpward : styles.openDownward
+          )}
+        >
+          <div className={styles.dropdownContent}>
+            {Object.entries(groupedOptions).map(([groupName, groupItems]) => (
+              <div key={groupName} className={styles.group}>
+                {grouped && (
+                  <div className={styles.groupHeader}>
+                    {groupName}
+                  </div>
+                )}
+                {groupItems.map((option) => (
+                  <label 
+                    key={option.value} 
+                    className={styles.option}
+                  >
+                    <div className={styles.checkboxContainer}>
+                      <input
+                        type="checkbox"
+                        checked={selectedValues.includes(option.value)}
+                        onChange={() => toggleOption(option.value)}
+                        className={styles.checkboxInput}
+                      />
+                      <div className={cn(
+                        styles.checkbox,
+                        selectedValues.includes(option.value) ? styles.checked : styles.unchecked
+                      )}>
+                        {selectedValues.includes(option.value) && (
+                          <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <span className={styles.optionText}>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

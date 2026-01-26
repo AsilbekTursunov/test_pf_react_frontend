@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { OperationsTable } from '@/components/operations/OperationsTable'
+import { OperationsTable } from '@/components/operations/OperationsTable/OperationsTable'
 import { cn } from '@/app/lib/utils'
 import styles from './counterparty-detail.module.scss'
 

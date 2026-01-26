@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from 'react'
-import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/spravochniki/FilterSidebar'
-import { SearchBar } from '@/components/spravochniki/SearchBar'
-import { DataTable } from '@/components/spravochniki/DataTable'
+import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/directories/FilterSidebar/FilterSidebar'
+import { SearchBar } from '@/components/directories/SearchBar/SearchBar'
+import { DataTable } from '@/components/directories/DataTable/DataTable'
+import styles from './services.module.scss'
 
 export default function ServicesPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(true)
@@ -41,7 +42,7 @@ export default function ServicesPage() {
   )
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className={styles.container}>
       <FilterSidebar isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)}>
         <FilterSection title="Статус">
           <div className="space-y-2.5">
@@ -59,20 +60,20 @@ export default function ServicesPage() {
         </FilterSection>
       </FilterSidebar>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-[20px] font-semibold text-slate-900">Услуги</h1>
-            <button className="px-4 py-2 bg-[#17a2b8] text-white text-[14px] rounded hover:bg-[#138496] transition-colors">
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <div className={styles.headerTop}>
+            <h1 className={styles.title}>Услуги</h1>
+            <button className={styles.addButton}>
               + Добавить
             </button>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className={styles.headerBottom}>
             {!isFilterOpen && (
               <button
                 onClick={() => setIsFilterOpen(true)}
-                className="px-3 py-2 text-[13px] text-slate-600 border border-slate-300 rounded hover:bg-slate-50 transition-colors"
+                className={styles.filterButton}
               >
                 Фильтры
               </button>
@@ -85,7 +86,7 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto p-6">
+        <div className={styles.tableArea}>
           <DataTable 
             columns={columns}
             data={filteredData}

@@ -1,0 +1,1480 @@
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes fadeSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+:global {
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeSlideOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes fadeSlideRight {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  background-color: #f8fafc;
+  position: relative;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: white;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  z-index: 10;
+}
+
+.sidebarContent {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.sidebarTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.sidebarCloseButton {
+  color: #94a3b8;
+  font-size: 18px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.filterSection {
+  margin-bottom: 1.5rem;
+}
+
+.filterSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.checkboxWrapper {
+  position: relative;
+}
+
+.checkboxInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background-color: var(--checkbox-bg, white);
+  border-color: var(--checkbox-border, #cbd5e1);
+
+  &:hover {
+    border-color: var(--checkbox-hover-border, #94a3b8);
+  }
+}
+
+.checkboxChecked {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.checkboxIcon {
+  width: 0.625rem;
+  height: 0.625rem;
+  color: white;
+}
+
+.filterSectionTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.filterOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+}
+
+.filterOptionLabel {
+  font-size: 13px;
+  color: #334155;
+}
+
+.dateRangeDisplay {
+  margin-top: 0.75rem;
+  position: relative;
+}
+
+.dateRangeDisplayInner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+}
+
+.dateRangeIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+}
+
+.dateRangeText {
+  font-size: 13px;
+  color: #334155;
+  flex: 1;
+}
+
+.dateRangeClear {
+  color: #94a3b8;
+  font-size: 16px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.datePickerButton {
+  margin-top: 0.75rem;
+  position: relative;
+}
+
+.datePickerButtonInner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+  color: #64748b;
+  transition: all 0.2s;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+
+  &:hover {
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+}
+
+.datePickerIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.datePickerModal {
+  position: fixed;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  animation: var(--modal-animation, fadeSlideIn 0.25s ease-out);
+  width: var(--modal-width, 440px);
+}
+
+.datePickerModalContent {
+  padding: 1rem;
+}
+
+.datePickerModalTitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+.datePickerModalBody {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.quickRanges {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.quickRangeButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 13px;
+  color: #17a2b8;
+  background-color: #f8fafc;
+  transition: background-color 0.2s;
+  text-align: left;
+  font-weight: 400;
+  border-radius: 0.25rem;
+
+  &:hover {
+    background-color: #e8f4f6;
+  }
+}
+
+.calendar {
+  width: 240px;
+  background-color: #f8fafc;
+  border-radius: 0.25rem;
+  padding: 0.625rem;
+  animation: fadeSlideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.calendarNavButton {
+  color: #475569;
+  font-size: 14px;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #0f172a;
+  }
+}
+
+.calendarMonth {
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.calendarWeekday {
+  text-align: center;
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+  padding: 0.25rem 0;
+}
+
+.calendarDays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.125rem;
+}
+
+.calendarDay {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+
+  &.disabled {
+    color: #cbd5e1;
+    cursor: default;
+  }
+
+  &.normal {
+    color: #334155;
+    cursor: pointer;
+
+    &:hover {
+      background-color: white;
+    }
+  }
+
+  &.today {
+    background-color: #ffd54f;
+    color: #0f172a;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ffca28;
+    }
+  }
+
+  &.selected {
+    background-color: #17a2b8;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+
+.dateInputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.dateInput {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+
+  &.active {
+    border-color: #17a2b8;
+    background-color: #f0f9fa;
+  }
+
+  &.inactive {
+    border-color: #cbd5e1;
+
+    &:hover {
+      background-color: #f8fafc;
+    }
+  }
+}
+
+.dateInputIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+}
+
+.dateInputText {
+  font-size: 13px;
+  color: #334155;
+}
+
+.dateInputSeparator {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.datePickerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.datePickerActionButton {
+  padding: 0.375rem 1rem;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.2s;
+
+  &.cancel {
+    color: #475569;
+
+    &:hover {
+      color: #1e293b;
+    }
+  }
+
+  &.apply {
+    padding: 0.375rem 1.25rem;
+    background-color: #17a2b8;
+    color: white;
+    border-radius: 0.25rem;
+
+    &:hover {
+      background-color: #138496;
+    }
+  }
+}
+
+.parameterDropdown {
+  position: relative;
+}
+
+.parameterDropdownButton {
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}
+
+.parameterDropdownIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.open {
+  transform: rotate(180deg);
+}
+
+.parameterDropdownMenu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 0.5rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.parameterDropdownSearch {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.parameterDropdownSearchInput {
+  width: 100%;
+  padding-left: 2.25rem;
+  padding-right: 0.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-size: 13px;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+
+  &:focus {
+    outline: none;
+    border-color: #94a3b8;
+  }
+}
+
+.parameterDropdownSearchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+}
+
+.parameterDropdownSelectAll {
+  padding: 0.5rem 0.75rem;
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.parameterDropdownSelectAllButton {
+  font-size: 14px;
+  color: #17a2b8;
+  font-weight: 400;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}
+
+.parameterDropdownList {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f8fafc;
+}
+
+.parameterDropdownListInner {
+  padding: 0.5rem;
+}
+
+.parameterGroup {
+  margin-bottom: 0.25rem;
+}
+
+.parameterGroupTitle {
+  padding: 0.5rem 0.75rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.parameterItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 0.25rem;
+
+  &:hover {
+    background-color: white;
+  }
+
+  &.nested {
+    padding-left: 1.5rem;
+  }
+}
+
+.parameterItemLabel {
+  font-size: 13px;
+  color: #334155;
+}
+
+.amountInputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.amountInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #17a2b8;
+  }
+}
+
+.amountInputSeparator {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header {
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.875rem 1.5rem;
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerMenuButton {
+  color: #94a3b8;
+  font-size: 16px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.headerSearch {
+  position: relative;
+}
+
+.headerSearchInput {
+  width: 280px;
+  padding-left: 2.25rem;
+  padding-right: 1rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #17a2b8;
+  }
+}
+
+.headerSearchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+}
+
+.headerExportButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}
+
+.headerExportIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.headerMoreButton {
+  color: #94a3b8;
+  font-size: 20px;
+  padding: 0 0.5rem;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.tableArea {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.5rem 1.5rem 60px 1.5rem; // Top, right, bottom, left
+}
+
+.selectionBar {
+  background-color: #e3f2fd;
+  border-bottom: 1px solid #90caf9;
+  padding: 0.625rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.selectionBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.selectionBarClose {
+  color: #475569;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #1e293b;
+  }
+}
+
+.selectionBarText {
+  font-size: 13px;
+  color: #334155;
+}
+
+.selectionBarTextBold {
+  font-weight: 600;
+}
+
+.selectionBarTextPositive {
+  color: #22c55e;
+}
+
+.selectionBarTextNegative {
+  color: #ef4444;
+}
+
+.selectionBarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selectionBarExport {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 13px;
+  color: #17a2b8;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}
+
+.selectionBarExportIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.table {
+  width: 100%;
+  background-color: white;
+}
+
+.tableHeader {
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tableHeaderRow {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tableHeaderCell {
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.tableHeaderCellCheckbox {
+  width: 2.5rem;
+}
+
+.tableHeaderButton {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tableHeaderCell {
+  font-size: 12px;
+  font-weight: 400;
+  color: #94a3b8;
+  background-color: white;
+  
+  &:has(.tableHeaderButton) {
+    font-weight: 600;
+    color: #334155;
+  }
+}
+
+.tableHeaderIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.tableCheckbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 0.125rem;
+  border: 2px solid #cbd5e1;
+  background-color: white;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+  cursor: pointer;
+
+  &.selected {
+    background-color: #e3f2fd;
+  }
+}
+
+.tableCell {
+  padding: 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.tableCellCheckbox {
+  width: 2.5rem;
+}
+
+.tableCellExpand {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.expandButton {
+  color: #94a3b8;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.expandIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.dateCell {
+  display: flex;
+  flex-direction: column;
+}
+
+.datePrimary {
+  font-size: 13px;
+  color: #17a2b8;
+  font-weight: 400;
+}
+
+.dateSecondary {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.accountCell {
+  font-size: 13px;
+  color: #17a2b8;
+}
+
+.typeBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.typeBadgeIn {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.typeBadgeOut {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.typeBadgeTransfer {
+  background-color: #475569;
+  color: #ffffff;
+}
+
+.counterpartyCell {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.statusCell {
+  font-size: 13px;
+  color: #17a2b8;
+}
+
+.projectCell {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.amountCell {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 400;
+
+  &.positive {
+    color: #22c55e;
+  }
+
+  &.negative {
+    color: #ef4444;
+  }
+}
+
+.sectionHeader {
+  background-color: #f8fafc;
+}
+
+.sectionHeaderCell {
+  padding: 0.5rem 0.75rem;
+}
+
+.sectionHeaderTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.childRow {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+
+.footerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #475569;
+}
+
+.footerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.footerText {
+  font-weight: 600;
+}
+
+.footerTextPositive {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.footerTextNegative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.footerRight {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.footerTotal {
+  color: #22c55e;
+}
+
+.modalOverlay {
+  position: fixed;
+  left: 90px;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  cursor: pointer;
+  margin-top: -9px;
+  transition: opacity 0.3s;
+  background-color: lab(34.66 -0.95 -5.29 / 0.78);
+
+  &.closing {
+    opacity: 0;
+  }
+
+  &.opening {
+    opacity: 1;
+  }
+}
+
+.modal {
+  position: fixed;
+  left: 90px;
+  top: 64px;
+  bottom: 0;
+  background-color: white;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  display: flex;
+  pointer-events: auto;
+  margin-top: -9px;
+  transition: all 0.3s ease-out;
+  transform-origin: left;
+
+  &.opening {
+    width: 0;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  &.closing {
+    width: 0;
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  &.open {
+    width: 80%;
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.modalContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modalHeader {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.5rem;
+  background-color: white;
+}
+
+.modalHeaderTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.modalCloseButton {
+  color: #94a3b8;
+  font-size: 20px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.modalHeaderBottom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.modalHeaderIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  background-color: white;
+}
+
+.modalTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.modalTab {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  border-radius: 0.25rem;
+
+  &.active {
+    color: white;
+  }
+
+  &.inactive {
+    color: #475569;
+    background-color: #f1f5f9;
+  }
+}
+
+.modalTabIncome {
+  background-color: #28a745;
+}
+
+.modalTabPayment {
+  background-color: #dc3545;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalFormRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.modalFormLabel {
+  width: 120px;
+  font-size: 13px;
+  color: #0f172a;
+  padding-top: 0.5rem;
+}
+
+.modalFormLabelWide {
+  width: 140px;
+}
+
+.modalFormInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #17a2b8;
+  }
+}
+
+.readonly {
+  color: #64748b;
+}
+
+.modalFormInputBordered {
+  border: 2px solid #17a2b8;
+}
+
+.modalFormInputWithButton {
+  padding-right: 2rem;
+}
+
+.modalFormInputButton {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+.modalFormInputWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.modalFormInputGroup {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modalFormInputNarrow {
+  width: 8rem;
+}
+
+.modalFormText {
+  font-size: 13px;
+  color: #475569;
+}
+
+.modalFormButton {
+  font-size: 13px;
+  color: #17a2b8;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}
+
+.modalFormButtonSecondary {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}
+
+.modalFormTags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modalFormTag {
+  padding: 0.25rem 0.75rem;
+  font-size: 12px;
+  background-color: #e2e8f0;
+  color: #334155;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalFormTagButton {
+  color: #64748b;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #1e293b;
+  }
+}
+
+.modalFormTable {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+}
+
+.modalFormTableInner {
+  width: 100%;
+}
+
+.modalFormTableHeader {
+  background-color: #f8fafc;
+}
+
+.modalFormTableHeaderCell {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.modalFormTableHeaderIcon {
+  width: 1rem;
+  height: 1rem;
+  display: inline;
+}
+
+.modalFormTableRow {
+  border-top: 1px solid #e2e8f0;
+}
+
+.modalFormTableCell {
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+}
+
+.modalFormTableIcon {
+  width: 1rem;
+  height: 1rem;
+  display: inline;
+  color: #94a3b8;
+}
+
+.modalFormTableCheckbox {
+  width: 1rem;
+  height: 1rem;
+}
+
+.modalFormTableFooter {
+  background-color: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+}
+
+.modalFormTableFooterCell {
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.modalFormSection {
+  margin-bottom: 1.5rem;
+}
+
+.modalFormSectionHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modalFormSectionLine {
+  flex: 1;
+  border-top: 1px solid #cbd5e1;
+}
+
+.modalFormSectionTitle {
+  padding: 0 0.75rem;
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.modalFormCheckbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #cbd5e1;
+  color: #17a2b8;
+}
+
+.modalFormCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.modalFormCheckboxText {
+  font-size: 13px;
+  color: #334155;
+}
+
+.modalFormInfoIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #94a3b8;
+}
+
+.modalFooter {
+  border-top: 1px solid #e2e8f0;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: white;
+}
+
+.modalFooterButton {
+  padding: 0.5rem 1.25rem;
+  font-size: 13px;
+  color: #17a2b8;
+  font-weight: 500;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}

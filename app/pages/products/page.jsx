@@ -1,12 +1,14 @@
 "use client"
 
+import styles from './products.module.scss'
+
 export default function TovaryPage() {
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-      <div className="text-center">
-        <h1 className="text-[48px] font-bold text-slate-900 mb-4">📦</h1>
-        <h2 className="text-[32px] font-bold text-slate-900 mb-2">Товары и услуги</h2>
-        <p className="text-[18px] text-slate-500">Скоро</p>
+    <div className={styles.container}>
+      <div className={styles.content}>
+        <h1 className={styles.icon}>📦</h1>
+        <h2 className={styles.title}>Товары и услуги</h2>
+        <p className={styles.subtitle}>Скоро</p>
       </div>
     </div>
   )

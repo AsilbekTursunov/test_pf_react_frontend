@@ -1,281 +1,210 @@
 "use client"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/spravochniki/FilterSidebar'
-import { SearchBar } from '@/components/spravochniki/SearchBar'
-import { ViewToggle } from '@/components/spravochniki/ViewToggle'
-import { DataTable } from '@/components/spravochniki/DataTable'
-import { DropdownFilter } from '@/components/spravochniki/DropdownFilter'
-import { DateRangePicker } from '@/components/spravochniki/DateRangePicker'
-import { useCounterAgents } from '@/hooks/useDashboard'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/directories/FilterSidebar/FilterSidebar'
+import { SearchBar } from '@/components/directories/SearchBar/SearchBar'
+import { useCounterparties } from '@/hooks/useDashboard'
+import { cn } from '@/app/lib/utils'
 import styles from './counterparties.module.scss'
 
-export default function KontragentsPage() {
-  const router = useRouter()
-  
-  // Fetch counter agents from API
-  const { data: counterAgentsData, isLoading } = useCounterAgents()
-  const counterAgents = counterAgentsData?.data?.data?.data || []
-  
+export default function CounterpartiesPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [view, setView] = useState('list')
-  const [selectedRows, setSelectedRows] = useState([])
-  const [accountingMethod, setAccountingMethod] = useState('cash')
   
-  // Dropdown filters
-  const [selectedTypes, setSelectedTypes] = useState([])
-  const [selectedKontragents, setSelectedKontragents] = useState([])
-  const [selectedEntities, setSelectedEntities] = useState([])
-  const [selectedProjects, setSelectedProjects] = useState([])
-  const [selectedDeals, setSelectedDeals] = useState([])
-  const [selectedCategories, setSelectedCategories] = useState([])
-  const [selectedPeriod, setSelectedPeriod] = useState(null)
-  
-  // Archive filters
-  const [archiveFilters, setArchiveFilters] = useState({
-    showActive: true,
-    showArchived: true
+  // Fetch counterparties from API
+  const { data: counterpartiesData, isLoading: isLoadingCounterparties } = useCounterparties({
+    limit: 100,
+    offset: 0,
+    search: searchQuery
   })
 
-  const toggleArchiveFilter = (key) => {
-    setArchiveFilters(prev => ({ ...prev, [key]: !prev[key] }))
+  const counterpartiesItems = counterpartiesData?.data?.data?.response || []
+  const [selectedRows, setSelectedRows] = useState([])
+  
+  const [filters, setFilters] = useState({
+    client: true,
+    employee: true,
+    supplier: true
+  })
+
+  const toggleRowSelection = (id) => {
+    setSelectedRows(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(rowId => rowId !== id)
+      } else {
+        return [...prev, id]
+      }
+    })
   }
 
-  // Mock data for dropdowns
-  const typeOptions = [
-    { value: 'pokupatel', label: 'Покупатель' },
-    { value: 'postavshchik', label: 'Поставщик' },
-    { value: 'sotrudnik', label: 'Сотрудник' },
-    { value: 'prochiye', label: 'Прочие' }
-  ]
+  const isRowSelected = (id) => {
+    return selectedRows.includes(id)
+  }
 
-  // Convert API data to dropdown format with grouping
-  const kontragentOptions = counterAgents.map(ca => ({
-    value: ca.guid,
-    label: ca.label,
-    group: ca.group || 'Без группы'
-  }))
+  const allSelected = () => {
+    return counterparties.length > 0 && selectedRows.length === counterparties.length
+  }
 
-  const entityOptions = [
-    { value: 'ip_ivanov', label: 'ИП Иванов Иван Иванович' },
-    { value: 'prometey', label: 'ООО "Прометей"' }
-  ]
-
-  const projectOptions = [
-    { value: 'lenina15', label: 'Ленина, 15' },
-    { value: 'tverskaya10', label: 'Тверская, 10' },
-    { value: 'arbat5', label: 'Арбат, 5' }
-  ]
-
-  const dealOptions = [
-    { value: 'deal1', label: 'Сделка №1 - Ремонт офиса' },
-    { value: 'deal2', label: 'Сделка №2 - Поставка материалов' },
-    { value: 'deal3', label: 'Сделка №3 - Консультация' }
-  ]
-
-  const categoryOptions = [
-    { value: 'income', label: 'Услуги ремонта [Доходы]' },
-    { value: 'rent', label: 'Аренда [Расходы]' },
-    { value: 'fuel', label: 'ГСМ [Расходы]' },
-    { value: 'office', label: 'Канцелярия [Расходы]' },
-    { value: 'salary', label: 'ЗП отдел продаж [Расходы]' }
-  ]
-
-  // Mock table data (not using API data for table)
-  const kontragents = [
-    { id: 1, name: 'ООО "Прометей"', type: 'Поставщик', inn: '7701234567', phone: '+7 (495) 123-45-67', balance: '+150 000' },
-    { id: 2, name: 'ИП Иванов Иван Иванович', type: 'Клиент', inn: '770987654321', phone: '+7 (495) 987-65-43', balance: '-50 000' },
-    { id: 3, name: 'ООО "Альфа"', type: 'Поставщик', inn: '7702345678', phone: '+7 (495) 234-56-78', balance: '0' },
-    { id: 4, name: 'Петров А.А.', type: 'Сотрудник', inn: '771234567890', phone: '+7 (495) 345-67-89', balance: '+25 000' },
-    { id: 5, name: 'ООО "Бета"', type: 'Клиент', inn: '7703456789', phone: '+7 (495) 456-78-90', balance: '+100 000' }
-  ]
-
-  const columns = [
-    { key: 'name', label: 'Название', sortable: true },
-    { key: 'type', label: 'Тип', sortable: true },
-    { key: 'inn', label: 'ИНН', sortable: false },
-    { key: 'phone', label: 'Телефон', sortable: false },
-    { 
-      key: 'balance', 
-      label: 'Баланс', 
-      sortable: true,
-      render: (value) => (
-        <span
-          className={
-            value.startsWith('+')
-              ? styles.balancePositive
-              : value.startsWith('-')
-              ? styles.balanceNegative
-              : ''
-          }
-        >
-          {value}
-        </span>
-      )
+  const toggleSelectAll = () => {
+    if (allSelected()) {
+      setSelectedRows([])
+    } else {
+      setSelectedRows(counterparties.map(item => item.id))
     }
-  ]
+  }
 
-  const filteredData = kontragents.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.inn.includes(searchQuery)
-    return matchesSearch
-  })
+  const toggleFilter = (key) => {
+    setFilters(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  // Convert counterparties API data to component format
+  const counterparties = useMemo(() => {
+    return counterpartiesItems.map((item, index) => ({
+      id: item.guid || `counterparty-${index}`,
+      name: item.nazvanie || 'Без названия',
+      inn: item.inn ? String(item.inn) : null,
+      group: item.gruppa && item.gruppa.length > 0 ? item.gruppa[0] : null,
+      groups: item.gruppa || [],
+    }))
+  }, [counterpartiesItems])
+
+  const totalCounterparties = counterparties.length
 
   return (
     <div className={styles.container}>
       <FilterSidebar isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)}>
-        <FilterSection title="Параметры">
-          <div className="space-y-3">
-            <DropdownFilter
-              label="Тип"
-              options={typeOptions}
-              selectedValues={selectedTypes}
-              onChange={setSelectedTypes}
-              placeholder="Тип"
-            />
-            <DropdownFilter
-              label="Контрагенты"
-              options={kontragentOptions}
-              selectedValues={selectedKontragents}
-              onChange={setSelectedKontragents}
-              placeholder="Контрагенты"
-              grouped={true}
-            />
-            <DropdownFilter
-              label="Юрлица"
-              options={entityOptions}
-              selectedValues={selectedEntities}
-              onChange={setSelectedEntities}
-              placeholder="Юрлица"
-            />
-            <DropdownFilter
-              label="Проекты"
-              options={projectOptions}
-              selectedValues={selectedProjects}
-              onChange={setSelectedProjects}
-              placeholder="Проекты"
-            />
-            <DropdownFilter
-              label="Сделки"
-              options={dealOptions}
-              selectedValues={selectedDeals}
-              onChange={setSelectedDeals}
-              placeholder="Сделки"
-            />
-            <DropdownFilter
-              label="Статьи учета"
-              options={categoryOptions}
-              selectedValues={selectedCategories}
-              onChange={setSelectedCategories}
-              placeholder="Статьи учета"
-            />
-          </div>
-        </FilterSection>
-
-        <FilterSection title="Период аналитики">
-          <DateRangePicker
-            selectedRange={selectedPeriod}
-            onChange={setSelectedPeriod}
-            placeholder="Выберите период"
-          />
-        </FilterSection>
-
-        <FilterSection title="Архив">
+        <FilterSection title="Группа">
           <div className="space-y-2.5">
             <FilterCheckbox 
-              checked={archiveFilters.showActive} 
-              onChange={() => toggleArchiveFilter('showActive')} 
-              label="Показать активные" 
+              checked={filters.client} 
+              onChange={() => toggleFilter('client')} 
+              label="Клиент" 
             />
             <FilterCheckbox 
-              checked={archiveFilters.showArchived} 
-              onChange={() => toggleArchiveFilter('showArchived')} 
-              label="Показать архивные" 
+              checked={filters.employee} 
+              onChange={() => toggleFilter('employee')} 
+              label="Сотрудник" 
+            />
+            <FilterCheckbox 
+              checked={filters.supplier} 
+              onChange={() => toggleFilter('supplier')} 
+              label="Поставщик" 
             />
           </div>
         </FilterSection>
       </FilterSidebar>
 
       <div className={styles.content}>
-        {/* Fixed Header */}
+        {/* Header */}
         <div className={styles.header}>
-          <div className={styles.headerInner}>
-            <h1 className={styles.headerTitle}>Контрагенты</h1>
-            
-            <div className={styles.headerControls}>
-              <select
-                value={accountingMethod}
-                onChange={(e) => setAccountingMethod(e.target.value)}
-                className={styles.methodSelect}
-              >
-                <option value="cash">Учет по денежному потоку</option>
-                <option value="accrual">Учет по начислению</option>
-              </select>
-
-              <ViewToggle view={view} onViewChange={setView} />
-
+          <div className={styles.headerContent}>
+            <h1 className={styles.title}>Контрагенты</h1>
+            <div className={styles.headerActions}>
               <SearchBar 
                 value={searchQuery} 
                 onChange={setSearchQuery} 
-                placeholder="Поиск по названию или контрагенту" 
+                placeholder="Поиск по названию или ИНН" 
               />
-
-              <button className={styles.iconButton}>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="12" cy="12" r="1"></circle>
-                  <circle cx="12" cy="5" r="1"></circle>
-                  <circle cx="12" cy="19" r="1"></circle>
-                </svg>
-              </button>
             </div>
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className={styles.tableArea}>
-          <div className={styles.tablePadding}>
-            <DataTable 
-              columns={columns}
-              data={filteredData}
-              selectedRows={selectedRows}
-              onSelectRow={setSelectedRows}
-              onRowClick={(row) => router.push(`/pages/directories/counterparties/${row.id}`)}
-            />
+        {/* Table Container */}
+        <div className={styles.tableContainer}>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead className={styles.tableHead}>
+                <tr>
+                  <th className={cn(styles.tableHeaderCell)}>
+                    <div 
+                      onClick={toggleSelectAll}
+                      className={cn(
+                        styles.checkbox,
+                        styles.headerCheckbox,
+                        allSelected() ? styles.selected : styles.unselected
+                      )}
+                    >
+                      {allSelected() && (
+                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Название
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      ИНН
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Группа
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoadingCounterparties ? (
+                  <tr>
+                    <td colSpan={4} className={cn(styles.tableCell, styles.textCenter)}>
+                      Загрузка...
+                    </td>
+                  </tr>
+                ) : counterparties.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className={cn(styles.tableCell, styles.textCenter)}>
+                      Нет данных
+                    </td>
+                  </tr>
+                ) : (
+                  counterparties.map((counterparty) => (
+                    <tr key={counterparty.id} className={styles.entityRow}>
+                      <td className={styles.tableCell}>
+                        <div 
+                          onClick={() => toggleRowSelection(counterparty.id)}
+                          className={cn(
+                            styles.checkbox,
+                            isRowSelected(counterparty.id) ? styles.selected : styles.unselected
+                          )}
+                        >
+                          {isRowSelected(counterparty.id) && (
+                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </td>
+                      <td className={cn(styles.tableCell, styles.text)}>{counterparty.name}</td>
+                      <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.inn || '–'}</td>
+                      <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.group || '–'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Fixed Stats Bar (Footer) */}
-        <div className={styles.footer}>
-          <div className={styles.footerInner}>
-            <div className={styles.footerStats}>
-              <span className={styles.footerText}>
-                <span className={styles.footerTextStrong}>{selectedRows.length > 0 ? selectedRows.length : kontragents.length}</span> контрагент{selectedRows.length === 1 ? '' : 'ов'}
+        {/* Footer */}
+        <div className={cn(styles.footer, isFilterOpen && styles.footerWithFilter)}>
+          <div className={styles.footerText}>
+            <span className={styles.footerTextBold}>
+              {totalCounterparties} {totalCounterparties === 1 ? 'контрагент' : totalCounterparties < 5 ? 'контрагента' : 'контрагентов'}
               </span>
-              <span className={styles.footerText}>
-                Дебиторка: <span className={styles.footerTextStrong}>454 470 ₽</span>
-              </span>
-              <span className={styles.footerText}>
-                Кредиторка: <span className={styles.footerTextStrong}>589 288 ₽</span>
-              </span>
-              <span className={styles.footerText}>
-                Поступления: <span className={styles.footerTextStrong}>23 798 000 ₽</span>
-              </span>
-              <span className={styles.footerText}>
-                Выплаты: <span className={styles.footerTextStrong}>21 044 348 ₽</span>
-              </span>
-              <span className={styles.footerText}>
-                Разница: <span className={styles.footerTextPositive}>+2 753 652 ₽</span>
-              </span>
-            </div>
-            <button className={styles.iconButton}>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="19" cy="12" r="1"></circle>
-                <circle cx="5" cy="12" r="1"></circle>
-              </svg>
-            </button>
           </div>
         </div>
       </div>

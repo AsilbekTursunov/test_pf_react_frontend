@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { cn } from '@/app/lib/utils'
-import ProductModal from '@/components/spravochniki/ProductModal'
+import ProductModal from '@/components/directories/ProductModal/ProductModal'
+import styles from './products.module.scss'
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -104,26 +105,23 @@ export default function ProductsPage() {
   )
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <div className="flex-1 flex flex-col min-h-screen">
+    <div className={styles.container}>
+      <div className={styles.content}>
         {/* Header */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h1 className="text-[20px] font-semibold text-slate-900">Товары</h1>
+        <div className={styles.header}>
+          <div className={styles.headerInner}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>Товары</h1>
               
               {/* Create Button with Dropdown */}
-              <div className="relative" ref={createDropdownRef}>
+              <div className={styles.createButtonContainer} ref={createDropdownRef}>
                 <button
                   onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-                  className="flex items-center gap-2 px-6 py-2 bg-[#17a2b8] text-white text-[14px] rounded hover:bg-[#138496] transition-colors"
+                  className={styles.createButton}
                 >
                   Создать
                   <svg 
-                    className={cn(
-                      "w-4 h-4 transition-transform duration-200",
-                      isCreateDropdownOpen && "rotate-180"
-                    )}
+                    className={cn(styles.createButtonIcon, isCreateDropdownOpen && styles.rotated)}
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"
@@ -134,17 +132,14 @@ export default function ProductsPage() {
                 </button>
 
                 {isCreateDropdownOpen && (
-                  <div 
-                    className="absolute left-0 mt-2 w-[280px] bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden"
-                    style={{ animation: 'fadeSlideIn 0.15s ease-out' }}
-                  >
+                  <div className={styles.createDropdown}>
                     <button
                       onClick={() => {
                         setIsCreateDropdownOpen(false)
                         setModalType('product')
                         setIsModalOpen(true)
                       }}
-                      className="w-full text-left px-4 py-3 text-[14px] text-slate-700 hover:bg-slate-50 transition-colors"
+                      className={styles.createDropdownItem}
                     >
                       Создать товар
                     </button>
@@ -154,7 +149,7 @@ export default function ProductsPage() {
                         setModalType('group')
                         setIsModalOpen(true)
                       }}
-                      className="w-full text-left px-4 py-3 text-[14px] text-slate-700 hover:bg-slate-50 transition-colors border-t border-slate-100"
+                      className={cn(styles.createDropdownItem, styles.createDropdownItemBorder)}
                     >
                       Создать группу
                     </button>
@@ -163,27 +158,27 @@ export default function ProductsPage() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className={styles.headerRight}>
               {/* Group By Dropdown */}
               <select 
                 value={groupBy}
                 onChange={(e) => setGroupBy(e.target.value)}
-                className="px-3 py-2 text-[13px] text-slate-700 bg-white border border-slate-300 rounded hover:border-slate-400 transition-colors focus:outline-none focus:ring-1 focus:ring-[#17a2b8]"
+                className={styles.groupBySelect}
               >
                 <option>По группам</option>
                 <option>Без группировки</option>
               </select>
 
               {/* Search */}
-              <div className="relative">
+              <div className={styles.searchContainer}>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Поиск по товарам"
-                  className="w-[240px] pl-9 pr-4 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-[#17a2b8]"
+                  className={styles.searchInput}
                 />
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className={styles.searchIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8"></circle>
                   <path d="m21 21-4.35-4.35"></path>
                 </svg>
@@ -193,66 +188,66 @@ export default function ProductsPage() {
         </div>
 
         {/* Table */}
-        <div className="flex-1 bg-slate-50">
-          <div className="bg-white m-6 rounded border border-slate-200">
-            <table className="w-full">
+        <div className={styles.tableArea}>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
               {!selectedRows.length && (
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className={styles.tableHeader}>
                   <tr>
-                    <th className="w-12 px-4 py-3">
+                    <th className={styles.tableHeaderCellCheckbox}>
                       <div 
                         onClick={toggleSelectAll}
-                        className="w-[18px] h-[18px] border-2 border-slate-400 rounded-sm flex items-center justify-center cursor-pointer transition-colors bg-white hover:border-slate-500"
+                        className={styles.checkbox}
                         style={{
-                          backgroundColor: allSelected ? '#17a2b8' : 'white',
-                          borderColor: allSelected ? '#17a2b8' : '#94a3b8'
+                          '--checkbox-bg': allSelected ? '#17a2b8' : 'white',
+                          '--checkbox-border': allSelected ? '#17a2b8' : '#94a3b8'
                         }}
                       >
                         {allSelected && (
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         )}
                       </div>
                     </th>
-                    <th className="w-10 px-2 py-3"></th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">
-                      <button className="flex items-center gap-1 hover:text-slate-700">
+                    <th className={styles.tableHeaderCellExpand}></th>
+                    <th className={styles.tableHeaderCell}>
+                      <button className={styles.tableSortButton}>
                         Наименование
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className={styles.tableSortIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
                     </th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">Артикул</th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">Цена за ед.</th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">Единица</th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">НДС</th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">Цена с НДС</th>
-                    <th className="text-left px-4 py-3 text-[13px] font-normal text-slate-500">Комментарий</th>
+                    <th className={styles.tableHeaderCell}>Артикул</th>
+                    <th className={styles.tableHeaderCell}>Цена за ед.</th>
+                    <th className={styles.tableHeaderCell}>Единица</th>
+                    <th className={styles.tableHeaderCell}>НДС</th>
+                    <th className={styles.tableHeaderCell}>Цена с НДС</th>
+                    <th className={styles.tableHeaderCell}>Комментарий</th>
                   </tr>
                 </thead>
               )}
               
               {selectedRows.length > 0 && (
-                <thead className="bg-[#17a2b8] border-b border-[#17a2b8]">
+                <thead className={styles.selectedHeader}>
                   <tr>
-                    <th colSpan={9} className="px-4 py-3">
-                      <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center gap-2">
+                    <th colSpan={9} className={styles.selectedHeaderCell}>
+                      <div className={styles.selectedHeaderContent}>
+                        <div className={styles.selectedHeaderLeft}>
                           <div 
                             onClick={toggleSelectAll}
-                            className="w-[18px] h-[18px] border-2 border-white rounded-sm flex items-center justify-center cursor-pointer"
+                            className={styles.selectedHeaderCheckbox}
                           >
-                            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           </div>
-                          <span className="text-[14px]">Выбран: {selectedRows.length}</span>
+                          <span className={styles.selectedHeaderText}>Выбран: {selectedRows.length}</span>
                         </div>
                         <button 
                           onClick={() => setSelectedRows([])}
-                          className="text-[14px] hover:text-slate-200 transition-colors"
+                          className={styles.selectedHeaderClose}
                         >
                           ✕
                         </button>
@@ -266,38 +261,38 @@ export default function ProductsPage() {
                 {Object.entries(groupedProducts).map(([groupName, items]) => (
                   <React.Fragment key={groupName}>
                     {/* Group Header */}
-                    <tr className="bg-slate-50 border-b border-slate-100">
-                      <td className="px-4 py-4" style={{ width: '55px' }}>
+                    <tr className={styles.groupRow}>
+                      <td className={cn(styles.groupCell, styles.groupCellCheckbox)}>
                         <div 
                           onClick={() => toggleRowSelection(`group-${groupName}`)}
-                          className="w-[18px] h-[18px] border-2 rounded-sm flex items-center justify-center cursor-pointer transition-colors hover:border-slate-500"
+                          className={styles.checkbox}
                           style={{
-                            backgroundColor: isGroupSelected(groupName) ? '#17a2b8' : 'white',
-                            borderColor: isGroupSelected(groupName) ? '#17a2b8' : '#94a3b8'
+                            '--checkbox-bg': isGroupSelected(groupName) ? '#17a2b8' : 'white',
+                            '--checkbox-border': isGroupSelected(groupName) ? '#17a2b8' : '#94a3b8'
                           }}
                         >
                           {isGroupSelected(groupName) && (
-                            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                         </div>
                       </td>
-                      <td className="px-2 py-4 relative" style={{ width: '40px' }}>
+                      <td className={cn(styles.groupCell, styles.groupCellExpand)}>
                         <button
                           onClick={() => toggleGroup(groupName)}
-                          className="text-slate-400 hover:text-slate-600 transition-colors relative z-10"
+                          className={styles.expandButton}
                         >
-                          <div className="w-4 h-4 flex items-center justify-center relative">
+                          <div className={styles.expandButtonIcon}>
                             {/* Horizontal line (always visible) */}
-                            <svg className="w-4 h-4 absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <svg className={styles.expandButtonIconHorizontal} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
                             </svg>
                             {/* Vertical line (rotates and fades) */}
                             <svg 
                               className={cn(
-                                "w-4 h-4 absolute transition-all duration-300 ease-in-out",
-                                isGroupExpanded(groupName) ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
+                                styles.expandButtonIconVertical,
+                                isGroupExpanded(groupName) ? styles.expanded : styles.collapsed
                               )}
                               fill="none" 
                               viewBox="0 0 24 24" 
@@ -309,7 +304,7 @@ export default function ProductsPage() {
                           </div>
                         </button>
                       </td>
-                      <td colSpan={7} className="py-4 text-[14px] font-medium text-slate-700">
+                      <td colSpan={7} className={styles.groupCellTitle}>
                         {groupName} ({items.length})
                       </td>
                     </tr>
@@ -317,71 +312,69 @@ export default function ProductsPage() {
                     {/* Group Items with Animation */}
                     {(isGroupExpanded(groupName) || closingGroups.includes(groupName)) && (
                       <tr>
-                        <td colSpan={9} className="p-0">
+                        <td colSpan={9} className={styles.groupItemsRow}>
                           <div 
-                            className="grid overflow-hidden"
+                            className={styles.groupItemsContainer}
                             style={{
-                              animation: closingGroups.includes(groupName)
+                              '--group-animation': closingGroups.includes(groupName)
                                 ? 'collapseUp 0.3s ease-in-out'
                                 : 'expandDown 0.3s ease-out'
                             }}
                           >
-                            <div className="min-h-0">
-                              <table className="w-full">
+                            <div className={styles.groupItemsInner}>
+                              <table className={styles.groupItemsTable}>
                                 <tbody>
                                   {items.map((product, index) => (
                                     <tr 
                                       key={product.id} 
-                                      className="border-b border-slate-100 hover:bg-slate-50/50"
+                                      className={styles.productRow}
                                       style={{
-                                        animation: !closingGroups.includes(groupName)
+                                        '--row-animation': !closingGroups.includes(groupName)
                                           ? `fadeSlideUp 0.2s ease-out ${index * 0.04}s backwards`
-                                          : undefined
+                                          : 'none'
                                       }}
                                     >
-                                      <td className="w-12 px-4 py-4">
+                                      <td className={cn(styles.productCell, styles.productCellCheckbox)}>
                                         <div 
                                           onClick={() => toggleRowSelection(product.id)}
-                                          className="w-[18px] h-[18px] border-2 rounded-sm flex items-center justify-center cursor-pointer transition-colors hover:border-slate-500"
+                                          className={styles.checkbox}
                                           style={{
-                                            backgroundColor: isRowSelected(product.id) ? '#17a2b8' : 'white',
-                                            borderColor: isRowSelected(product.id) ? '#17a2b8' : '#94a3b8'
+                                            '--checkbox-bg': isRowSelected(product.id) ? '#17a2b8' : 'white',
+                                            '--checkbox-border': isRowSelected(product.id) ? '#17a2b8' : '#94a3b8'
                                           }}
                                         >
                                           {isRowSelected(product.id) && (
-                                            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                             </svg>
                                           )}
                                         </div>
                                       </td>
-                                      <td className="w-10 px-2 py-4 relative">
+                                      <td className={cn(styles.productCell, styles.productCellExpand)}>
                                         {/* Vertical dashed line */}
                                         <div 
-                                          className="absolute left-1/2 -translate-x-1/2 w-[1px]"
+                                          className={styles.dashedLineVertical}
                                           style={{ 
-                                            top: '0',
-                                            height: index === items.length - 1 ? '50%' : '100%',
-                                            backgroundImage: 'repeating-linear-gradient(to bottom, #cbd5e1 0, #cbd5e1 4px, transparent 4px, transparent 8px)'
+                                            '--dash-top': '0',
+                                            '--dash-height': index === items.length - 1 ? '50%' : '100%'
                                           }}
                                         ></div>
                                         {/* Horizontal dashed line */}
                                         <div 
-                                          className="absolute top-1/2 h-[1px]"
+                                          className={styles.dashedLineHorizontal}
                                           style={{ 
-                                            left: '50%',
-                                            width: 'calc(50% + 8px)',
-                                            backgroundImage: 'repeating-linear-gradient(to right, #cbd5e1 0, #cbd5e1 4px, transparent 4px, transparent 8px)'
+                                            '--dash-left': '50%',
+                                            '--dash-width': 'calc(50% + 8px)'
                                           }}
                                         ></div>
                                       </td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-900">{product.name}</td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-600">{product.article}</td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-600">{product.pricePerUnit}</td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-600">{product.unit}</td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-600">{product.nds}</td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-600">{product.priceWithNds}</td>
-                                      <td className="px-4 py-4 text-[14px] text-slate-600">{product.comment}</td>
+                                      <td className={cn(styles.productCell, styles.productCellName)}>{product.name}</td>
+                                      <td className={cn(styles.productCell, styles.productCellText)}>{product.article}</td>
+                                      <td className={cn(styles.productCell, styles.productCellText)}>{product.pricePerUnit}</td>
+                                      <td className={cn(styles.productCell, styles.productCellText)}>{product.unit}</td>
+                                      <td className={cn(styles.productCell, styles.productCellText)}>{product.nds}</td>
+                                      <td className={cn(styles.productCell, styles.productCellText)}>{product.priceWithNds}</td>
+                                      <td className={cn(styles.productCell, styles.productCellText)}>{product.comment}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -399,9 +392,9 @@ export default function ProductsPage() {
         </div>
 
         {/* Footer */}
-        <div className="bg-white border-t border-slate-200 px-6 py-3 flex items-center flex-shrink-0">
-          <div className="text-[14px] text-slate-900">
-            <span className="font-medium">{products.length} товаров</span>
+        <div className={styles.footer}>
+          <div className={styles.footerText}>
+            <span className={styles.footerTextBold}>{products.length} товаров</span>
           </div>
         </div>
       </div>
