@@ -1,44 +1,242 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { OperationsTable } from '@/components/operations/OperationsTable/OperationsTable'
+import { useCounterpartiesV2, useOperationsList } from '@/hooks/useDashboard'
+import { OperationModal } from '@/components/operations/OperationModal/OperationModal'
+import { OperationMenu } from '@/components/operations/OperationsTable/OperationMenu'
+import { DeleteConfirmModal } from '@/components/operations/OperationsTable/DeleteConfirmModal'
+import { useDeleteOperation } from '@/hooks/useDashboard'
 import { cn } from '@/app/lib/utils'
 import styles from './counterparty-detail.module.scss'
 
-export default function KontragentDetailPage({ params }) {
+export default function KontragentDetailPage() {
+  const params = useParams()
+  const counterpartyGuid = params?.id
+  
   const [accountingMethod, setAccountingMethod] = useState('cash')
+  const [isCreateOperationModalOpen, setIsCreateOperationModalOpen] = useState(false)
+  const [isCreateModalClosing, setIsCreateModalClosing] = useState(false)
+  const [isCreateModalOpening, setIsCreateModalOpening] = useState(false)
+  const [selectedOperations, setSelectedOperations] = useState([])
+  const [editingOperation, setEditingOperation] = useState(null)
+  const [isEditModalClosing, setIsEditModalClosing] = useState(false)
+  const [isEditModalOpening, setIsEditModalOpening] = useState(false)
+  const [deletingOperation, setDeletingOperation] = useState(null)
+  const deleteOperationMutation = useDeleteOperation()
 
-  // Mock data - в реальном приложении загружается по params.id
-  const kontragent = {
-    id: 1,
-    name: 'Алексеенко М.Ф.',
-    dateRange: '31.12.21 – 20.03.26',
-    receipts: '+5 000 000 ₽',
-    payments: '-1 210 000 ₽',
-    difference: '+3 790 000 ₽',
-    debit: 'Нет задолженности',
-    credit: 'Нет задолженности',
-    fullName: 'Полное название не указано',
-    type: 'Смешанный'
+  // Fetch counterparty data by GUID
+  const { data: counterpartyData, isLoading: isLoadingCounterparty } = useCounterpartiesV2({
+    data: counterpartyGuid ? { guid: { $in: [counterpartyGuid] } } : {}
+  })
+  
+  const counterparty = counterpartyData?.data?.data?.response?.[0] || null
+
+  // Fetch operations for this counterparty
+  const { data: operationsData, isLoading: isLoadingOperations } = useOperationsList({
+    limit: 1000,
+    offset: 0,
+    filters: counterpartyGuid ? { counterparties_id: [counterpartyGuid] } : {}
+  })
+
+  const operationsItems = operationsData?.data?.data?.response || []
+
+  // Transform operations data for display
+  const operations = useMemo(() => {
+    if (!operationsItems || operationsItems.length === 0) return []
+    
+    return operationsItems.map((item, index) => {
+      const operationDate = item.data_operatsii ? new Date(item.data_operatsii) : null
+      
+      // Determine operation type from tip array
+      let type = 'out'
+      let typeLabel = 'Выплата'
+      if (item.tip && Array.isArray(item.tip)) {
+        if (item.tip.includes('Поступление')) {
+          type = 'in'
+          typeLabel = 'Поступление'
+        } else if (item.tip.includes('Перемещение')) {
+          type = 'transfer'
+          typeLabel = 'Перемещение'
+        } else if (item.tip.includes('Начисление')) {
+          type = 'transfer'
+          typeLabel = 'Начисление'
+        } else if (item.tip.includes('Выплата')) {
+          type = 'out'
+          typeLabel = 'Выплата'
+        } else {
+          typeLabel = item.tip[0] || 'Выплата'
+        }
+      }
+      
+      // Format date
+      const formatDate = (date) => {
+        if (!date) return ''
+        try {
+          const d = new Date(date)
+          const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+          return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+        } catch {
+          return ''
+        }
+      }
+      
+      // Format amount
+      const amount = item.summa || 0
+      const amountFormatted = amount.toLocaleString('ru-RU')
+      const amountSign = type === 'in' ? '+' : type === 'out' ? '-' : ''
+      
+      return {
+        id: item.guid || index,
+        guid: item.guid,
+        date: formatDate(operationDate),
+        account: item.bank_accounts_id_data?.nazvanie || '',
+        type: type,
+        typeCategory: type,
+        typeLabel: typeLabel,
+        counterparty: item.counterparties_id_data?.nazvanie || '',
+        category: item.chart_of_accounts_id_data?.nazvanie || '',
+        project: '',
+        deal: '',
+        amount: `${amountSign}${amountFormatted}`,
+        amountRaw: amount,
+        rawData: item
+      }
+    })
+  }, [operationsItems])
+
+  // Calculate stats from operations
+  const stats = useMemo(() => {
+    let receipts = 0
+    let payments = 0
+    let receiptsCount = 0
+    let paymentsCount = 0
+
+    operations.forEach(op => {
+      const amount = op.amountRaw || 0
+      if (op.type === 'in') {
+        receipts += amount
+        receiptsCount++
+      } else if (op.type === 'out') {
+        payments += amount
+        paymentsCount++
+      }
+    })
+
+    const difference = receipts - payments
+
+    return {
+      receipts,
+      payments,
+      difference,
+      receiptsCount,
+      paymentsCount,
+      totalCount: operations.length
+    }
+  }, [operations])
+
+  // Format date range (if needed)
+  const dateRange = useMemo(() => {
+    if (operations.length === 0) return 'Нет операций'
+    const dates = operationsItems.map(op => new Date(op.data_operatsii || op.data_oplaty)).filter(Boolean).sort((a, b) => a - b)
+    if (dates.length === 0) return 'Нет операций'
+    const first = dates[0]
+    const last = dates[dates.length - 1]
+    return `${first.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })} – ${last.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}`
+  }, [operations, operationsItems])
+
+  // Format counterparty info
+  const counterpartyInfo = useMemo(() => {
+    if (!counterparty) return null
+    
+    return {
+      name: counterparty.nazvanie || 'Без названия',
+      fullName: counterparty.polnoe_imya || 'Полное название не указано',
+      inn: counterparty.inn || null,
+      kpp: counterparty.kpp || null,
+      accountNumber: counterparty.nomer_scheta || null,
+      receiptArticle: counterparty.chart_of_accounts_id_data?.nazvanie || '–',
+      paymentArticle: counterparty.chart_of_accounts_id_2_data?.nazvanie || '–',
+      comment: counterparty.komentariy || null,
+      type: counterparty.tip || 'Не указан'
+    }
+  }, [counterparty])
+
+  const toggleOperation = (id) => {
+    if (selectedOperations.includes(id)) {
+      setSelectedOperations(selectedOperations.filter(opId => opId !== id))
+    } else {
+      setSelectedOperations([...selectedOperations, id])
+    }
   }
 
-  const operations = [
-    { id: 1, date: '20 мар 2026', account: 'Т-Банк', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-70 000' },
-    { id: 2, date: '20 мар 2026', account: 'Карта физ. лица', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-30 000' },
-    { id: 3, date: '20 фев 2026', account: 'Т-Банк', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-70 000' },
-    { id: 4, date: '20 фев 2026', account: 'Карта физ. лица', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-30 000' },
-    { id: 5, date: '20 окт 2025', account: 'Т-Банк', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-70 000' },
-    { id: 6, date: '20 окт 2025', account: 'Карта физ. лица', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-30 000' },
-    { id: 7, date: '20 сен 2025', account: 'Т-Банк', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-70 000' },
-    { id: 8, date: '20 сен 2025', account: 'Карта физ. лица', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-30 000' },
-    { id: 9, date: '21 авг 2025', account: 'Сейф', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-650 000' },
-    { id: 10, date: '20 авг 2025', account: 'Т-Банк', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-70 000' },
-    { id: 11, date: '20 авг 2025', account: 'Карта физ. лица', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-30 000' },
-    { id: 12, date: '20 июл 2025', account: 'Т-Банк', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-70 000' },
-    { id: 13, date: '20 июл 2025', account: 'Карта физ. лица', type: 'out', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '-30 000' },
-    { id: 14, date: '31 дек 2021', account: 'Наличка', type: 'in', kontragent: 'Алексеенко М.Ф.', category: '[undefined]', project: '', deal: '', amount: '+5 000 000' }
-  ]
+  const handleEditOperation = (operation) => {
+    setEditingOperation(operation)
+    setIsEditModalClosing(false)
+    setIsEditModalOpening(true)
+    setTimeout(() => {
+      setIsEditModalOpening(false)
+    }, 50)
+  }
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalClosing(true)
+    setTimeout(() => {
+      setIsCreateOperationModalOpen(false)
+      setIsCreateModalClosing(false)
+      setIsCreateModalOpening(false)
+    }, 300)
+  }
+
+  const handleCloseEditModal = () => {
+    setIsEditModalClosing(true)
+    setTimeout(() => {
+      setEditingOperation(null)
+      setIsEditModalClosing(false)
+      setIsEditModalOpening(false)
+    }, 300)
+  }
+
+  const handleDeleteOperation = (operation) => {
+    setDeletingOperation(operation)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingOperation) return
+    
+    try {
+      const guid = deletingOperation.rawData?.guid || deletingOperation.guid
+      if (!guid) {
+        throw new Error('GUID операции не найден')
+      }
+      
+      await deleteOperationMutation.mutateAsync([guid])
+      setDeletingOperation(null)
+    } catch (error) {
+      console.error('Error deleting operation:', error)
+    }
+  }
+
+  if (isLoadingCounterparty) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!counterparty) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Контрагент не найден</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.container}>
@@ -50,14 +248,14 @@ export default function KontragentDetailPage({ params }) {
               Список контрагентов
             </Link>
             <span className={styles.breadcrumbSeparator}>›</span>
-            <span className={styles.breadcrumbCurrent}>Контрагент</span>
+            <span className={styles.breadcrumbCurrent}>{counterpartyInfo?.name || 'Контрагент'}</span>
           </div>
         </div>
 
         {/* Header with kontragent info */}
         <div className={styles.header}>
           <div className={styles.headerTop}>
-            <h1 className={styles.title}>{kontragent.name}</h1>
+            <h1 className={styles.title}>{counterpartyInfo?.name || 'Контрагент'}</h1>
             <div className={styles.dateInfo}>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -65,7 +263,7 @@ export default function KontragentDetailPage({ params }) {
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="3" y1="10" x2="21" y2="10"></line>
               </svg>
-              <span className={styles.dateText}>31.12.21 – 20.03.26</span>
+              <span className={styles.dateText}>{dateRange}</span>
             </div>
             <select
               value={accountingMethod}
@@ -87,7 +285,9 @@ export default function KontragentDetailPage({ params }) {
                     <div className={cn(styles.financialItemDot)} style={{ backgroundColor: '#5dade2' }}></div>
                     <span className={styles.financialItemLabel}>Поступления</span>
                   </div>
-                  <div className={styles.financialItemValue}>+5 000 000 <span className={styles.financialItemCurrency}>₽</span></div>
+                  <div className={styles.financialItemValue}>
+                    {stats.receipts >= 0 ? '+' : ''}{stats.receipts.toLocaleString('ru-RU')}
+                  </div>
                 </div>
                 
                 <div className={styles.financialItem}>
@@ -95,15 +295,19 @@ export default function KontragentDetailPage({ params }) {
                     <div className={cn(styles.financialItemDot)} style={{ backgroundColor: '#f39c6b' }}></div>
                     <span className={styles.financialItemLabel}>Выплаты</span>
                   </div>
-                  <div className={styles.financialItemValue}>-1 210 000 <span className={styles.financialItemCurrency}>₽</span></div>
+                  <div className={styles.financialItemValue}>
+                    {stats.payments >= 0 ? '-' : ''}{Math.abs(stats.payments).toLocaleString('ru-RU')}
+                  </div>
                 </div>
                 
                 <div className={styles.financialItem}>
                   <div className={styles.financialItemHeader}>
-                    <div className={cn(styles.financialItemDot)} style={{ backgroundColor: '#52c41a' }}></div>
+                    <div className={cn(styles.financialItemDot)} style={{ backgroundColor: stats.difference >= 0 ? '#52c41a' : '#ff4d4f' }}></div>
                     <span className={styles.financialItemLabel}>Разница</span>
                   </div>
-                  <div className={styles.financialItemValue}>+3 790 000 <span className={styles.financialItemCurrency}>₽</span></div>
+                  <div className={styles.financialItemValue}>
+                    {stats.difference >= 0 ? '+' : ''}{stats.difference.toLocaleString('ru-RU')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -123,13 +327,44 @@ export default function KontragentDetailPage({ params }) {
               </div>
             </div>
 
-            {/* Right Card - Additional Info (takes remaining space) */}
+            {/* Right Card - Additional Info in two-column format */}
             <div className={styles.infoCard}>
-              <div className={styles.infoCardTop}>
-                <div className={styles.infoCardText}>Полное название не указано</div>
-                <div className={cn(styles.infoCardText, styles.infoCardTextRight)}>Тип: смешанный</div>
+              <div className={styles.infoCardTitle}>{counterpartyInfo?.name || 'Контрагент'}</div>
+              <div className={styles.infoCardDivider}></div>
+              <div className={styles.infoCardDetails}>
+                {counterpartyInfo?.inn && (
+                  <div className={styles.infoCardRow}>
+                    <span className={styles.infoCardLabel}>ИНН</span>
+                    <span className={styles.infoCardValue}>{counterpartyInfo.inn}</span>
+                  </div>
+                )}
+                <div className={styles.infoCardRow}>
+                  <span className={styles.infoCardLabel}>Статья для поступлений</span>
+                  <span className={styles.infoCardValue}>{counterpartyInfo?.receiptArticle || '–'}</span>
+                </div>
+                {counterpartyInfo?.kpp && (
+                  <div className={styles.infoCardRow}>
+                    <span className={styles.infoCardLabel}>КПП</span>
+                    <span className={styles.infoCardValue}>{counterpartyInfo.kpp}</span>
+                  </div>
+                )}
+                <div className={styles.infoCardRow}>
+                  <span className={styles.infoCardLabel}>Статья для выплат</span>
+                  <span className={styles.infoCardValue}>{counterpartyInfo?.paymentArticle || '–'}</span>
+                </div>
+                {counterpartyInfo?.accountNumber && (
+                  <div className={styles.infoCardRow}>
+                    <span className={styles.infoCardLabel}>№ счета</span>
+                    <span className={styles.infoCardValue}>{counterpartyInfo.accountNumber}</span>
+                  </div>
+                )}
+                {counterpartyInfo?.comment && (
+                  <div className={styles.infoCardRow}>
+                    <span className={styles.infoCardLabel}>Комментарий</span>
+                    <span className={styles.infoCardValue}>{counterpartyInfo.comment}</span>
+                  </div>
+                )}
               </div>
-              <div className={cn(styles.infoCardText, styles.infoCardTextCenter)}>Реквизиты контрагента отсутствуют</div>
             </div>
           </div>
         </div>
@@ -139,34 +374,131 @@ export default function KontragentDetailPage({ params }) {
           <div className={styles.operationsContent}>
             <div className={styles.operationsHeader}>
               <h2 className={styles.operationsTitle}>Операции по контрагенту</h2>
-              <button className={styles.filtersButton}>
-                Фильтры
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
+              <div className={styles.operationsHeaderActions}>
+              <button 
+                className={styles.createButton}
+                onClick={() => {
+                  setIsCreateOperationModalOpen(true)
+                  setIsCreateModalClosing(false)
+                  setIsCreateModalOpening(true)
+                  setTimeout(() => {
+                    setIsCreateModalOpening(false)
+                  }, 50)
+                }}
+              >
+                Создать
               </button>
+                <button className={styles.filtersButton}>
+                  Фильтры
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            {/* Filters Row */}
-            <div className={styles.filtersRow}>
-              <select className={styles.filterSelect}>
-                <option>Юрлица и счета</option>
-              </select>
-              <select className={styles.filterSelect}>
-                <option>Статьи учета</option>
-              </select>
-              <select className={styles.filterSelect}>
-                <option>Проекты</option>
-              </select>
-              <select className={styles.filterSelect}>
-                <option>Сделки</option>
-              </select>
-            </div>
-
-            <OperationsTable 
-              operations={operations}
-              onRowClick={(operation) => console.log('Clicked:', operation)}
-            />
+            {isLoadingOperations ? (
+              <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка операций...</div>
+            ) : operations.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyStateIcon}>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                    <line x1="8" y1="8" x2="16" y2="16" strokeWidth="2"></line>
+                  </svg>
+                </div>
+                <div className={styles.emptyStateText}>
+                  <div className={styles.emptyStateTitle}>Создайте операции с контрагентом</div>
+                  <div className={styles.emptyStateSubtitle}>
+                    Добавляйте платежи и учитывайте предоплаты или отсрочки.
+                  </div>
+                  <a href="#" className={styles.emptyStateLink} onClick={(e) => { e.preventDefault(); setIsCreateOperationModalOpen(true) }}>
+                    Как это работает — читайте в статье.
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.tableWrapper}>
+                <table className={styles.operationsTable}>
+                  <thead className={styles.tableHeader}>
+                    <tr>
+                      <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}></th>
+                      <th className={styles.tableHeaderCell}>Дата</th>
+                      <th className={styles.tableHeaderCell}>Счет</th>
+                      <th className={styles.tableHeaderCell}>Тип</th>
+                      <th className={styles.tableHeaderCell}>Контрагент</th>
+                      <th className={styles.tableHeaderCell}>Статья</th>
+                      <th className={styles.tableHeaderCell}>Проект</th>
+                      <th className={styles.tableHeaderCell}>Сделка</th>
+                      <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellRight)}>Сумма</th>
+                      <th className={styles.tableHeaderCell} style={{ width: '3rem' }}></th>
+                    </tr>
+                  </thead>
+                  <tbody className={styles.tableBody}>
+                    {operations.map((op) => (
+                      <tr
+                        key={op.id}
+                        className={cn(
+                          styles.tableRow,
+                          selectedOperations.includes(op.id) && styles.selected
+                        )}
+                      >
+                        <td className={cn(styles.tableCell, styles.tableCellCheckbox)} onClick={(e) => e.stopPropagation()}>
+                          <div className={styles.checkboxWrapper}>
+                            <div 
+                              className={cn(
+                                styles.checkbox,
+                                selectedOperations.includes(op.id) ? styles.checked : styles.unchecked
+                              )}
+                              onClick={() => toggleOperation(op.id)}
+                            >
+                              {selectedOperations.includes(op.id) && (
+                                <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className={styles.tableCell}>{op.date}</td>
+                        <td className={styles.tableCell}>{op.account}</td>
+                        <td className={styles.tableCell}>
+                          <span className={cn(
+                            styles.typeBadge,
+                            op.typeCategory === 'in' && styles.typeBadgeIn,
+                            op.typeCategory === 'out' && styles.typeBadgeOut,
+                            op.typeCategory === 'transfer' && styles.typeBadgeTransfer
+                          )}>
+                            {op.typeLabel}
+                          </span>
+                        </td>
+                        <td className={styles.tableCell}>{op.counterparty}</td>
+                        <td className={styles.tableCell}>{op.category}</td>
+                        <td className={styles.tableCell}>{op.project}</td>
+                        <td className={styles.tableCell}>{op.deal}</td>
+                        <td className={cn(
+                          styles.tableCell,
+                          styles.amountCell,
+                          op.typeCategory === 'in' && styles.positive,
+                          op.typeCategory === 'out' && styles.negative,
+                          op.typeCategory === 'transfer' && styles.neutral
+                        )}>
+                          {op.amount}
+                        </td>
+                        <td className={styles.tableCell} onClick={(e) => e.stopPropagation()}>
+                          <OperationMenu
+                            operation={op}
+                            onEdit={handleEditOperation}
+                            onDelete={handleDeleteOperation}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 
@@ -175,21 +507,61 @@ export default function KontragentDetailPage({ params }) {
           <div className={styles.footerContent}>
             <div className={styles.footerStats}>
               <span className={styles.footerText}>
-                <span className={styles.footerTextBold}>{operations.length}</span> операций
+                <span className={styles.footerTextBold}>{stats.totalCount}</span> {stats.totalCount === 1 ? 'операция' : stats.totalCount < 5 ? 'операции' : 'операций'}
               </span>
+              {stats.receiptsCount > 0 && (
               <span className={styles.footerText}>
-                1 поступление: <span className={styles.footerTextBold}>5 000 000 ₽</span>
+                  {stats.receiptsCount} {stats.receiptsCount === 1 ? 'поступление' : stats.receiptsCount < 5 ? 'поступления' : 'поступлений'}: <span className={styles.footerTextBold}>{stats.receipts.toLocaleString('ru-RU')}</span>
               </span>
+              )}
+              {stats.paymentsCount > 0 && (
               <span className={styles.footerText}>
-                19 выплат: <span className={styles.footerTextBold}>1 510 000 ₽</span>
+                  {stats.paymentsCount} {stats.paymentsCount === 1 ? 'выплата' : stats.paymentsCount < 5 ? 'выплаты' : 'выплат'}: <span className={styles.footerTextBold}>{stats.payments.toLocaleString('ru-RU')}</span>
               </span>
+              )}
               <span className={styles.footerText}>
-                Итого: <span className={styles.footerTextGreen}>+3 490 000 ₽</span>
+                Итого: <span className={cn(styles.footerTextBold, stats.difference >= 0 ? styles.footerTextGreen : styles.footerTextRed)}>
+                  {stats.difference >= 0 ? '+' : ''}{stats.difference.toLocaleString('ru-RU')}
+                </span>
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Create Operation Modal */}
+      {isCreateOperationModalOpen && (
+        <OperationModal
+          operation={{ isNew: true }}
+          modalType="income"
+          isClosing={isCreateModalClosing}
+          isOpening={isCreateModalOpening}
+          onClose={handleCloseCreateModal}
+          preselectedCounterparty={counterpartyGuid}
+        />
+      )}
+
+      {/* Edit Operation Modal */}
+      {editingOperation && (
+        <OperationModal
+          operation={editingOperation}
+          modalType={editingOperation.typeCategory === 'in' ? 'income' : editingOperation.typeCategory === 'out' ? 'payment' : 'transfer'}
+          isClosing={isEditModalClosing}
+          isOpening={isEditModalOpening}
+          onClose={handleCloseEditModal}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingOperation && (
+        <DeleteConfirmModal
+          isOpen={!!deletingOperation}
+          operation={deletingOperation}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeletingOperation(null)}
+          isDeleting={deleteOperationMutation.isPending}
+        />
+      )}
     </div>
   )
 }

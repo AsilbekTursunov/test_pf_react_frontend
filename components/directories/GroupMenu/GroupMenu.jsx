@@ -1,0 +1,165 @@
+"use client"
+
+import { useState, useRef, useEffect } from 'react'
+import { cn } from '@/app/lib/utils'
+import styles from './GroupMenu.module.scss'
+
+export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef(null)
+  const buttonRef = useRef(null)
+  const dropdownRef = useRef(null)
+  const justOpenedRef = useRef(false)
+  const buttonClickedRef = useRef(false)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    function handleClickOutside(event) {
+      const target = event.target
+      
+      if (buttonClickedRef.current) {
+        return
+      }
+      
+      if (buttonRef.current && (
+        buttonRef.current === target ||
+        buttonRef.current.contains(target)
+      )) {
+        return
+      }
+
+      if (
+        (menuRef.current && menuRef.current.contains(target)) ||
+        (dropdownRef.current && dropdownRef.current.contains(target))
+      ) {
+        return
+      }
+
+      if (justOpenedRef.current) {
+        return
+      }
+
+      setIsOpen(false)
+    }
+
+    justOpenedRef.current = true
+    
+    let timeoutId = null
+    
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        timeoutId = setTimeout(() => {
+          document.addEventListener('click', handleClickOutside, true)
+          setTimeout(() => {
+            justOpenedRef.current = false
+          }, 400)
+        }, 200)
+      })
+    })
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      if (timeoutId) clearTimeout(timeoutId)
+      document.removeEventListener('click', handleClickOutside, true)
+      justOpenedRef.current = false
+    }
+  }, [isOpen])
+
+  const handleEdit = (e) => {
+    e.stopPropagation()
+    setIsOpen(false)
+    if (onEdit) onEdit(group)
+  }
+
+  const handleDelete = (e) => {
+    e.stopPropagation()
+    setIsOpen(false)
+    if (onDelete) onDelete(group)
+  }
+
+  const handleCreateCounterparty = (e) => {
+    e.stopPropagation()
+    setIsOpen(false)
+    if (onCreateCounterparty) onCreateCounterparty(group)
+  }
+
+  return (
+    <div 
+      ref={menuRef}
+      className={styles.menuContainer}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        ref={buttonRef}
+        className={styles.menuButton}
+        onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          buttonClickedRef.current = true
+          
+          setIsOpen(prev => {
+            const newValue = !prev
+            setTimeout(() => {
+              buttonClickedRef.current = false
+            }, 500)
+            return newValue
+          })
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          buttonClickedRef.current = true
+        }}
+        type="button"
+      >
+        <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+        </svg>
+      </button>
+      
+      {isOpen && (
+        <div 
+          ref={dropdownRef}
+          className={styles.menuDropdown}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+          }}
+        >
+          <button
+            className={styles.menuItem}
+            onClick={handleEdit}
+          >
+            <svg className={styles.menuItemIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Редактировать</span>
+          </button>
+          <button
+            className={styles.menuItem}
+            onClick={handleCreateCounterparty}
+          >
+            <svg className={styles.menuItemIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Создать контрагента</span>
+          </button>
+          <button
+            className={cn(styles.menuItem, styles.menuItemDanger)}
+            onClick={handleDelete}
+          >
+            <svg className={styles.menuItemIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Удалить</span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}

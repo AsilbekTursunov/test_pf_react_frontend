@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect, Fragment, useMemo } from 'react'
 import { cn } from '@/app/lib/utils'
-import { useCounterparties, useBankAccounts, useOperationsTableStructure, useOperationsList } from '@/hooks/useDashboard'
+import { useCounterpartiesV2, useCounterpartiesGroupsV2, useMyAccountsV2, useLegalEntitiesV2, useOperationsList, useDeleteOperation } from '@/hooks/useDashboard'
 import { OperationsFiltersSidebar } from '@/components/operations/OperationsFiltersSidebar/OperationsFiltersSidebar'
 import { OperationsHeader } from '@/components/operations/OperationsHeader/OperationsHeader'
 import { OperationsFooter } from '@/components/operations/OperationsFooter/OperationsFooter'
 import { OperationModal } from '@/components/operations/OperationModal/OperationModal'
+import { OperationMenu } from '@/components/operations/OperationsTable/OperationMenu'
+import { DeleteConfirmModal } from '@/components/operations/OperationsTable/DeleteConfirmModal'
 import styles from './operations.module.scss'
 
 export default function OperationsPage() {
@@ -23,12 +25,12 @@ export default function OperationsPage() {
 
   const [dateFilters, setDateFilters] = useState({
     podtverzhdena: true,
-    nePodtverzhdena: false
+    nePodtverzhdena: true
   })
 
   const [dateStartFilters, setDateStartFilters] = useState({
     podtverzhdena: true,
-    nePodtverzhdena: false
+    nePodtverzhdena: true
   })
 
   const [selectedDatePaymentRange, setSelectedDatePaymentRange] = useState(null)
@@ -102,34 +104,55 @@ export default function OperationsPage() {
     return filters
   }, [selectedFilters, dateFilters, dateStartFilters, selectedDatePaymentRange, selectedDateStartRange, selectedAccounts, selectedCounterAgents, selectedFinancialAccounts])
 
-  // Fetch data from API
-  const { data: counterAgentsData } = useCounterparties({ limit: 500 })
-  const { data: bankAccountsData } = useBankAccounts({ limit: 500 })
-  const { data: operationsTableStructureData, isLoading: isLoadingTableStructure } = useOperationsTableStructure()
+  // Fetch data from API - using V2 endpoints
+  const { data: counterAgentsData } = useCounterpartiesV2({ data: {} })
+  const { data: counterpartiesGroupsData } = useCounterpartiesGroupsV2({ data: {} })
+  const { data: bankAccountsData } = useMyAccountsV2({ data: {} })
+  const { data: legalEntitiesData } = useLegalEntitiesV2({ data: {} })
   const { data: operationsListData, isLoading: isLoadingOperations } = useOperationsList({
     limit: 100,
     offset: 0,
     filters: filtersForAPI
   })
 
-  // Extract and transform data from API responses
-  const counterAgents = (counterAgentsData?.data?.data?.response || []).map(item => ({
-    guid: item.guid,
-    label: item.nazvanie || '',
-    group: (Array.isArray(item.gruppa) && item.gruppa.length > 0) ? item.gruppa[0] : 'Без группы'
-  }))
+  // Extract and transform data from API responses - build tree structure for filter
+  const counterAgents = useMemo(() => {
+    const counterparties = counterAgentsData?.data?.data?.response || []
+    const groups = counterpartiesGroupsData?.data?.data?.response || []
+    
+    // Create a map of groups by guid
+    const groupsMap = new Map()
+    groups.forEach(group => {
+      groupsMap.set(group.guid, group)
+    })
+    
+    // Build flat list for filter sidebar (backward compatibility)
+    return counterparties.map(item => ({
+      guid: item.guid,
+      label: item.nazvanie || '',
+      group: item.counterparties_group_id_data?.nazvanie_gruppy || 'Без группы'
+    }))
+  }, [counterAgentsData, counterpartiesGroupsData])
 
-  // Transform bank accounts data
-  const bankAccounts = (bankAccountsData?.data?.data?.response || []).map(item => ({
-    guid: item.guid,
-    label: item.nazvanie || '',
-    group: item.legal_entity_id_data?.nazvanie || 'Без группы'
-  }))
-  
-  // Extract operations table structure
-  const operationsTableStructure = operationsTableStructureData?.data?.data || null
-  const operationsFields = operationsTableStructure?.fields || []
-  const operationsViews = operationsTableStructure?.views || []
+  // Transform bank accounts data with legal entities grouping
+  const bankAccounts = useMemo(() => {
+    const accounts = bankAccountsData?.data?.data?.response || []
+    const legalEntities = legalEntitiesData?.data?.data?.response || []
+    
+    // Create a map of legal entities by guid for quick lookup
+    const legalEntitiesMap = new Map()
+    legalEntities.forEach(entity => {
+      legalEntitiesMap.set(entity.guid, entity.nazvanie || 'Без названия')
+    })
+    
+    return accounts.map(item => ({
+      guid: item.guid,
+      label: item.nazvanie || '',
+      group: item.legal_entity_id 
+        ? (legalEntitiesMap.get(item.legal_entity_id) || item.legal_entity_id_data?.nazvanie || 'Без группы')
+        : 'Без группы'
+    }))
+  }, [bankAccountsData, legalEntitiesData])
 
   // Extract operations list from API response (v2/items/operations format)
   const operationsItems = operationsListData?.data?.data?.response || operationsListData?.data?.response || []
@@ -196,7 +219,7 @@ export default function OperationsPage() {
       
       // Format amount
       const amount = item.summa || 0
-      const amountFormatted = amount >= 0 ? `+${amount.toLocaleString('ru-RU')}` : `${amount.toLocaleString('ru-RU')}`
+      const amountFormatted = amount.toLocaleString('ru-RU')
       
       // Get type text from tip array
       const typeText = typeLabel
@@ -289,6 +312,11 @@ export default function OperationsPage() {
   const [modalType, setModalType] = useState(null)
   const [isModalClosing, setIsModalClosing] = useState(false)
   const [isModalOpening, setIsModalOpening] = useState(false)
+  const [operationToDelete, setOperationToDelete] = useState(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  
+  // Delete operation mutation
+  const deleteOperationMutation = useDeleteOperation()
   
   const toggleOperation = (id) => {
     setSelectedOperations(prev => 
@@ -342,6 +370,38 @@ export default function OperationsPage() {
       setOpenModal(null)
       setIsModalClosing(false)
     }, 300) // Длительность анимации
+  }
+
+  const handleEditOperation = (operation) => {
+    openOperationModal(operation)
+  }
+
+  const handleDeleteOperation = (operation) => {
+    setOperationToDelete(operation)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!operationToDelete) return
+
+    const guid = operationToDelete.rawData?.guid || operationToDelete.guid
+    if (!guid) {
+      console.error('GUID операции не найден')
+      return
+    }
+
+    try {
+      await deleteOperationMutation.mutateAsync([guid])
+      setIsDeleteModalOpen(false)
+      setOperationToDelete(null)
+    } catch (error) {
+      console.error('Error deleting operation:', error)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false)
+    setOperationToDelete(null)
   }
 
   const selectedTotal = useMemo(() => {
@@ -416,6 +476,16 @@ export default function OperationsPage() {
         <OperationsHeader 
           isFilterOpen={isFilterOpen}
           onFilterToggle={() => setIsFilterOpen(true)}
+          onCreateClick={() => {
+            setOpenModal({ id: 'new', isNew: true })
+            setModalType('income')
+            setIsModalClosing(false)
+            setIsModalOpening(true)
+            document.body.style.overflow = 'hidden'
+            setTimeout(() => {
+              setIsModalOpening(false)
+            }, 50)
+          }}
         />
 
         {/* Table */}
@@ -431,7 +501,7 @@ export default function OperationsPage() {
                   ✕
                 </button>
                 <span className={styles.selectionBarText}>
-                  Выбрано: <strong className={styles.selectionBarTextBold}>{selectedOperations.length}</strong> на сумму <strong className={cn(styles.selectionBarTextBold, selectedTotal >= 0 ? styles.selectionBarTextPositive : styles.selectionBarTextNegative)}>{selectedTotal >= 0 ? '+' : ''}{selectedTotal.toLocaleString('ru-RU')} ₽</strong>
+                  Выбрано: <strong className={styles.selectionBarTextBold}>{selectedOperations.length}</strong> на сумму <strong className={cn(styles.selectionBarTextBold, selectedTotal >= 0 ? styles.selectionBarTextPositive : styles.selectionBarTextNegative)}>{selectedTotal >= 0 ? '+' : ''}{selectedTotal.toLocaleString('ru-RU')}</strong>
                 </span>
               </div>
               <div className={styles.selectionBarRight}>
@@ -445,7 +515,8 @@ export default function OperationsPage() {
             </div>
           )}
 
-          <table className={styles.table}>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
             <thead className={styles.tableHeader}>
               <tr className={styles.tableHeaderRow}>
                 <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}>
@@ -462,9 +533,9 @@ export default function OperationsPage() {
                         isAllSelected && styles.checkboxChecked
                       )}
                       style={{
-                        '--checkbox-bg': isAllSelected ? '#17a2b8' : 'white',
-                        '--checkbox-border': isAllSelected ? '#17a2b8' : '#cbd5e1',
-                        '--checkbox-hover-border': '#94a3b8',
+                        '--checkbox-bg': isAllSelected ? '#6366f1' : 'white',
+                        '--checkbox-border': isAllSelected ? '#6366f1' : '#d1d5db',
+                        '--checkbox-hover-border': '#9ca3af',
                         width: '18px',
                         height: '18px',
                         borderRadius: '0.125rem'
@@ -502,14 +573,14 @@ export default function OperationsPage() {
             </thead>
             <tbody style={{ backgroundColor: 'white' }}>
               {isLoadingOperations ? (
-                <tr>
-                  <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
+                <tr className={styles.emptyRow}>
+                  <td colSpan="14" className={styles.emptyCell}>
                     Загрузка данных...
                   </td>
                 </tr>
               ) : operations.length === 0 ? (
-                <tr>
-                  <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
+                <tr className={styles.emptyRow}>
+                  <td colSpan="14" className={styles.emptyCell}>
                     Нет данных
                   </td>
                 </tr>
@@ -518,7 +589,7 @@ export default function OperationsPage() {
               {/* Сегодня - Section Header */}
               {operations.filter(op => op.section === 'today').length > 0 && (
                 <tr className={styles.sectionHeader}>
-                  <td colSpan="13" className={styles.sectionHeaderCell}>
+                  <td colSpan="14" className={styles.sectionHeaderCell}>
                     <h3 className={styles.sectionHeaderTitle}>Сегодня</h3>
                   </td>
                 </tr>
@@ -545,9 +616,9 @@ export default function OperationsPage() {
                               selectedOperations.includes(op.id) && styles.checkboxChecked
                             )}
                             style={{
-                              '--checkbox-bg': selectedOperations.includes(op.id) ? '#17a2b8' : 'white',
-                              '--checkbox-border': selectedOperations.includes(op.id) ? '#17a2b8' : '#cbd5e1',
-                              '--checkbox-hover-border': '#94a3b8',
+                              '--checkbox-bg': selectedOperations.includes(op.id) ? '#6366f1' : 'white',
+                              '--checkbox-border': selectedOperations.includes(op.id) ? '#6366f1' : '#d1d5db',
+                              '--checkbox-hover-border': '#9ca3af',
                               width: '18px',
                               height: '18px',
                               borderRadius: '0.125rem'
@@ -573,14 +644,26 @@ export default function OperationsPage() {
                     <td className={cn(styles.tableCell, styles.accountCell)}>{op.account}</td>
                     <td className={styles.tableCell}>
                       {op.typeLabel ? (
-                        <span className={cn(
-                          styles.typeBadge,
-                          op.typeCategory === 'in' && styles.typeBadgeIn,
-                          op.typeCategory === 'out' && styles.typeBadgeOut,
-                          op.typeCategory === 'transfer' && styles.typeBadgeTransfer
+                        <div className={cn(
+                          styles.typeIcon,
+                          op.typeCategory === 'in' && styles.typeIconIn,
+                          op.typeCategory === 'out' && styles.typeIconOut,
+                          op.typeCategory === 'transfer' && styles.typeIconTransfer
                         )}>
-                          {op.typeLabel}
-                        </span>
+                          {op.typeCategory === 'in' ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 5v14M19 12l-7 7-7-7" />
+                            </svg>
+                          ) : op.typeCategory === 'out' ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 19V5M5 12l7-7 7 7" />
+                            </svg>
+                          ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M8 12h8M12 8l4 4-4 4" />
+                            </svg>
+                          )}
+                        </div>
                       ) : null}
                     </td>
                   <td className={cn(styles.tableCell, styles.counterpartyCell)}>{op.counterparty}</td>
@@ -590,9 +673,18 @@ export default function OperationsPage() {
                     <td className={cn(
                       styles.tableCell,
                       styles.amountCell,
-                      op.amount.startsWith('+') ? styles.positive : styles.negative
+                      op.typeCategory === 'in' && styles.positive,
+                      op.typeCategory === 'out' && styles.negative,
+                      op.typeCategory === 'transfer' && styles.neutral
                     )}>
                     {op.amount}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
+                        <OperationMenu
+                          operation={op}
+                          onEdit={handleEditOperation}
+                          onDelete={handleDeleteOperation}
+                        />
                       </td>
                     </tr>
               ))}
@@ -600,10 +692,10 @@ export default function OperationsPage() {
               {/* Вчера и ранее - Section Header */}
               {operations.filter(op => op.section === 'yesterday').length > 0 && (
               <tr className={styles.sectionHeader}>
-                  <td colSpan="13" className={styles.sectionHeaderCell}>
+                  <td colSpan="14" className={styles.sectionHeaderCell}>
                   <h3 className={styles.sectionHeaderTitle}>Вчера и ранее</h3>
-                </td>
-              </tr>
+                  </td>
+                </tr>
               )}
 
               {/* Yesterday Operations */}
@@ -627,9 +719,9 @@ export default function OperationsPage() {
                           selectedOperations.includes(op.id) && styles.checkboxChecked
                         )}
                         style={{
-                          '--checkbox-bg': selectedOperations.includes(op.id) ? '#17a2b8' : 'white',
-                          '--checkbox-border': selectedOperations.includes(op.id) ? '#17a2b8' : '#cbd5e1',
-                          '--checkbox-hover-border': '#94a3b8',
+                          '--checkbox-bg': selectedOperations.includes(op.id) ? '#6366f1' : 'white',
+                          '--checkbox-border': selectedOperations.includes(op.id) ? '#6366f1' : '#d1d5db',
+                          '--checkbox-hover-border': '#9ca3af',
                           width: '18px',
                           height: '18px',
                           borderRadius: '0.125rem'
@@ -646,25 +738,47 @@ export default function OperationsPage() {
                   </td>
                   <td className={styles.tableCell}>
                     {op.typeLabel ? (
-                      <span className={cn(
-                        styles.typeBadge,
-                        op.typeCategory === 'in' && styles.typeBadgeIn,
-                        op.typeCategory === 'out' && styles.typeBadgeOut,
-                        op.typeCategory === 'transfer' && styles.typeBadgeTransfer
+                      <div className={cn(
+                        styles.typeIcon,
+                        op.typeCategory === 'in' && styles.typeIconIn,
+                        op.typeCategory === 'out' && styles.typeIconOut,
+                        op.typeCategory === 'transfer' && styles.typeIconTransfer
                       )}>
-                        {op.typeLabel}
-                      </span>
+                        {op.typeCategory === 'in' ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 5v14M19 12l-7 7-7-7" />
+                          </svg>
+                        ) : op.typeCategory === 'out' ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 19V5M5 12l7-7 7 7" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M8 12h8M12 8l4 4-4 4" />
+                          </svg>
+                        )}
+                      </div>
                     ) : null}
                   </td>
                   <td className={styles.tableCell}>{op.accrualDate || null}</td>
                   <td className={styles.tableCell}>{op.operationDate || null}</td>
                   <td className={styles.tableCell}>
-                    {op.paymentConfirmed !== undefined ? (op.paymentConfirmed ? 'Да' : 'Нет') : null}
+                    {op.paymentConfirmed !== undefined ? (
+                      <div className={cn(
+                        styles.paymentStatus,
+                        op.paymentConfirmed ? styles.paymentStatusConfirmed : styles.paymentStatusNotConfirmed
+                      )}>
+                        <div className={styles.paymentStatusDot}></div>
+                        <span>{op.paymentConfirmed ? 'Да' : 'Нет'}</span>
+                      </div>
+                    ) : null}
                   </td>
                   <td className={cn(
                     styles.tableCell,
                     styles.amountCell,
-                    op.amount.startsWith('+') ? styles.positive : styles.negative
+                    op.typeCategory === 'in' && styles.positive,
+                    op.typeCategory === 'out' && styles.negative,
+                    op.typeCategory === 'transfer' && styles.neutral
                   )}>
                     {op.amount || null}
                   </td>
@@ -675,12 +789,20 @@ export default function OperationsPage() {
                   <td className={styles.tableCell}>{op.counterparty || null}</td>
                   <td className={styles.tableCell}>{op.createdAt || null}</td>
                   <td className={styles.tableCell}>{op.updatedAt || null}</td>
+                  <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
+                    <OperationMenu
+                      operation={op}
+                      onEdit={handleEditOperation}
+                      onDelete={handleDeleteOperation}
+                    />
+                  </td>
                 </tr>
               ))}
                 </>
               )}
             </tbody>
           </table>
+          </div>
         </div>
         
         {/* Footer Stats */}
@@ -697,6 +819,15 @@ export default function OperationsPage() {
           onClose={closeOperationModal}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        operation={operationToDelete}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        isDeleting={deleteOperationMutation.isPending}
+      />
     </div>
   )
 }

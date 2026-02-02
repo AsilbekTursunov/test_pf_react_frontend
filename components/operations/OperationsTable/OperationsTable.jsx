@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { cn } from '@/app/lib/utils'
 import { OperationModal } from '../OperationModal/OperationModal'
+import { OperationMenu } from './OperationMenu'
+import { DeleteConfirmModal } from './DeleteConfirmModal'
+import { showSuccessNotification, showErrorNotification } from '@/lib/utils/notifications'
 import styles from './OperationsTable.module.scss'
 
 export function OperationsTable({ operations = [], onRowClick }) {
@@ -12,6 +15,9 @@ export function OperationsTable({ operations = [], onRowClick }) {
   const [modalType, setModalType] = useState('payment')
   const [isModalClosing, setIsModalClosing] = useState(false)
   const [isModalOpening, setIsModalOpening] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [operationToDelete, setOperationToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const toggleRow = (id) => {
     if (selectedRows.includes(id)) {
@@ -55,6 +61,60 @@ export function OperationsTable({ operations = [], onRowClick }) {
     }, 300)
   }
 
+  const handleEdit = (operation) => {
+    openOperationModal(operation)
+  }
+
+  const handleDeleteClick = (operation) => {
+    setOperationToDelete(operation)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!operationToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const guid = operationToDelete.rawData?.guid || operationToDelete.guid
+      if (!guid) {
+        throw new Error('GUID операции не найден')
+      }
+
+      const response = await fetch('/api/operations/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: [guid] }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.status === 'ERROR') {
+        throw new Error(result.data || result.description || 'Ошибка при удалении операции')
+      }
+
+      showSuccessNotification('Операция успешно удалена!')
+      setDeleteModalOpen(false)
+      setOperationToDelete(null)
+      
+      // Refresh the page to update the list
+      if (window.location) {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error deleting operation:', error)
+      showErrorNotification(error.message || 'Ошибка при удалении операции')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false)
+    setOperationToDelete(null)
+  }
+
   return (
     <>
       <div className={styles.container}>
@@ -70,6 +130,7 @@ export function OperationsTable({ operations = [], onRowClick }) {
               <th className={styles.tableHeaderCell}>Проект</th>
               <th className={styles.tableHeaderCell}>Сделка</th>
               <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellRight)}>Сумма</th>
+              <th className={styles.tableHeaderCell} style={{ width: '3rem' }}></th>
             </tr>
           </thead>
           <tbody className={styles.tableBody}>
@@ -122,6 +183,16 @@ export function OperationsTable({ operations = [], onRowClick }) {
                 )}>
                   {operation.amount}
                 </td>
+                <td 
+                  className={styles.tableCell}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <OperationMenu
+                    operation={operation}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -135,6 +206,15 @@ export function OperationsTable({ operations = [], onRowClick }) {
         isClosing={isModalClosing}
         isOpening={isModalOpening}
         onClose={closeOperationModal}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        operation={operationToDelete}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        isDeleting={isDeleting}
       />
     </>
   )

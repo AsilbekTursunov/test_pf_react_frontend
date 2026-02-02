@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
         <QueryClientProvider client={queryClient}>
           {!isLoginPage && <Sidebar />}
           {!isLoginPage && <Header />}
-          <main className={isLoginPage ? "" : "pl-[90px] pt-[55px] min-h-screen bg-white"}>
+          <main className={isLoginPage ? "" : "pl-[90px] pt-[64px] min-h-screen bg-white"}>
             {children}
           </main>
           {!isLoginPage && <ChatWidget />}

@@ -63,13 +63,13 @@ export function OperationsFooter({ isFilterOpen = false, operations = [] }) {
       <div className={styles.footerInner}>
         <div className={styles.footerLeft}>
           <span><strong className={styles.footerText}>{stats.total}</strong> операций</span>
-          <span><strong className={styles.footerText}>{stats.income.count}</strong> поступлений: <strong className={styles.footerTextPositive}>{stats.income.sum.toLocaleString('ru-RU')} ₽</strong></span>
-          <span><strong className={styles.footerText}>{stats.payment.count}</strong> выплат: <strong className={styles.footerTextNegative}>{stats.payment.sum.toLocaleString('ru-RU')} ₽</strong></span>
-          <span><strong className={styles.footerText}>{stats.transfer.count}</strong> перемещений: <strong className={styles.footerText}>{stats.transfer.sum.toLocaleString('ru-RU')} ₽</strong></span>
-          <span><strong className={styles.footerText}>{stats.accrual.count}</strong> начислений: <strong className={styles.footerText}>{stats.accrual.sum.toLocaleString('ru-RU')} ₽</strong></span>
+          <span><strong className={styles.footerText}>{stats.income.count}</strong> поступлений: <strong className={styles.footerTextPositive}>{stats.income.sum.toLocaleString('ru-RU')}</strong></span>
+          <span><strong className={styles.footerText}>{stats.payment.count}</strong> выплат: <strong className={styles.footerTextNegative}>{stats.payment.sum.toLocaleString('ru-RU')}</strong></span>
+          <span><strong className={styles.footerText}>{stats.transfer.count}</strong> перемещений: <strong className={styles.footerText}>{stats.transfer.sum.toLocaleString('ru-RU')}</strong></span>
+          <span><strong className={styles.footerText}>{stats.accrual.count}</strong> начислений: <strong className={styles.footerText}>{stats.accrual.sum.toLocaleString('ru-RU')}</strong></span>
         </div>
         <div className={styles.footerRight}>
-          Итого: <span className={styles.footerTotal}>{stats.totalSum >= 0 ? '+' : ''}{stats.totalSum.toLocaleString('ru-RU')} ₽</span>
+          Итого: <span className={cn(styles.footerTotal, stats.totalSum >= 0 ? styles.footerTextPositive : styles.footerTextNegative)}>{stats.totalSum >= 0 ? '+' : ''}{stats.totalSum.toLocaleString('ru-RU')}</span>
         </div>
       </div>
     </div>

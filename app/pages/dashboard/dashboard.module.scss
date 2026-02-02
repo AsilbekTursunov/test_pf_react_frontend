@@ -18,26 +18,26 @@
 
 .progressBar {
   position: fixed;
-  top: 55px;
+  top: 64px;
   left: 90px;
   right: 0;
   height: 4px;
-  background-color: #e2e8f0; // slate-200
+  background-color: #e5e7eb; // slate-200
   z-index: 50;
 }
 
 .progressBarFill {
   height: 100%;
-  background-color: #17a2b8;
+  background-color: #6366f1;
   transition: width 0.3s ease-out;
 }
 
 .header {
   position: sticky;
-  top: 55px;
+  top: 64px;
   background-color: white;
   z-index: 40;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
   padding: 1.5rem 0.5rem;
 }
 
@@ -54,7 +54,7 @@
 
 .subtitle {
   font-size: 13px;
-  color: #64748b; // slate-500
+  color: #6b7280; // slate-500
 }
 
 .content {
@@ -71,7 +71,7 @@
 .section {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
 }
 
 .sectionHeader {
@@ -96,7 +96,7 @@
 .balanceSection {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
 }
 
 .balanceHeader {
@@ -141,7 +141,7 @@
 .paymentSection {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
 }
 
 .paymentHeader {
@@ -150,7 +150,7 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
 }
 
 .paymentTitle {
@@ -161,7 +161,7 @@
 
 .toggleGroup {
   display: flex;
-  background-color: #f1f5f9; // slate-100
+  background-color: #f3f4f6; // slate-100
   border-radius: 0.25rem;
   padding: 0.25rem;
 }
@@ -177,9 +177,9 @@
   
   &.active {
     background-color: white;
-    color: #17a2b8;
+    color: #6366f1;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid #17a2b8;
+    border: 1px solid #6366f1;
   }
   
   &.inactive {
@@ -223,7 +223,7 @@
 
 .pieChartLabel {
   font-size: 18px;
-  color: #64748b; // slate-500
+  color: #6b7280; // slate-500
 }
 
 .pieChartValue {
@@ -285,7 +285,7 @@
 .expensesSection {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
 }
 
 .expensesTitle {
@@ -294,13 +294,13 @@
   color: #0f172a; // slate-900
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
 }
 
 .clientsSection {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
 }
 
 .clientsHeader {
@@ -309,7 +309,7 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
 }
 
 .clientsTitle {
@@ -321,7 +321,7 @@
 .projectsSection {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
 }
 
 .projectsHeader {
@@ -330,7 +330,7 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
 }
 
 .projectsTitle {
@@ -341,7 +341,7 @@
 
 .projectsToggleGroup {
   display: flex;
-  background-color: #f1f5f9; // slate-100
+  background-color: #f3f4f6; // slate-100
   border-radius: 0.25rem;
   padding: 0.25rem;
 }

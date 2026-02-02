@@ -199,8 +199,8 @@ export default function ProductsPage() {
                         onClick={toggleSelectAll}
                         className={styles.checkbox}
                         style={{
-                          '--checkbox-bg': allSelected ? '#17a2b8' : 'white',
-                          '--checkbox-border': allSelected ? '#17a2b8' : '#94a3b8'
+                          '--checkbox-bg': allSelected ? '#6366f1' : 'white',
+                          '--checkbox-border': allSelected ? '#6366f1' : '#9ca3af'
                         }}
                       >
                         {allSelected && (
@@ -267,8 +267,8 @@ export default function ProductsPage() {
                           onClick={() => toggleRowSelection(`group-${groupName}`)}
                           className={styles.checkbox}
                           style={{
-                            '--checkbox-bg': isGroupSelected(groupName) ? '#17a2b8' : 'white',
-                            '--checkbox-border': isGroupSelected(groupName) ? '#17a2b8' : '#94a3b8'
+                            '--checkbox-bg': isGroupSelected(groupName) ? '#6366f1' : 'white',
+                            '--checkbox-border': isGroupSelected(groupName) ? '#6366f1' : '#9ca3af'
                           }}
                         >
                           {isGroupSelected(groupName) && (
@@ -339,8 +339,8 @@ export default function ProductsPage() {
                                           onClick={() => toggleRowSelection(product.id)}
                                           className={styles.checkbox}
                                           style={{
-                                            '--checkbox-bg': isRowSelected(product.id) ? '#17a2b8' : 'white',
-                                            '--checkbox-border': isRowSelected(product.id) ? '#17a2b8' : '#94a3b8'
+                                            '--checkbox-bg': isRowSelected(product.id) ? '#6366f1' : 'white',
+                                            '--checkbox-border': isRowSelected(product.id) ? '#6366f1' : '#9ca3af'
                                           }}
                                         >
                                           {isRowSelected(product.id) && (

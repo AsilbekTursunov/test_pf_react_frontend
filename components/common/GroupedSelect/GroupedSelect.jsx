@@ -15,7 +15,9 @@ export function GroupedSelect({
   groupKey = 'group',
   className = "",
   disabled = false,
-  loading = false
+  loading = false,
+  onCreate = null,
+  createButtonText = "Создать"
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -132,6 +134,25 @@ export function GroupedSelect({
               ))
             )}
           </div>
+
+          {/* Create button */}
+          {onCreate && (
+            <div className={styles.createButtonContainer}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false)
+                  onCreate()
+                }}
+                className={styles.createButton}
+              >
+                <svg className={styles.createButtonIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {createButtonText}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

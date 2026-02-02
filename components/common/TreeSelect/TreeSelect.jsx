@@ -11,17 +11,7 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => {
-          if (hasChildren) {
-            toggleNode(node.value)
-          }
-          if (node.selectable) {
-            onSelect(node)
-          }
-        }}
-        disabled={!node.selectable && !hasChildren}
+      <div
         className={cn(
           styles.treeNode,
           isSelected && styles.selected,
@@ -29,19 +19,59 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
         )}
         style={{ paddingLeft: `${12 + level * 20}px` }}
       >
-        {hasChildren && (
-          <svg 
-            className={cn(styles.treeNodeIcon, isExpanded && styles.expanded)} 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
+        {hasChildren ? (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleNode(node.value)
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className={styles.treeNodeIconButton}
+            >
+              <svg 
+                className={cn(styles.treeNodeIcon, isExpanded && styles.expanded)} 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (node.selectable) {
+                  onSelect(node)
+                }
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className={styles.treeNodeTextButton}
+              disabled={!node.selectable}
+            >
+              <span className={styles.treeNodeText}>{node.title}</span>
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (node.selectable) {
+                onSelect(node)
+              }
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className={styles.treeNodeTextButton}
+            disabled={!node.selectable}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-          </svg>
+            <span className={styles.treeNodeSpacer} />
+            <span className={styles.treeNodeText}>{node.title}</span>
+          </button>
         )}
-        {!hasChildren && <span className={styles.treeNodeSpacer} />}
-        <span className={styles.treeNodeText}>{node.title}</span>
-      </button>
+      </div>
 
       {hasChildren && isExpanded && (
         <div className={styles.treeNodeChildren}>
@@ -69,23 +99,57 @@ export function TreeSelect({
   placeholder = "Выберите статью...",
   className = "",
   disabled = false,
-  loading = false
+  loading = false,
+  allowRoot = false
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [expandedNodes, setExpandedNodes] = useState(new Set())
+  const [isRoot, setIsRoot] = useState(!value)
   const dropdownRef = useRef(null)
+  const buttonRef = useRef(null)
 
   useEffect(() => {
+    if (!isOpen) return
+
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const target = event.target
+      if (!target) return
+
+      // Check if click is on the button that opens the dropdown
+      if (buttonRef.current && buttonRef.current.contains(target)) {
+        return
+      }
+
+      // Check if click is inside the dropdown
+      if (dropdownRef.current && dropdownRef.current.contains(target)) {
+        return
+      }
+
+      // Check if click is on modal overlay - don't close if it is
+      if (target instanceof HTMLElement) {
+        const isModalOverlay = target.classList.contains('overlay') || 
+                               target.closest('.modal') !== null ||
+                               target.closest('[class*="overlay"]') !== null
+        
+        if (!isModalOverlay) {
+          setIsOpen(false)
+        }
+      } else {
         setIsOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    // Use setTimeout to avoid immediate closure when opening
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside)
+    }, 0)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   // Find selected item in tree
   const findNodeByValue = (nodes, targetValue) => {
@@ -119,7 +183,11 @@ export function TreeSelect({
   }
 
   const selectedNode = findNodeByValue(data, value)
-  const selectedLabel = selectedNode ? selectedNode.title : placeholder
+  const selectedLabel = isRoot && allowRoot 
+    ? "Корневой элемент" 
+    : selectedNode 
+      ? selectedNode.title 
+      : placeholder
   const filteredData = filterTree(data, search)
 
   // Auto-expand nodes when searching
@@ -156,17 +224,43 @@ export function TreeSelect({
 
   const handleSelect = (node) => {
     if (node.selectable) {
+      setIsRoot(false)
       onChange(node.value, node)
       setIsOpen(false)
       setSearch('')
     }
   }
 
+  const handleRootToggle = (e) => {
+    e.stopPropagation()
+    const newIsRoot = e.target.checked
+    setIsRoot(newIsRoot)
+    if (newIsRoot) {
+      onChange(null, null)
+    }
+  }
+
+  // Update isRoot when value changes externally
+  useEffect(() => {
+    setIsRoot(!value)
+  }, [value])
+
   return (
     <div className={cn(styles.container, className)} ref={dropdownRef}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          if (!disabled) {
+            setIsOpen(!isOpen)
+          }
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+        }}
         disabled={disabled || loading}
         className={cn(
           styles.button,
@@ -188,7 +282,11 @@ export function TreeSelect({
       </button>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <div 
+          className={styles.dropdown}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {/* Search input */}
           <div className={styles.searchContainer}>
             <input
@@ -198,8 +296,27 @@ export function TreeSelect({
               placeholder="Поиск..."
               className={styles.searchInput}
               autoFocus
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
+
+          {/* Root checkbox option */}
+          {allowRoot && (
+            <div className={styles.rootOption}>
+              <label className={styles.rootCheckboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={isRoot}
+                  onChange={handleRootToggle}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className={styles.rootCheckbox}
+                />
+                <span className={styles.rootCheckboxText}>Создать как корневой элемент</span>
+              </label>
+            </div>
+          )}
 
           {/* Tree list */}
           <div className={styles.treeList}>

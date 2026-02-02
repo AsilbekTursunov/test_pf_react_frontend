@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -13,7 +13,8 @@ import {
     Library,
     Settings,
     Circle,
-    ChevronRight
+    ChevronRight,
+    BarChart3
 } from 'lucide-react'
 import { cn } from '@/app/lib/utils'
 import styles from './Sidebar.module.scss'
@@ -21,11 +22,17 @@ import styles from './Sidebar.module.scss'
 const navItems = [
     { icon: LineChart, label: 'Показатели', href: '/pages/dashboard', hasPage: true },
     { icon: RefreshCw, label: 'Операции', href: '/pages/operations', hasPage: true },
-    { icon: Database, label: 'Продажи', href: '/pages/sales', hasPage: false },
-    { icon: CalendarCheck, label: 'Закупки', href: '/pages/purchases', hasPage: false },
-    { icon: Briefcase, label: 'Взаиморасчеты', href: '/pages/mutual-settlements', hasPage: false },
-    { icon: ClipboardList, label: 'Товары и услуги', href: '/pages/products', hasPage: false },
-    { icon: Library, label: 'Контрагенты', href: '/pages/counterparties', hasPage: false },
+    { 
+        icon: ClipboardList, 
+        label: 'Отчёты', 
+        href: '/pages/reports',
+        hasPage: true,
+        submenu: [
+            { label: 'Движение денег (ДДС)', href: '/pages/reports/cashflow', hasPage: true },
+            { label: 'Прибыли и убытки (ОПУ)', href: '/pages/reports/profit', hasPage: false },
+            { label: 'Баланс', href: '/pages/reports/balance', hasPage: false }
+        ]
+    },
     { 
         icon: Settings, 
         label: 'Справочники', 
@@ -35,9 +42,7 @@ const navItems = [
             { label: 'Контрагенты', href: '/pages/directories/counterparties', hasPage: true },
             { label: 'Учетные статьи', href: '/pages/directories/transaction-categories', hasPage: true },
             { label: 'Мои счета', href: '/pages/directories/accounts', hasPage: true },
-            { label: 'Мои юрлица', href: '/pages/directories/legal-entities', hasPage: true },
-            { label: 'Товары', href: '/pages/directories/products', hasPage: true },
-            { label: 'Услуги', href: '/pages/directories/products/services', hasPage: true }
+            { label: 'Мои юрлица', href: '/pages/directories/legal-entities', hasPage: true }
         ]
     },
 ]
@@ -46,52 +51,173 @@ export function Sidebar() {
     const pathname = usePathname()
     const [expandedMenu, setExpandedMenu] = useState(null)
     const [hoveredItem, setHoveredItem] = useState(null)
+    const [clickedItem, setClickedItem] = useState(null)
+    const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({ top: 0, height: 0, opacity: 0 })
+    const sidebarRef = useRef(null)
+    const submenuRefs = useRef({})
+    const navItemRefs = useRef({})
     
-    return (
-        <aside className={styles.sidebar}>
-            {/* Header / Logo */}
-            <div className={styles.header}>
-                <span className={styles.logo}>ПФ</span>
-            </div>
-
-            <nav className={styles.nav}>
-                {navItems.map((item, index) => {
+    // Update active indicator position
+    useEffect(() => {
+        const updateIndicator = () => {
+            // Small delay to ensure DOM is ready
+            requestAnimationFrame(() => {
+                const filteredItems = navItems.filter(item => item.hasPage)
+                const activeIndex = filteredItems.findIndex((item, index) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
                     const hasSubmenu = item.submenu && item.submenu.length > 0
                     const isSubmenuActive = hasSubmenu && item.submenu.some(sub => pathname === sub.href)
+                    return isActive || isSubmenuActive
+                })
+                
+                if (activeIndex !== -1 && navItemRefs.current[activeIndex]) {
+                    const activeElement = navItemRefs.current[activeIndex]
+                    const rect = activeElement.getBoundingClientRect()
+                    const sidebarRect = sidebarRef.current?.getBoundingClientRect()
+                    
+                    if (sidebarRect) {
+                        const top = rect.top - sidebarRect.top
+                        const height = rect.height
+                        
+                        setActiveIndicatorStyle({
+                            top: `${top}px`,
+                            height: `${height}px`,
+                            opacity: 1
+                        })
+                    }
+                } else {
+                    setActiveIndicatorStyle(prev => ({ ...prev, opacity: 0 }))
+                }
+            })
+        }
+        
+        // Initial update with small delay
+        const timeoutId = setTimeout(updateIndicator, 50)
+        
+        // Update on scroll/resize
+        window.addEventListener('scroll', updateIndicator, true)
+        window.addEventListener('resize', updateIndicator)
+        
+        return () => {
+            clearTimeout(timeoutId)
+            window.removeEventListener('scroll', updateIndicator, true)
+            window.removeEventListener('resize', updateIndicator)
+        }
+    }, [pathname])
+    
+    // Close submenu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Check if click is outside sidebar
+            if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+                setClickedItem(null)
+                setHoveredItem(null)
+                return
+            }
+            
+            // Check if click is outside any open submenu
+            const clickedInsideSubmenu = Object.values(submenuRefs.current).some(ref => 
+                ref && ref.contains && ref.contains(event.target)
+            )
+            
+            if (!clickedInsideSubmenu && clickedItem !== null) {
+                // Check if click is on a nav item button
+                const clickedOnNavButton = event.target.closest('button.navButton')
+                if (!clickedOnNavButton) {
+                    setClickedItem(null)
+                }
+            }
+        }
+        
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [clickedItem])
+    
+    return (
+        <aside className={styles.sidebar} ref={sidebarRef}>
+            {/* Active indicator */}
+            <div 
+                className={styles.activeIndicator}
+                style={activeIndicatorStyle}
+            />
+            
+            <nav className={styles.nav}>
+                {navItems
+                    .filter(item => item.hasPage) // Only show items with existing pages
+                    .map((item, index) => {
+                    const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
+                    const hasSubmenu = item.submenu && item.submenu.length > 0
+                    const isSubmenuActive = hasSubmenu && item.submenu.some(sub => pathname === sub.href)
+                    const isSubmenuOpen = hasSubmenu && (hoveredItem === index || clickedItem === index)
+                    
+                    const handleItemClick = (e) => {
+                        if (hasSubmenu) {
+                            e.preventDefault()
+                            setClickedItem(clickedItem === index ? null : index)
+                        }
+                    }
                     
                     return (
                         <div 
                             key={index}
+                            ref={el => navItemRefs.current[index] = el}
                             className={styles.navItem}
                             onMouseEnter={() => hasSubmenu && setHoveredItem(index)}
                             onMouseLeave={() => hasSubmenu && setHoveredItem(null)}
                         >
-                            <Link
-                                href={item.href || '/'}
-                                className={cn(
-                                    styles.navLink,
-                                    (isActive || isSubmenuActive) && styles.navLinkActive,
-                                    !item.hasPage ? styles.navLinkComingSoon : styles.navLinkNormal
-                                )}
-                            >
-                                <div className={styles.iconWrapper}>
-                                    <item.icon size={22} strokeWidth={1.5} />
-                                </div>
-                                <span className={styles.label}>
-                                    {item.label}
-                                </span>
-                            </Link>
+                            {hasSubmenu ? (
+                                <button
+                                    onClick={handleItemClick}
+                                    className={cn(
+                                        styles.navLink,
+                                        styles.navButton,
+                                        (isActive || isSubmenuActive) && styles.navLinkActive,
+                                        !item.hasPage ? styles.navLinkComingSoon : styles.navLinkNormal
+                                    )}
+                                    data-active={isActive || isSubmenuActive}
+                                >
+                                    <div className={styles.iconWrapper}>
+                                        <item.icon size={22} strokeWidth={1.5} />
+                                    </div>
+                                    <span className={styles.label}>
+                                        {item.label}
+                                    </span>
+                                </button>
+                            ) : (
+                                <Link
+                                    href={item.href || '/'}
+                                    className={cn(
+                                        styles.navLink,
+                                        (isActive || isSubmenuActive) && styles.navLinkActive,
+                                        !item.hasPage ? styles.navLinkComingSoon : styles.navLinkNormal
+                                    )}
+                                    data-active={isActive || isSubmenuActive}
+                                >
+                                    <div className={styles.iconWrapper}>
+                                        <item.icon size={22} strokeWidth={1.5} />
+                                    </div>
+                                    <span className={styles.label}>
+                                        {item.label}
+                                    </span>
+                                </Link>
+                            )}
 
                             {/* Submenu */}
-                            {hasSubmenu && hoveredItem === index && (
+                            {hasSubmenu && isSubmenuOpen && (
                                 <div 
+                                    ref={el => submenuRefs.current[index] = el}
                                     className={styles.submenu}
                                     style={{ 
-                                        top: `${64 + index * 64}px`
+                                        top: `${64 + index * 56}px`
                                     }}
+                                    onMouseEnter={() => setHoveredItem(index)}
+                                    onMouseLeave={() => setHoveredItem(null)}
                                 >
-                                    {item.submenu.map((subItem, subIndex) => {
+                                    {item.submenu
+                                        .filter(subItem => subItem.hasPage) // Only show submenu items with existing pages
+                                        .map((subItem, subIndex) => {
                                         const isSubActive = pathname === subItem.href
                                         return (
                                             <Link
@@ -101,6 +227,7 @@ export function Sidebar() {
                                                     styles.submenuLink,
                                                     isSubActive ? styles.submenuLinkActive : styles.submenuLinkInactive
                                                 )}
+                                                onClick={() => setClickedItem(null)}
                                             >
                                                 {subItem.label}
                                             </Link>
@@ -112,6 +239,11 @@ export function Sidebar() {
                     )
                 })}
             </nav>
+            
+            {/* Header / Logo at bottom */}
+            <div className={styles.footer}>
+                <span className={styles.logo}>MAX</span>
+            </div>
         </aside>
     )
 }

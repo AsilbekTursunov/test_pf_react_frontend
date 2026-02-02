@@ -8,12 +8,16 @@ import styles from './auth.module.scss'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [isRegisterMode, setIsRegisterMode] = useState(false)
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
+    phone: '',
     password: ''
   })
   const [error, setError] = useState('')
   const [focusedField, setFocusedField] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [particles, setParticles] = useState([])
   const [leftParticles, setLeftParticles] = useState([])
   
@@ -43,22 +47,99 @@ export default function LoginPage() {
     )
   }, [])
 
+  const formatPhone = (value) => {
+    // Убираем все кроме цифр
+    let phone = value.replace(/\D/g, '')
+    // Форматируем как +7 (XXX) XXX-XX-XX
+    if (phone.length > 0) {
+      if (phone[0] !== '7' && phone[0] !== '8') {
+        phone = '7' + phone
+      }
+      if (phone[0] === '8') {
+        phone = '7' + phone.slice(1)
+      }
+      if (phone.length > 1) {
+        phone = `+7 (${phone.slice(1, 4)}${phone.length > 4 ? ') ' : ''}${phone.slice(4, 7)}${phone.length > 7 ? '-' : ''}${phone.slice(7, 9)}${phone.length > 9 ? '-' : ''}${phone.slice(9, 11)}`
+      } else {
+        phone = '+7'
+      }
+    }
+    return phone
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     
+    if (isRegisterMode) {
+      // Registration logic
+      if (formData.password.length < 6) {
+        setError('Пароль должен содержать минимум 6 символов')
+        return
+      }
+      
+      if (!formData.username) {
+        setError('Укажите логин')
+        return
+      }
+      
+      if (!formData.email) {
+        setError('Укажите email')
+        return
+      }
+      
+      if (!formData.phone) {
+        setError('Укажите номер телефона')
+        return
+      }
+      
+      setIsSubmitting(true)
+      
+      try {
+        // TODO: Реализовать API для регистрации
+        // const response = await fetch('/api/auth/register', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     username: formData.username,
+        //     email: formData.email,
+        //     phone: formData.phone,
+        //     password: formData.password,
+        //     name: formData.name
+        //   })
+        // })
+        
+        // Пока просто переключаем на режим входа
+        setTimeout(() => {
+          setIsSubmitting(false)
+          setIsRegisterMode(false)
+          setFormData({
+            username: '',
+            email: '',
+            phone: '',
+            password: ''
+          })
+        }, 1500)
+      } catch (error) {
+        console.error('Registration error:', error)
+        setError(error.message || 'Ошибка при регистрации')
+        setIsSubmitting(false)
+      }
+    } else {
+      // Login logic
     try {
       await loginMutation.mutateAsync({
         username: formData.username,
         password: formData.password,
       })
       
-      // Redirect to dashboard on success
+        // Redirect immediately after successful login
       router.push('/pages/dashboard')
     } catch (error) {
       console.error('Login error:', error)
       const errorMessage = error.message || 'Ошибка при входе'
       setError(errorMessage)
+      }
     }
   }
 
@@ -75,29 +156,72 @@ export default function LoginPage() {
             <div className="mb-10">
               <h1 className={cn("text-4xl font-bold text-slate-900 mb-3", styles.titleGradient)}
               >
-                ПланФакт
+                ФинансУчет
               </h1>
-              <p className="text-slate-600 text-lg">Войдите в свой аккаунт</p>
+              <p className="text-slate-600 text-lg">
+                {isRegisterMode ? 'Создайте новый аккаунт' : 'Войдите в свой аккаунт'}
+              </p>
+              <p className="text-slate-500 text-sm mt-2">
+                {isRegisterMode ? (
+                  <>
+                    Уже есть аккаунт?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegisterMode(false)
+                        setError('')
+                        setFormData({
+                          username: '',
+                          email: '',
+                          phone: '',
+                          password: ''
+                        })
+                      }}
+                      className="text-[#6366f1] hover:underline font-medium"
+                    >
+                      Войти
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Нет аккаунта?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegisterMode(true)
+                        setError('')
+                        setFormData({
+                          username: '',
+                          email: '',
+                          phone: '',
+                          password: ''
+                        })
+                      }}
+                      className="text-[#6366f1] hover:underline font-medium"
+                    >
+                      Зарегистрироваться
+                    </button>
+                  </>
+                )}
+              </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Username */}
+              {/* Username/Login - для входа и регистрации */}
               <div className="relative">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Логин
                 </label>
                 <div className="relative group">
-                  {/* Icon */}
                   <div className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300",
-                    focusedField === 'username' ? "text-[#17a2b8] scale-110" : "text-slate-400"
+                    focusedField === 'username' ? "text-[#6366f1] scale-110" : "text-slate-400"
                   )}>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  
                   <input
                     type="text"
                     value={formData.username}
@@ -110,14 +234,88 @@ export default function LoginPage() {
                     className={cn(
                       "w-full pl-12 pr-4 py-3.5 border-2 rounded-xl focus:outline-none transition-all text-slate-900 bg-white",
                       focusedField === 'username' 
-                        ? "border-[#17a2b8]" 
+                        ? "border-[#6366f1]" 
                         : "border-slate-200 hover:border-slate-300"
                     )}
                     placeholder="Введите логин"
-                    required
+                    required={isRegisterMode}
                   />
                 </div>
               </div>
+
+              {/* Email - только для регистрации */}
+              {isRegisterMode && (
+                <div className="relative">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Электронная почта
+                  </label>
+                  <div className="relative group">
+                    <div className={cn(
+                      "absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300",
+                      focusedField === 'email' ? "text-[#6366f1] scale-110" : "text-slate-400"
+                    )}>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value })
+                        setError('')
+                      }}
+                      onFocus={() => setFocusedField('email')}
+                      onBlur={() => setFocusedField(null)}
+                      className={cn(
+                        "w-full pl-12 pr-4 py-3.5 border-2 rounded-xl focus:outline-none transition-all text-slate-900 bg-white",
+                        focusedField === 'email' 
+                          ? "border-[#6366f1]" 
+                          : "border-slate-200 hover:border-slate-300"
+                      )}
+                      placeholder="Введите email"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Phone - только для регистрации */}
+              {isRegisterMode && (
+                <div className="relative">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Номер телефона
+                  </label>
+                  <div className="relative group">
+                    <div className={cn(
+                      "absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300",
+                      focusedField === 'phone' ? "text-[#6366f1] scale-110" : "text-slate-400"
+                    )}>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => {
+                        setFormData({ ...formData, phone: formatPhone(e.target.value) })
+                        setError('')
+                      }}
+                      onFocus={() => setFocusedField('phone')}
+                      onBlur={() => setFocusedField(null)}
+                      className={cn(
+                        "w-full pl-12 pr-4 py-3.5 border-2 rounded-xl focus:outline-none transition-all text-slate-900 bg-white",
+                        focusedField === 'phone' 
+                          ? "border-[#6366f1]" 
+                          : "border-slate-200 hover:border-slate-300"
+                      )}
+                      placeholder="+7 (XXX) XXX-XX-XX"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Password */}
               <div className="relative">
@@ -125,16 +323,14 @@ export default function LoginPage() {
                   Пароль
                 </label>
                 <div className="relative group">
-                  {/* Icon */}
                   <div className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300",
-                    focusedField === 'password' ? "text-[#17a2b8] scale-110" : "text-slate-400"
+                    focusedField === 'password' ? "text-[#6366f1] scale-110" : "text-slate-400"
                   )}>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
-                  
                   <input
                     type="password"
                     value={formData.password}
@@ -147,14 +343,15 @@ export default function LoginPage() {
                     className={cn(
                       "w-full pl-12 pr-4 py-3.5 border-2 rounded-xl focus:outline-none transition-all text-slate-900 bg-white",
                       focusedField === 'password' 
-                        ? "border-[#17a2b8]" 
+                        ? "border-[#6366f1]" 
                         : "border-slate-200 hover:border-slate-300"
                     )}
-                    placeholder="Введите пароль"
+                    placeholder={isRegisterMode ? "Минимум 6 символов" : "Введите пароль"}
                     required
                   />
                 </div>
               </div>
+
 
               {/* Error Message */}
               {error && (
@@ -167,28 +364,28 @@ export default function LoginPage() {
               <div className="relative">
                 <button
                   type="submit"
-                  disabled={loginMutation.isPending}
-                  className="w-full bg-gradient-to-r from-[#17a2b8] to-[#138496] text-white py-3.5 rounded-xl font-medium hover:shadow-xl hover:shadow-[#17a2b8]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+                  disabled={isRegisterMode ? isSubmitting : loginMutation.isPending}
+                  className="w-full bg-gradient-to-r from-[#6366f1] to-[#138496] text-white py-3.5 rounded-xl font-medium hover:shadow-xl hover:shadow-[#6366f1]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
                 >
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   
-                  {loginMutation.isPending ? (
+                  {(isRegisterMode ? isSubmitting : loginMutation.isPending) ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Вход...
+                      {isRegisterMode ? 'Регистрация...' : 'Вход...'}
                     </span>
                   ) : (
-                    <span className="relative z-10">Войти</span>
+                    <span className="relative z-10">{isRegisterMode ? 'Зарегистрироваться' : 'Войти'}</span>
                   )}
                 </button>
                 
                 {/* Pulsing glow */}
-                {!loginMutation.isPending && (
-                  <div className={cn("absolute inset-0 rounded-xl bg-[#17a2b8]/20 -z-10 blur-xl", styles.pulsingGlow)} />
+                {!(isRegisterMode ? isSubmitting : loginMutation.isPending) && (
+                  <div className={cn("absolute inset-0 rounded-xl bg-[#6366f1]/20 -z-10 blur-xl", styles.pulsingGlow)} />
                 )}
               </div>
             </form>
@@ -197,7 +394,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Animated Background */}
-      <div className="w-1/2 relative overflow-hidden bg-gradient-to-br from-[#17a2b8] via-[#138496] to-[#0e6b7a]">
+      <div className="w-1/2 relative overflow-hidden bg-gradient-to-br from-[#6366f1] via-[#138496] to-[#0e6b7a]">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
           {/* Large animated gradient orbs */}
@@ -292,7 +489,7 @@ export default function LoginPage() {
             </div>
 
             <h2 className={cn("text-4xl font-bold mb-4 leading-tight", styles.welcomeTitle)}>
-              Добро пожаловать в ПланФакт!
+              {isRegisterMode ? 'Начните управлять финансами уже сегодня!' : 'Добро пожаловать в ФинансУчет!'}
             </h2>
             
             {/* Animated rotating text */}

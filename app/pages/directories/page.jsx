@@ -28,18 +28,6 @@ export default function SpravochnikiPage() {
       href: '/pages/directories/legal-entities',
       description: 'Юридические лица и ИП',
       icon: '🏢'
-    },
-    { 
-      title: 'Товары', 
-      href: '/pages/directories/products',
-      description: 'Каталог товаров и материалов',
-      icon: '📦'
-    },
-    { 
-      title: 'Услуги', 
-      href: '/pages/directories/products/services',
-      description: 'Каталог услуг',
-      icon: '🛠️'
     }
   ]
 

@@ -14,6 +14,10 @@ export async function POST(request) {
     const finalViewId = viewId || apiConfig.ucode.bankAccounts.viewId
     const finalTableSlug = tableSlug || apiConfig.ucode.bankAccounts.tableSlug
     
+    // Get token from Authorization header (set by axios interceptor)
+    const authHeader = request.headers.get('authorization')
+    const authToken = authHeader?.replace('Bearer ', '') || apiConfig.ucode.authToken
+    
     // Prepare additional headers if needed
     const additionalHeaders = {}
     if (requestBody['environment-id']) {
@@ -36,7 +40,8 @@ export async function POST(request) {
         limit: requestBody.limit,
         search: requestBody.search
       },
-      headers: additionalHeaders
+      headers: additionalHeaders,
+      authToken: authToken
     })
 
     // Handle response

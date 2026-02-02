@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background-color: #f1f5f9;
+  background-color: #f3f4f6;
   border-radius: 0.25rem;
   padding: 0.25rem;
 }
@@ -19,7 +19,7 @@
 
   &.inactive {
     &:hover {
-      background-color: #e2e8f0;
+      background-color: #e5e7eb;
     }
   }
 }

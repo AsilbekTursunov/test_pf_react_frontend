@@ -3,33 +3,44 @@
 
 :global {
   @keyframes fadeSlideIn {
-    from {
+    0% {
       opacity: 0;
       transform: translateY(-8px);
     }
-    to {
+    100% {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
   @keyframes fadeSlideOut {
-    from {
+    0% {
       opacity: 1;
       transform: translateY(0);
     }
-    to {
+    100% {
       opacity: 0;
       transform: translateY(-8px);
     }
   }
 
+  @keyframes fadeSlideOutUp {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
   @keyframes fadeSlideRight {
-    from {
+    0% {
       opacity: 0;
       transform: translateX(-8px);
     }
-    to {
+    100% {
       opacity: 1;
       transform: translateX(0);
     }
@@ -39,7 +50,7 @@
 .sidebar {
   width: 280px;
   background-color: white;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -67,12 +78,12 @@
 }
 
 .sidebarCloseButton {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 18px;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -108,16 +119,16 @@
   justify-content: center;
   transition: all 0.2s;
   background-color: var(--checkbox-bg, white);
-  border-color: var(--checkbox-border, #cbd5e1);
+  border-color: var(--checkbox-border, #d1d5db);
 
   &:hover {
-    border-color: var(--checkbox-hover-border, #94a3b8);
+    border-color: var(--checkbox-hover-border, #9ca3af);
   }
 }
 
 .checkboxChecked {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
+  background-color: #6366f1;
+  border-color: #6366f1;
 }
 
 .checkboxIcon {
@@ -161,14 +172,14 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 }
 
 .dateRangeIcon {
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .dateRangeText {
@@ -178,12 +189,12 @@
 }
 
 .dateRangeClear {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 16px;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -200,15 +211,15 @@
   width: 100%;
   text-align: left;
   font-size: 13px;
-  color: #64748b;
+  color: #6b7280;
   transition: all 0.2s;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 
   &:hover {
     color: #334155;
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
   }
 }
 
@@ -222,10 +233,27 @@
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   z-index: 1000;
-  animation: var(--modal-animation, fadeSlideIn 0.25s ease-out);
+  animation: var(--modal-animation, fadeSlideIn 0.2s ease-out);
   width: var(--modal-width, 440px);
+  transform-origin: top center;
+  
+  &.openUpward {
+    animation: var(--modal-animation, fadeSlideInUp 0.2s ease-out);
+    transform-origin: bottom center;
+  }
+}
+
+@keyframes fadeSlideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .datePickerModalContent {
@@ -235,7 +263,7 @@
 .datePickerModalTitle {
   font-size: 14px;
   font-weight: 400;
-  color: #64748b;
+  color: #6b7280;
   margin-bottom: 0.75rem;
 }
 
@@ -254,24 +282,31 @@
 .quickRangeButton {
   padding: 0.375rem 0.75rem;
   font-size: 13px;
-  color: #17a2b8;
-  background-color: #f8fafc;
-  transition: background-color 0.2s;
+  color: #6366f1;
+  background-color: #f9fafb;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   font-weight: 400;
   border-radius: 0.25rem;
+  transform: scale(1);
 
   &:hover {
     background-color: #e8f4f6;
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 
 .calendar {
   width: 240px;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
   border-radius: 0.25rem;
   padding: 0.625rem;
-  animation: fadeSlideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeSlideRight 0.2s ease-out;
 }
 
 .calendarHeader {
@@ -312,7 +347,7 @@
 .calendarWeekday {
   text-align: center;
   font-size: 10px;
-  color: #64748b;
+  color: #6b7280;
   font-weight: 500;
   padding: 0.25rem 0;
 }
@@ -333,7 +368,7 @@
   transition: all 0.2s;
 
   &.disabled {
-    color: #cbd5e1;
+    color: #d1d5db;
     cursor: default;
   }
 
@@ -358,7 +393,7 @@
   }
 
   &.selected {
-    background-color: #17a2b8;
+    background-color: #6366f1;
     color: white;
     font-weight: 600;
     cursor: pointer;
@@ -383,15 +418,15 @@
   transition: all 0.2s;
 
   &.active {
-    border-color: #17a2b8;
+    border-color: #6366f1;
     background-color: #f0f9fa;
   }
 
   &.inactive {
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
 
     &:hover {
-      background-color: #f8fafc;
+      background-color: #f9fafb;
     }
   }
 }
@@ -399,7 +434,7 @@
 .dateInputIcon {
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .dateInputText {
@@ -408,7 +443,7 @@
 }
 
 .dateInputSeparator {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 14px;
 }
 
@@ -419,7 +454,7 @@
   gap: 0.5rem;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .datePickerActionButton {
@@ -438,7 +473,7 @@
 
   &.apply {
     padding: 0.375rem 1.25rem;
-    background-color: #17a2b8;
+    background-color: #6366f1;
     color: white;
     border-radius: 0.25rem;
 
@@ -463,13 +498,13 @@
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   transition: background-color 0.2s;
   min-height: 2.5rem;
   gap: 0.5rem;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
@@ -538,7 +573,7 @@
 
 .parameterDropdownChipMore {
   font-size: 11px;
-  color: #64748b;
+  color: #6b7280;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -546,7 +581,7 @@
 .parameterDropdownIcon {
   width: 0.875rem;
   height: 0.875rem;
-  color: #94a3b8;
+  color: #9ca3af;
   transition: transform 0.2s;
 }
 
@@ -563,17 +598,19 @@
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   z-index: 1000;
   max-height: 400px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: fadeSlideIn 0.2s ease-out;
+  transform-origin: bottom center;
 }
 
 .parameterDropdownSearch {
   padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .parameterDropdownSearchInput {
@@ -583,13 +620,13 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 13px;
-  color: #94a3b8;
-  border: 1px solid #cbd5e1;
+  color: #9ca3af;
+  border: 1px solid #d1d5db;
   border-radius: 0.5rem;
 
   &:focus {
     outline: none;
-    border-color: #94a3b8;
+    border-color: #9ca3af;
   }
 }
 
@@ -600,18 +637,18 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .parameterDropdownSelectAll {
   padding: 0.5rem 0.75rem;
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .parameterDropdownSelectAllButton {
   font-size: 14px;
-  color: #17a2b8;
+  color: #6366f1;
   font-weight: 400;
   transition: color 0.2s;
 
@@ -623,7 +660,7 @@
 .parameterDropdownList {
   flex: 1;
   overflow-y: auto;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .parameterDropdownListInner {
@@ -678,20 +715,20 @@
   padding: 0.5rem 0.75rem;
   font-size: 13px;
   color: #334155;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
   box-sizing: border-box;
   width: 0;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 }
 
 .amountInputSeparator {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 13px;
 }
 

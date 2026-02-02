@@ -31,12 +31,12 @@ export function BranchProfitChart() {
                     data={data}
                     margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                     <XAxis
                         dataKey="name"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10 }}
+                        tick={{ fill: '#9ca3af', fontSize: 10 }}
                         angle={-45}
                         textAnchor="end"
                         interval={0}
@@ -44,7 +44,7 @@ export function BranchProfitChart() {
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                        tick={{ fill: '#9ca3af', fontSize: 12 }}
                         tickFormatter={(val) => `${val}%`}
                     />
                     <Tooltip

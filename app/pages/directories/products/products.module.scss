@@ -91,7 +91,7 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .content {
@@ -103,7 +103,7 @@
 
 .header {
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
   padding: 1rem 1.5rem;
   flex-shrink: 0;
 }
@@ -135,7 +135,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.5rem;
-  background-color: #17a2b8;
+  background-color: #6366f1;
   color: white;
   font-size: 14px;
   border-radius: 0.25rem;
@@ -162,7 +162,7 @@
   margin-top: 0.5rem;
   width: 280px;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   z-index: 50;
@@ -179,12 +179,12 @@
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
 .createDropdownItemBorder {
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #f3f4f6;
 }
 
 .headerRight {
@@ -198,17 +198,17 @@
   font-size: 13px;
   color: #475569;
   background-color: white;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: #94a3b8;
+    border-color: #9ca3af;
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
   }
 }
 
@@ -223,12 +223,12 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 13px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
   }
 }
 
@@ -239,19 +239,19 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .tableArea {
   flex: 1;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .tableWrapper {
   background-color: white;
   margin: 1.5rem;
   border-radius: 0.25rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
 }
 
 .table {
@@ -259,8 +259,8 @@
 }
 
 .tableHeader {
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .tableHeaderCell {
@@ -268,7 +268,7 @@
   text-align: left;
   font-size: 13px;
   font-weight: 400;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .tableHeaderCellCheckbox {
@@ -308,10 +308,10 @@
   cursor: pointer;
   transition: border-color 0.2s;
   background-color: var(--checkbox-bg, white);
-  border-color: var(--checkbox-border, #94a3b8);
+  border-color: var(--checkbox-border, #9ca3af);
 
   &:hover {
-    border-color: #64748b;
+    border-color: #6b7280;
   }
 }
 
@@ -322,8 +322,8 @@
 }
 
 .selectedHeader {
-  background-color: #17a2b8;
-  border-bottom: 1px solid #17a2b8;
+  background-color: #6366f1;
+  border-bottom: 1px solid #6366f1;
 }
 
 .selectedHeaderCell {
@@ -363,13 +363,13 @@
   transition: color 0.2s;
 
   &:hover {
-    color: #e2e8f0;
+    color: #e5e7eb;
   }
 }
 
 .groupRow {
-  background-color: #f8fafc;
-  border-bottom: 1px solid #f1f5f9;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .groupCell {
@@ -393,13 +393,13 @@
 }
 
 .expandButton {
-  color: #94a3b8;
+  color: #9ca3af;
   transition: color 0.2s;
   position: relative;
   z-index: 10;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -454,7 +454,7 @@
 }
 
 .productRow {
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f3f4f6;
   transition: background-color 0.2s;
   animation: var(--row-animation, none);
 
@@ -494,8 +494,8 @@
   height: var(--dash-height, 100%);
   background-image: repeating-linear-gradient(
     to bottom,
-    #cbd5e1 0,
-    #cbd5e1 4px,
+    #d1d5db 0,
+    #d1d5db 4px,
     transparent 4px,
     transparent 8px
   );
@@ -509,8 +509,8 @@
   width: var(--dash-width, calc(50% + 8px));
   background-image: repeating-linear-gradient(
     to right,
-    #cbd5e1 0,
-    #cbd5e1 4px,
+    #d1d5db 0,
+    #d1d5db 4px,
     transparent 4px,
     transparent 8px
   );
@@ -518,7 +518,7 @@
 
 .footer {
   background-color: white;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
   padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;

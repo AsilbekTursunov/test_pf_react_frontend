@@ -1,7 +1,10 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc; // slate-50
+  background-color: #f9fafb; // slate-50
+  position: relative;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .content {
@@ -9,25 +12,95 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .header {
   background-color: white;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
   padding: 1rem 1.5rem;
   flex-shrink: 0;
 }
 
 .headerContent {
   display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.titleRow {
+  display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.searchContainer {
+  margin-left: auto;
+  flex-shrink: 0;
+  max-width: 300px;
+  width: 100%;
+}
+
+.filterToggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    color: #334155;
+  }
+
+  &.filterToggleButtonActive {
+    background-color: #e3f2fd;
+    border-color: #6366f1;
+    color: #6366f1;
+  }
+}
+
+.filterToggleIcon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s ease-in-out;
+
+  .filterToggleButtonActive & {
+    transform: rotate(90deg);
+  }
 }
 
 .title {
   font-size: 20px;
   font-weight: 600;
   color: #0f172a; // slate-900
+  margin: 0;
+}
+
+.createButton {
+  padding: 0.5rem 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #138496;
+  }
 }
 
 .headerActions {
@@ -38,47 +111,63 @@
 
 .tableContainer {
   flex: 1;
-  background-color: #f8fafc; // slate-50
   overflow-y: auto;
-  padding-bottom: 80px; // Space for fixed footer
+  overflow-x: hidden;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.5rem 1.5rem 60px 1.5rem;
+  width: 100%;
 }
 
 .tableWrapper {
   background-color: white;
-  margin: 1.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid #e2e8f0; // slate-200
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  overflow-x: auto;
+  overflow-y: visible;
+  margin: 0;
+  width: 100%;
 }
 
 .table {
   width: 100%;
+  background-color: white;
+  table-layout: auto;
+  min-width: max-content;
 }
 
 .tableHead {
-  background-color: #f8fafc; // slate-50
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.tableHead th {
-  vertical-align: middle;
+.tableHeaderRow {
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .tableHeaderCell {
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.75rem;
   text-align: left;
-  font-size: 13px;
+  white-space: nowrap;
+  min-width: fit-content;
+  font-size: 12px;
   font-weight: 400;
-  color: #64748b; // slate-500
+  color: #9ca3af;
+  background-color: white;
+
+  &:has(.tableHeaderButton) {
+    font-weight: 600;
+    color: #334155;
+  }
 
   &.checkbox {
-    width: 48px;
-    padding: 0.75rem 0.5rem;
+    width: 2.5rem;
+    padding: 0.625rem 0.5rem;
     text-align: center;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle;
   }
 
   &.right {
@@ -90,101 +179,262 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: #64748b; // slate-500
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
   background: none;
   border: none;
-  cursor: pointer;
   padding: 0;
+  cursor: pointer;
+}
 
-  &:hover {
-    color: #334155; // slate-700
-  }
+.tableHeaderIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkboxContainer {
+  position: relative;
+}
+
+.checkboxInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 .checkbox {
   width: 18px;
   height: 18px;
-  border: 2px solid;
   border-radius: 0.125rem;
+  border: 2px solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition: all 0.2s;
-  background-color: white;
-  box-sizing: border-box;
+  cursor: pointer;
 
-  &:hover {
-    border-color: #64748b; // slate-500
+  &.checked {
+    background-color: #6366f1;
+    border-color: #6366f1;
   }
 
-  &.selected {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-  }
+  &.unchecked {
+    border-color: #d1d5db;
 
-  &.unselected {
-    background-color: white;
-    border-color: #94a3b8; // slate-400
-  }
-
-  &.headerCheckbox {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    box-sizing: border-box;
-    border: 2px solid !important;
-    border-radius: 0.125rem;
-    
-    &.unselected {
-      background-color: transparent !important;
-      border-color: #cbd5e1 !important; // slate-300
-    }
-    
-    &.selected {
-      background-color: #17a2b8 !important;
-      border-color: #17a2b8 !important;
+    &:hover {
+      border-color: #9ca3af;
     }
   }
 }
 
 .checkboxIcon {
-  width: 14px;
-  height: 14px;
+  width: 0.75rem;
+  height: 0.75rem;
   color: white;
 }
 
-.entityRow {
-  border-bottom: 1px solid #f1f5f9; // slate-100
-  background-color: #f8fafc; // slate-50
+.tableRow {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  &.selected {
+    background-color: #e3f2fd;
+  }
 }
 
 .tableCell {
-  padding: 1rem;
-  vertical-align: top;
+  padding: 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
 
   &.text {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
-    color: #0f172a; // slate-900
+    color: #0f172a;
   }
 
   &.textMuted {
-    font-size: 14px;
-    color: #475569; // slate-600
+    font-size: 13px;
+    color: #0f172a;
   }
 
   &.textCenter {
     text-align: center;
   }
 
+  &.emptyCell {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    pointer-events: none;
+    user-select: none;
+    padding: 2rem;
+  }
+}
+
+.emptyRow {
+  cursor: default;
+  pointer-events: none;
+  
+  &:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .tableCell {
+    background-color: #f3f4f6;
+  }
+
   &.textRight {
-    text-align: right !important;
+    text-align: right;
   }
 
   &.checkbox {
-    width: 48px;
-    padding: 1rem 0.5rem;
+    width: 2.5rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  &.commentCell {
+    white-space: normal;
+    max-width: 200px;
+  }
+}
+
+.groupRow {
+  background-color: #f9fafb;
+  font-weight: 500;
+
+  .tableCellCheckbox {
+    padding-right: 0.25rem;
+  }
+}
+
+.groupCell {
+  font-weight: 500;
+  color: #0f172a;
+  padding-left: 0.25rem;
+}
+
+.groupCellContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+}
+
+.groupName {
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.childRow {
+  background-color: #fafafa;
+  position: relative;
+}
+
+.childCell {
+  position: relative;
+  padding-left: 0 !important;
+}
+
+.childLineContainer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  pointer-events: none;
+}
+
+.childVerticalLine {
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #d1d5db 0px,
+    #d1d5db 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  z-index: 0;
+}
+
+.lastChildVerticalLine {
+  bottom: 50%;
+}
+
+.childHorizontalLine {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  width: 1rem;
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    #d1d5db 0px,
+    #d1d5db 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.lastChild {
+  .childVerticalLine {
+    bottom: 50%;
+  }
+}
+
+.childRow {
+  .checkboxWrapper {
+    position: relative;
+    z-index: 2;
+    margin-left: 2rem;
+  }
+}
+
+.expandButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s;
+  position: relative;
+  z-index: 2;
+
+  &:hover {
+    color: #334155;
+  }
+}
+
+.expandIcon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s;
+
+  &.expanded {
+    transform: rotate(90deg);
   }
 }
 
@@ -193,8 +443,9 @@
   bottom: 0;
   left: 90px; // Sidebar width (from layout.jsx pl-[90px])
   right: 0;
+  width: calc(100% - 90px);
   background-color: white;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
   padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
@@ -202,11 +453,12 @@
   flex-shrink: 0;
   z-index: 10;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-  transition: left 0.3s ease;
+  transition: left 0.3s ease, width 0.3s ease;
 }
 
 .footerWithFilter {
   left: 370px; // Sidebar width (90px) + FilterSidebar width (280px)
+  width: calc(100% - 370px);
 }
 
 .footerText {
@@ -217,4 +469,38 @@
 .footerTextBold {
   font-weight: 600;
   color: #0f172a; // slate-900
+}
+
+.filterDropdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #9ca3af;
+  }
+}
+
+.filterPlaceholder {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.filterChevron {
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+}
+
+.filterCalendarIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+  margin-right: 0.5rem;
 }

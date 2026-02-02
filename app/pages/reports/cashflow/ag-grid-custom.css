@@ -1,0 +1,489 @@
+/* AG Grid theme customization */
+.ag-theme-alpine {
+  --ag-background-color: white;
+  --ag-header-background-color: #f9fafb;
+  --ag-header-foreground-color: #0f172a;
+  --ag-odd-row-background-color: white;
+  --ag-row-hover-color: #f9fafb;
+  --ag-selected-row-background-color: #e0e7ff;
+  --ag-border-color: #e5e7eb;
+  --ag-font-size: 13px;
+  --ag-font-family: Arial, Helvetica, sans-serif;
+  --ag-header-height: 40px;
+  --ag-row-height: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.ag-theme-alpine .ag-header-cell {
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.ag-theme-alpine .ag-cell {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.ag-theme-alpine .ag-cell-positive {
+  color: #10b981 !important;
+}
+
+.ag-theme-alpine .ag-cell-negative {
+  color: #ef4444 !important;
+}
+
+/* Style amount column cells based on value */
+.ag-theme-alpine [col-id="amount"] .ag-cell-value {
+  font-weight: 500;
+}
+
+.ag-theme-alpine [col-id="amount"] .ag-cell-value:has(span.ag-cell-positive) {
+  color: #10b981;
+}
+
+.ag-theme-alpine [col-id="amount"] .ag-cell-value:has(span.ag-cell-negative) {
+  color: #ef4444;
+}
+
+.ag-theme-alpine .ag-row-group {
+  background-color: #f9fafb;
+  font-weight: 500;
+}
+
+.ag-theme-alpine .ag-pivot-on {
+  background-color: #e0e7ff;
+}
+
+.ag-theme-alpine .ag-side-bar {
+  background-color: white;
+  border-left: 1px solid #e5e7eb;
+}
+
+.ag-theme-alpine .ag-side-bar-button {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  color: #0f172a;
+}
+
+.ag-theme-alpine .ag-side-bar-button:hover {
+  background-color: #f9fafb;
+}
+
+.ag-theme-alpine .ag-side-bar-button.ag-selected {
+  background-color: #e0e7ff;
+  color: #6366f1;
+}
+
+.ag-theme-alpine .ag-tool-panel-wrapper {
+  background-color: white;
+}
+
+.ag-theme-alpine .ag-column-drop {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 0.5rem;
+}
+
+.ag-theme-alpine .ag-column-drop-cell {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.ag-theme-alpine .ag-column-drop-cell:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.ag-theme-alpine .ag-column-drop-empty-message {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.ag-theme-alpine .ag-filter-toolpanel-header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 500;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.ag-theme-alpine .ag-column-select-panel {
+  background-color: white;
+}
+
+.ag-theme-alpine .ag-column-select-list-item {
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.ag-theme-alpine .ag-column-select-list-item:hover {
+  background-color: #f9fafb;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper {
+  border-color: #d1d5db;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper.ag-checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+
+.ag-theme-alpine .ag-pivot-mode-panel {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem;
+}
+
+.ag-theme-alpine .ag-toggle-button {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  color: #0f172a;
+}
+
+.ag-theme-alpine .ag-toggle-button.ag-selected {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+/* Tool Panel Styling */
+.ag-theme-alpine .ag-tool-panel {
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ag-theme-alpine .ag-columns-tool-panel,
+.ag-theme-alpine .ag-filters-tool-panel {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Pivot mode panel - fixed at top */
+.ag-theme-alpine .ag-pivot-mode-panel {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem;
+  flex-shrink: 0;
+}
+
+.ag-theme-alpine .ag-pivot-mode-select {
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.ag-theme-alpine .ag-pivot-mode-select-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.ag-theme-alpine .ag-pivot-mode-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Search input in tool panel - below pivot mode */
+.ag-theme-alpine .ag-column-select-search-wrapper {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.ag-theme-alpine .ag-column-select-search {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 13px;
+  color: #0f172a;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.ag-theme-alpine .ag-column-select-search:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+}
+
+.ag-theme-alpine .ag-column-select-search::placeholder {
+  color: #9ca3af;
+}
+
+/* Column list - scrollable area */
+.ag-theme-alpine .ag-column-select-list {
+  padding: 0.75rem 1rem;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.ag-theme-alpine .ag-column-select-list-item {
+  padding: 0.625rem 0.75rem;
+  margin: 0.125rem 0;
+  border-radius: 0.375rem;
+  font-size: 13px;
+  color: #0f172a;
+  transition: background-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.ag-theme-alpine .ag-column-select-list-item:hover {
+  background-color: #f9fafb;
+}
+
+.ag-theme-alpine .ag-column-select-list-item.ag-disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Column drop zones - below list */
+.ag-theme-alpine .ag-column-drop {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal {
+  padding: 1rem;
+  background-color: white;
+  margin: 0;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-empty-message {
+  color: #9ca3af;
+  font-size: 12px;
+  padding: 0.5rem 0;
+  font-style: italic;
+}
+
+/* Column drop cells (pills) */
+.ag-theme-alpine .ag-column-drop-horizontal-cell {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0.375rem 0;
+  font-size: 13px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.15s;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-cell:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-cell-text {
+  flex: 1;
+  font-weight: 500;
+  min-width: 0;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-cell-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: all 0.15s;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-cell-button:hover {
+  background-color: #e5e7eb;
+  color: #0f172a;
+}
+
+/* Checkbox styling */
+.ag-theme-alpine .ag-column-select-checkbox {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 0.25rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper:hover {
+  border-color: #9ca3af;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper.ag-checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper.ag-checked::after {
+  content: '✓';
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* Drag handle icon */
+.ag-theme-alpine .ag-column-select-list-item-icon {
+  flex-shrink: 0;
+  color: #9ca3af;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ag-theme-alpine .ag-column-drop-horizontal-cell-icon {
+  flex-shrink: 0;
+  color: #9ca3af;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Toggle button styling */
+.ag-theme-alpine .ag-toggle-button {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  color: #0f172a;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 60px;
+}
+
+.ag-theme-alpine .ag-toggle-button:hover {
+  border-color: #d1d5db;
+  background-color: #f9fafb;
+}
+
+.ag-theme-alpine .ag-toggle-button.ag-selected {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+.ag-theme-alpine .ag-toggle-button.ag-selected:hover {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+/* Tool panel width */
+.ag-theme-alpine .ag-side-bar {
+  width: 300px;
+  min-width: 300px;
+}
+
+/* Ensure proper spacing in tool panel content */
+.ag-theme-alpine .ag-columns-tool-panel-wrapper,
+.ag-theme-alpine .ag-filters-tool-panel-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Prevent overlapping with proper z-index */
+.ag-theme-alpine .ag-side-bar-button {
+  position: relative;
+  z-index: 1;
+}
+
+.ag-theme-alpine .ag-tool-panel-wrapper {
+  position: relative;
+  z-index: 0;
+}
+
+/* Scrollbar styling */
+.ag-theme-alpine .ag-column-select-list::-webkit-scrollbar,
+.ag-theme-alpine .ag-tool-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ag-theme-alpine .ag-column-select-list::-webkit-scrollbar-track,
+.ag-theme-alpine .ag-tool-panel::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+
+.ag-theme-alpine .ag-column-select-list::-webkit-scrollbar-thumb,
+.ag-theme-alpine .ag-tool-panel::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.ag-theme-alpine .ag-column-select-list::-webkit-scrollbar-thumb:hover,
+.ag-theme-alpine .ag-tool-panel::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

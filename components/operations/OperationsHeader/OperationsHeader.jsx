@@ -3,7 +3,7 @@
 import { cn } from '@/app/lib/utils'
 import styles from './OperationsHeader.module.scss'
 
-export function OperationsHeader({ isFilterOpen, onFilterToggle }) {
+export function OperationsHeader({ isFilterOpen, onFilterToggle, onCreateClick }) {
   return (
     <div className={styles.header}>
       <div className={styles.headerInner}>
@@ -17,6 +17,12 @@ export function OperationsHeader({ isFilterOpen, onFilterToggle }) {
             </button>
           )}
           <h1 className={styles.headerTitle}>Операции</h1>
+          <button 
+            onClick={onCreateClick}
+            className={styles.headerCreateButton}
+          >
+            Создать
+          </button>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.headerSearch}>

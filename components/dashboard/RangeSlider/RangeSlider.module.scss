@@ -5,14 +5,14 @@
 .track {
   position: relative;
   height: 4px;
-  background-color: #cbd5e1;
+  background-color: #d1d5db;
   border-radius: 9999px;
 }
 
 .trackFill {
   position: absolute;
   height: 4px;
-  background-color: #94a3b8;
+  background-color: #9ca3af;
   border-radius: 9999px;
   transition: all 0.15s;
 }
@@ -63,7 +63,7 @@
   width: 20px;
   height: 20px;
   background-color: white;
-  border: 2px solid #94a3b8;
+  border: 2px solid #9ca3af;
   border-radius: 50%;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transform: translateY(-50%) translateX(-50%);
@@ -72,7 +72,7 @@
   z-index: 3;
 
   &:hover {
-    border-color: #64748b;
+    border-color: #6b7280;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 }

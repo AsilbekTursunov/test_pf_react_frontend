@@ -255,8 +255,8 @@ export default function ProductModal({ isOpen, onClose, type = 'product' }) {
                 onClick={() => setFormData({ ...formData, createAnother: !formData.createAnother })}
                 className={styles.checkbox}
                 style={{
-                  backgroundColor: formData.createAnother ? '#17a2b8' : 'white',
-                  borderColor: formData.createAnother ? '#17a2b8' : '#94a3b8'
+                  backgroundColor: formData.createAnother ? '#6366f1' : 'white',
+                  borderColor: formData.createAnother ? '#6366f1' : '#9ca3af'
                 }}
               >
                 {formData.createAnother && (

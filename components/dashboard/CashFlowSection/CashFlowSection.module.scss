@@ -8,7 +8,7 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .headerTitle {
@@ -19,7 +19,7 @@
 
 .toggleGroup {
   display: flex;
-  background-color: #f1f5f9;
+  background-color: #f3f4f6;
   border-radius: 0.25rem;
   padding: 0.25rem;
 }
@@ -33,9 +33,9 @@
 
   &.active {
     background-color: white;
-    color: #17a2b8;
+    color: #6366f1;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid #17a2b8;
+    border: 1px solid #6366f1;
   }
 
   &.inactive {
@@ -91,7 +91,7 @@
 }
 
 .metricValuePlanText {
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .chartPanel {
@@ -112,7 +112,7 @@
 
 .rangeSliderLabel {
   font-size: 12px;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .rangeSliderDate {

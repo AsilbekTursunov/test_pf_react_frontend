@@ -40,7 +40,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .title {
@@ -50,11 +50,11 @@
 }
 
 .closeButton {
-  color: #94a3b8;
+  color: #9ca3af;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -97,7 +97,7 @@
 .labelIcon {
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .input {
@@ -121,18 +121,18 @@
   }
 
   &.normal {
-    border-color: #17a2b8;
+    border-color: #6366f1;
 
     &:focus {
-      border-color: #17a2b8;
+      border-color: #6366f1;
     }
   }
 
   &.default {
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
 
     &:focus {
-      border-color: #17a2b8;
+      border-color: #6366f1;
     }
   }
 }
@@ -180,19 +180,19 @@
   }
 
   &.normal {
-    border-color: #17a2b8;
+    border-color: #6366f1;
 
     &:focus {
-      border-color: #17a2b8;
+      border-color: #6366f1;
     }
   }
 
   &.default {
-    border-color: #cbd5e1;
-    color: #94a3b8;
+    border-color: #d1d5db;
+    color: #9ca3af;
 
     &:focus {
-      border-color: #17a2b8;
+      border-color: #6366f1;
     }
   }
 }
@@ -201,14 +201,14 @@
   flex: 1;
   padding: 0.75rem 1rem;
   font-size: 15px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   resize: none;
   transition: all 0.2s;
 
   &:focus {
     outline: none;
-    border-color: #17a2b8;
+    border-color: #6366f1;
   }
 }
 
@@ -223,7 +223,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 2rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .footerLeft {
@@ -268,7 +268,7 @@
 .cancelButton {
   padding: 0.75rem 1.5rem;
   font-size: 15px;
-  color: #17a2b8;
+  color: #6366f1;
   font-weight: 500;
   transition: color 0.2s;
 
@@ -280,7 +280,7 @@
 .submitButton {
   padding: 0.75rem 2rem;
   font-size: 15px;
-  background-color: #17a2b8;
+  background-color: #6366f1;
   color: white;
   border-radius: 0.25rem;
   font-weight: 500;

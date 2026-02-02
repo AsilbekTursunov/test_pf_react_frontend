@@ -1,7 +1,7 @@
 .container {
   display: flex;
   height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .content {
@@ -13,7 +13,7 @@
 
 .header {
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
   padding: 1rem 1.5rem;
 }
 
@@ -52,12 +52,12 @@
 .card {
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   padding: 1.5rem;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #17a2b8;
+    border-color: #6366f1;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 }
@@ -76,7 +76,7 @@
 }
 
 .card:hover .cardTitle {
-  color: #17a2b8;
+  color: #6366f1;
 }
 
 .cardDescription {

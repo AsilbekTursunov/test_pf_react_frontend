@@ -47,17 +47,17 @@ export function AreaStockChart() {
                     data={data}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                     <XAxis
                         dataKey="time"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                        tick={{ fill: '#9ca3af', fontSize: 12 }}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                        tick={{ fill: '#9ca3af', fontSize: 12 }}
                         tickFormatter={(value) => `${value}`}
                     />
                     <Tooltip

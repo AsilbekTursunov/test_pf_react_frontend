@@ -123,7 +123,7 @@ export function ChatWidget() {
               </div>
             </div>
             
-            <h3 className={styles.headerTitle}>ПланФакт на связи</h3>
+            <h3 className={styles.headerTitle}>ФинансУчет на связи</h3>
             <p className={styles.headerSubtitle}>Мы тут и готовы помочь</p>
           </div>
 

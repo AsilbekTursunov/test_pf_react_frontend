@@ -1,31 +1,130 @@
 "use client"
 
 import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/directories/FilterSidebar/FilterSidebar'
+import { DropdownFilter } from '@/components/directories/DropdownFilter/DropdownFilter'
 import { SearchBar } from '@/components/directories/SearchBar/SearchBar'
-import { useCounterparties } from '@/hooks/useDashboard'
+import { useCounterpartiesV2, useCounterpartiesGroupsV2, useDeleteCounterparties, useDeleteCounterpartiesGroups, useChartOfAccountsV2 } from '@/hooks/useDashboard'
+import CreateCounterpartyModal from '@/components/directories/CreateCounterpartyModal/CreateCounterpartyModal'
+import EditCounterpartyModal from '@/components/directories/EditCounterpartyModal/EditCounterpartyModal'
+import EditCounterpartyGroupModal from '@/components/directories/EditCounterpartyGroupModal/EditCounterpartyGroupModal'
+import { CounterpartyMenu } from '@/components/directories/CounterpartyMenu/CounterpartyMenu'
+import { GroupMenu } from '@/components/directories/GroupMenu/GroupMenu'
+import { DeleteCounterpartyConfirmModal } from '@/components/directories/DeleteCounterpartyConfirmModal/DeleteCounterpartyConfirmModal'
+import { DeleteGroupConfirmModal } from '@/components/directories/DeleteGroupConfirmModal/DeleteGroupConfirmModal'
 import { cn } from '@/app/lib/utils'
 import styles from './counterparties.module.scss'
 
 export default function CounterpartiesPage() {
-  const [isFilterOpen, setIsFilterOpen] = useState(true)
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  
-  // Fetch counterparties from API
-  const { data: counterpartiesData, isLoading: isLoadingCounterparties } = useCounterparties({
-    limit: 100,
-    offset: 0,
-    search: searchQuery
-  })
-
-  const counterpartiesItems = counterpartiesData?.data?.data?.response || []
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   
   const [filters, setFilters] = useState({
+    // Group filters
     client: true,
     employee: true,
-    supplier: true
+    supplier: true,
+    // Counterparties groups filter
+    selectedGroups: [],
+    // Type filter (Плательщик, Получатель, Смешанный)
+    selectedTypes: [],
+    // Selected counterparties for filter
+    selectedCounterparties: [],
+    // Selected chart of accounts for filter
+    selectedChartOfAccounts: [],
+    // Archive filters
+    active: true,
+    archived: true
   })
+
+  // Build filters object for API request
+  const filtersForAPI = useMemo(() => {
+    const apiFilters = {}
+    
+    // Group filter - gruppa is an array in API
+    const selectedGroups = []
+    if (filters.client) selectedGroups.push('Клиент')
+    if (filters.employee) selectedGroups.push('Сотрудник')
+    if (filters.supplier) selectedGroups.push('Поставщик')
+    
+    // Only add gruppa filter if not all groups are selected
+    if (selectedGroups.length > 0 && selectedGroups.length < 3) {
+      apiFilters.gruppa = selectedGroups
+    }
+    
+    // Counterparties groups filter
+    if (filters.selectedGroups && filters.selectedGroups.length > 0) {
+      apiFilters.counterparties_group_id = filters.selectedGroups
+    }
+    
+    // Selected counterparties filter - фильтруем по guid (массив GUID)
+    if (filters.selectedCounterparties && filters.selectedCounterparties.length > 0) {
+      apiFilters.guid = filters.selectedCounterparties
+    }
+    
+    // Selected chart of accounts filter - фильтруем по chart_of_accounts_id
+    if (filters.selectedChartOfAccounts && filters.selectedChartOfAccounts.length > 0) {
+      apiFilters.chart_of_accounts_id = filters.selectedChartOfAccounts
+    }
+    
+    // Type filter (Плательщик, Получатель, Смешанный) - фильтруем на фронтенде
+    // Не добавляем в API фильтр, так как тип определяется на основе статей
+    
+    // Archive filter - if both checked, don't filter; if only one, filter by deleted_at
+    if (filters.active && !filters.archived) {
+      // Show only active (not deleted)
+      apiFilters.deleted_at = null
+    } else if (!filters.active && filters.archived) {
+      // Show only archived (deleted)
+      apiFilters.deleted_at = { $ne: null }
+    }
+    // If both checked, don't add filter (show all)
+    
+    return apiFilters
+  }, [filters])
+  
+  // Fetch all counterparties for filter dropdown (without filters) - always fetch all
+  const { data: allCounterpartiesData } = useCounterpartiesV2({ data: {} })
+  const allCounterparties = allCounterpartiesData?.data?.data?.response || []
+
+  // Fetch counterparties from API using v2 endpoint with filters (for table)
+  const { data: counterpartiesData, isLoading: isLoadingCounterparties } = useCounterpartiesV2({
+    data: filtersForAPI
+  })
+
+  // Fetch counterparties groups for filter
+  const { data: counterpartiesGroupsData } = useCounterpartiesGroupsV2({ data: {} })
+  const counterpartiesGroups = counterpartiesGroupsData?.data?.data?.response || []
+
+  // Fetch chart of accounts for filter
+  const { data: chartOfAccountsData } = useChartOfAccountsV2({ data: {} })
+  const chartOfAccounts = chartOfAccountsData?.data?.data?.response || []
+
+  const counterpartiesItems = counterpartiesData?.data?.data?.response || []
+
+  // Prepare options for filters - use all counterparties, not filtered ones
+  const counterpartiesOptions = useMemo(() => {
+    if (!allCounterparties || allCounterparties.length === 0) return []
+    return allCounterparties.map(item => ({
+      value: item.guid,
+      label: item.nazvanie || 'Без названия'
+    }))
+  }, [allCounterparties])
+
+  const chartOfAccountsOptions = useMemo(() => {
+    if (!chartOfAccounts || chartOfAccounts.length === 0) return []
+    return chartOfAccounts.map(item => ({
+      value: item.guid,
+      label: item.nazvanie || 'Без названия',
+      group: (Array.isArray(item.tip) && item.tip.length > 0) ? item.tip[0] : 'Без группы'
+    }))
+  }, [chartOfAccounts])
 
   const toggleRowSelection = (id) => {
     setSelectedRows(prev => {
@@ -42,14 +141,14 @@ export default function CounterpartiesPage() {
   }
 
   const allSelected = () => {
-    return counterparties.length > 0 && selectedRows.length === counterparties.length
+    return flatCounterparties.length > 0 && selectedRows.length === flatCounterparties.length
   }
 
   const toggleSelectAll = () => {
     if (allSelected()) {
       setSelectedRows([])
     } else {
-      setSelectedRows(counterparties.map(item => item.id))
+      setSelectedRows(flatCounterparties.map(item => item.id))
     }
   }
 
@@ -57,22 +156,161 @@ export default function CounterpartiesPage() {
     setFilters(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  // Convert counterparties API data to component format
-  const counterparties = useMemo(() => {
-    return counterpartiesItems.map((item, index) => ({
+  // Convert counterparties API data to component format with grouping
+  const { groupedCounterparties, flatCounterparties } = useMemo(() => {
+    const items = counterpartiesItems.map((item, index) => {
+      // Определяем тип на основе статей
+      let tip = null
+      const hasReceiptArticle = !!item.chart_of_accounts_id
+      const hasPaymentArticle = !!item.chart_of_accounts_id_2
+      
+      if (hasReceiptArticle && !hasPaymentArticle) {
+        tip = 'Плательщик'
+      } else if (!hasReceiptArticle && hasPaymentArticle) {
+        tip = 'Получатель'
+      } else if (hasReceiptArticle && hasPaymentArticle) {
+        tip = 'Смешанный'
+      }
+      
+      return {
       id: item.guid || `counterparty-${index}`,
-      name: item.nazvanie || 'Без названия',
+        guid: item.guid,
+        nazvanie: item.nazvanie || 'Без названия',
+        polnoe_imya: item.polnoe_imya || null,
+        gruppa: item.gruppa && item.gruppa.length > 0 ? item.gruppa.join(', ') : null,
       inn: item.inn ? String(item.inn) : null,
-      group: item.gruppa && item.gruppa.length > 0 ? item.gruppa[0] : null,
-      groups: item.gruppa || [],
-    }))
-  }, [counterpartiesItems])
+        kpp: item.kpp ? String(item.kpp) : null,
+        nomer_scheta: item.nomer_scheta ? String(item.nomer_scheta) : null,
+        chart_of_accounts_id: item.chart_of_accounts_id || (item.chart_of_accounts_id_data?.guid) || null,
+        chart_of_accounts_id_2: item.chart_of_accounts_id_2 || (item.chart_of_accounts_id_2_data?.guid) || null,
+        chart_of_accounts_id_display: item.chart_of_accounts_id_data?.nazvanie || null,
+        chart_of_accounts_id_2_display: item.chart_of_accounts_id_2_data?.nazvanie || null,
+        tip: tip,
+        counterparties_group_id: item.counterparties_group_id || (item.counterparties_group_id_data?.guid) || null,
+        counterparties_group: item.counterparties_group_id_data?.nazvanie_gruppy || null,
+        counterparties_group_data: item.counterparties_group_id_data || null,
+        komentariy: item.komentariy || null,
+        data_sozdaniya: item.data_sozdaniya ? new Date(item.data_sozdaniya).toLocaleDateString('ru-RU') : null,
+        primenyat_stat_i_po_umolchaniyu: item.primenyatь_statьi_po_umolchaniyu ? 'Да' : 'Нет',
+        rawData: item
+      }
+    })
+    
+    // Фильтруем по типу, если выбран фильтр
+    const filteredItems = filters.selectedTypes.length > 0
+      ? items.filter(item => item.tip && filters.selectedTypes.includes(item.tip))
+      : items
 
-  const totalCounterparties = counterparties.length
+    // Group by counterparties_group_id
+    const groupsMap = new Map()
+    const ungrouped = []
+
+    filteredItems.forEach(item => {
+        if (item.counterparties_group_id) {
+          if (!groupsMap.has(item.counterparties_group_id)) {
+            groupsMap.set(item.counterparties_group_id, {
+              id: `group-${item.counterparties_group_id}`,
+              guid: item.counterparties_group_id,
+              nazvanie: item.counterparties_group || 'Без названия группы',
+              isGroup: true,
+              items: []
+            })
+          }
+          groupsMap.get(item.counterparties_group_id).items.push(item)
+        } else {
+          ungrouped.push(item)
+        }
+      })
+
+      const grouped = Array.from(groupsMap.values())
+      
+      return {
+        groupedCounterparties: [...grouped, ...ungrouped],
+        flatCounterparties: filteredItems
+      }
+    }, [counterpartiesItems, filters.selectedTypes])
+
+  const totalCounterparties = flatCounterparties.length
+  const [expandedGroups, setExpandedGroups] = useState(new Set())
+  const [editingCounterparty, setEditingCounterparty] = useState(null)
+  const [deletingCounterparty, setDeletingCounterparty] = useState(null)
+  const [editingGroup, setEditingGroup] = useState(null)
+  const [deletingGroup, setDeletingGroup] = useState(null)
+  const [preselectedGroupId, setPreselectedGroupId] = useState(null)
+  const deleteMutation = useDeleteCounterparties()
+  const deleteGroupMutation = useDeleteCounterpartiesGroups()
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+      }
+      return next
+    })
+  }
 
   return (
     <div className={styles.container}>
       <FilterSidebar isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)}>
+        <FilterSection title="Параметры">
+          <div className="space-y-2.5">
+            <DropdownFilter
+              label="Тип"
+              options={[
+                { value: 'Плательщик', label: 'Плательщик' },
+                { value: 'Получатель', label: 'Получатель' },
+                { value: 'Смешанный', label: 'Смешанный' }
+              ]}
+              selectedValues={filters.selectedTypes}
+              onChange={(values) => setFilters(prev => ({ ...prev, selectedTypes: values }))}
+              placeholder="Выберите тип"
+            />
+            <DropdownFilter
+              label="Контрагенты"
+              options={counterpartiesOptions || []}
+              selectedValues={filters.selectedCounterparties}
+              onChange={(values) => setFilters(prev => ({ ...prev, selectedCounterparties: values }))}
+              placeholder="Выберите контрагентов"
+            />
+            <DropdownFilter
+              label="Юрлица"
+              options={[]}
+              selectedValues={[]}
+              onChange={() => {}}
+              placeholder="Выберите юрлица"
+              disabled={true}
+            />
+            <DropdownFilter
+              label="Проекты"
+              options={[]}
+              selectedValues={[]}
+              onChange={() => {}}
+              placeholder="Выберите проекты"
+              disabled={true}
+            />
+            <DropdownFilter
+              label="Статьи учета"
+              options={chartOfAccountsOptions || []}
+              selectedValues={filters.selectedChartOfAccounts}
+              onChange={(values) => setFilters(prev => ({ ...prev, selectedChartOfAccounts: values }))}
+              placeholder="Выберите статьи учета"
+              grouped={true}
+            />
+          </div>
+        </FilterSection>
+
+        <FilterSection title="Период аналитики">
+          <div className={styles.filterDropdown}>
+            <svg className={styles.filterCalendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className={styles.filterPlaceholder}>Выберите период</span>
+          </div>
+        </FilterSection>
+
         <FilterSection title="Группа">
           <div className="space-y-2.5">
             <FilterCheckbox 
@@ -92,19 +330,70 @@ export default function CounterpartiesPage() {
             />
           </div>
         </FilterSection>
+
+        <FilterSection title="Группы контрагентов">
+          <div className="space-y-2.5">
+            {counterpartiesGroups.map((group) => (
+              <FilterCheckbox
+                key={group.guid}
+                checked={filters.selectedGroups.includes(group.guid)}
+                onChange={() => {
+                  setFilters(prev => {
+                    const newGroups = prev.selectedGroups.includes(group.guid)
+                      ? prev.selectedGroups.filter(g => g !== group.guid)
+                      : [...prev.selectedGroups, group.guid]
+                    return { ...prev, selectedGroups: newGroups }
+                  })
+                }}
+                label={group.nazvanie_gruppy || 'Без названия'}
+              />
+            ))}
+          </div>
+        </FilterSection>
+
+        <FilterSection title="Архив">
+          <div className="space-y-2.5">
+            <FilterCheckbox 
+              checked={filters.active} 
+              onChange={() => toggleFilter('active')} 
+              label="Показать активные" 
+            />
+            <FilterCheckbox 
+              checked={filters.archived} 
+              onChange={() => toggleFilter('archived')} 
+              label="Показать архивные" 
+            />
+          </div>
+        </FilterSection>
       </FilterSidebar>
 
       <div className={styles.content}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
+            <div className={styles.titleRow}>
+              <button
+                className={cn(styles.filterToggleButton, isFilterOpen && styles.filterToggleButtonActive)}
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+              >
+                <svg className={styles.filterToggleIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             <h1 className={styles.title}>Контрагенты</h1>
-            <div className={styles.headerActions}>
+              <button 
+                className={styles.createButton}
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                Создать
+              </button>
+              <div className={styles.searchContainer}>
               <SearchBar 
                 value={searchQuery} 
                 onChange={setSearchQuery} 
                 placeholder="Поиск по названию или ИНН" 
               />
+              </div>
             </div>
           </div>
         </div>
@@ -114,35 +403,41 @@ export default function CounterpartiesPage() {
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead className={styles.tableHead}>
-                <tr>
-                  <th className={cn(styles.tableHeaderCell)}>
-                    <div 
-                      onClick={toggleSelectAll}
-                      className={cn(
+                <tr className={styles.tableHeaderRow}>
+                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}>
+                    <div className={styles.checkboxWrapper}>
+                      <div className={styles.checkboxContainer}>
+                        <input
+                          type="checkbox"
+                          checked={allSelected()}
+                          onChange={toggleSelectAll}
+                          className={styles.checkboxInput}
+                        />
+                        <div className={cn(
                         styles.checkbox,
-                        styles.headerCheckbox,
-                        allSelected() ? styles.selected : styles.unselected
-                      )}
-                    >
+                          allSelected() ? styles.checked : styles.unchecked
+                        )}>
                       {allSelected() && (
                         <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
+                        </div>
+                      </div>
                     </div>
                   </th>
                   <th className={styles.tableHeaderCell}>
                     <button className={styles.tableHeaderButton}>
                       Название
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   </th>
                   <th className={styles.tableHeaderCell}>
                     <button className={styles.tableHeaderButton}>
-                      ИНН
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      Полное название
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
@@ -150,49 +445,278 @@ export default function CounterpartiesPage() {
                   <th className={styles.tableHeaderCell}>
                     <button className={styles.tableHeaderButton}>
                       Группа
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Тип
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      ИНН
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      КПП
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Номер счета
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Статья для поступлений
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Статья для выплат
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Группа контрагентов
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Комментарий
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Дата создания
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell}>
+                    <button className={styles.tableHeaderButton}>
+                      Применять статьи по умолчанию
+                      <svg className={styles.tableHeaderIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </th>
+                  <th className={styles.tableHeaderCell} style={{ width: '3rem' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {isLoadingCounterparties ? (
-                  <tr>
-                    <td colSpan={4} className={cn(styles.tableCell, styles.textCenter)}>
+                  <tr className={styles.emptyRow}>
+                    <td colSpan={15} className={cn(styles.tableCell, styles.textCenter, styles.emptyCell)}>
                       Загрузка...
                     </td>
                   </tr>
-                ) : counterparties.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className={cn(styles.tableCell, styles.textCenter)}>
+                ) : groupedCounterparties.length === 0 ? (
+                  <tr className={styles.emptyRow}>
+                    <td colSpan={15} className={cn(styles.tableCell, styles.textCenter, styles.emptyCell)}>
                       Нет данных
                     </td>
                   </tr>
                 ) : (
-                  counterparties.map((counterparty) => (
-                    <tr key={counterparty.id} className={styles.entityRow}>
-                      <td className={styles.tableCell}>
-                        <div 
-                          onClick={() => toggleRowSelection(counterparty.id)}
+                  groupedCounterparties.map((item) => {
+                    if (item.isGroup) {
+                      const isExpanded = expandedGroups.has(item.guid)
+                      const isLastChild = (index) => index === item.items.length - 1
+                      return (
+                        <React.Fragment key={item.id}>
+                          <tr className={cn(styles.tableRow, styles.groupRow)}>
+                            <td className={cn(styles.tableCell, styles.tableCellCheckbox)}>
+                              <button
+                                className={styles.expandButton}
+                                onClick={() => toggleGroup(item.guid)}
+                              >
+                                <svg 
+                                  className={cn(styles.expandIcon, isExpanded && styles.expanded)} 
+                                  fill="none" 
+                                  viewBox="0 0 24 24" 
+                                  stroke="currentColor" 
+                                  strokeWidth={2}
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                            </td>
+                            <td className={cn(styles.tableCell, styles.text, styles.groupCell)}>{item.nazvanie}</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell)} onClick={(e) => e.stopPropagation()}>
+                              <GroupMenu
+                                group={item}
+                                onEdit={(group) => setEditingGroup(group)}
+                                onDelete={(group) => setDeletingGroup(group)}
+                                onCreateCounterparty={(group) => {
+                                  setPreselectedGroupId(group.guid)
+                                  setIsCreateModalOpen(true)
+                                }}
+                              />
+                            </td>
+                          </tr>
+                          {isExpanded && item.items.map((counterparty, childIndex) => (
+                            <tr 
+                              key={counterparty.id} 
+                              className={cn(
+                                styles.tableRow,
+                                styles.childRow,
+                                isRowSelected(counterparty.id) && styles.selected,
+                                isLastChild(childIndex) && styles.lastChild
+                              )}
+                              onClick={() => router.push(`/pages/directories/counterparties/${counterparty.guid}`)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <td className={cn(styles.tableCell, styles.tableCellCheckbox, styles.childCell)} onClick={(e) => e.stopPropagation()}>
+                                <div className={styles.childLineContainer}>
+                                  <div className={cn(
+                                    styles.childVerticalLine,
+                                    isLastChild(childIndex) && styles.lastChildVerticalLine
+                                  )}></div>
+                                  <div className={styles.childHorizontalLine}></div>
+                                </div>
+                                <div className={styles.checkboxWrapper}>
+                                  <div className={styles.checkboxContainer}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isRowSelected(counterparty.id)}
+                                      onChange={() => toggleRowSelection(counterparty.id)}
+                                      className={styles.checkboxInput}
+                                    />
+                                    <div className={cn(
+                                      styles.checkbox,
+                                      isRowSelected(counterparty.id) ? styles.checked : styles.unchecked
+                                    )}>
+                                      {isRowSelected(counterparty.id) && (
+                                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className={cn(styles.tableCell, styles.text)}>{counterparty.nazvanie}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.polnoe_imya || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.gruppa || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.tip || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.inn || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.kpp || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.nomer_scheta || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.chart_of_accounts_id || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.chart_of_accounts_id_2 || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.counterparties_group || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>{counterparty.komentariy || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.data_sozdaniya || '–'}</td>
+                              <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.primenyat_stat_i_po_umolchaniyu || '–'}</td>
+                              <td className={cn(styles.tableCell)} onClick={(e) => e.stopPropagation()}>
+                                <CounterpartyMenu
+                                  counterparty={counterparty}
+                                  onEdit={(cp) => setEditingCounterparty(cp)}
+                                  onDelete={(cp) => setDeletingCounterparty(cp)}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      )
+                    } else {
+                      return (
+                        <tr 
+                          key={item.id} 
                           className={cn(
-                            styles.checkbox,
-                            isRowSelected(counterparty.id) ? styles.selected : styles.unselected
+                            styles.tableRow,
+                            isRowSelected(item.id) && styles.selected
                           )}
+                          onClick={() => router.push(`/pages/directories/counterparties/${item.guid}`)}
+                          style={{ cursor: 'pointer' }}
                         >
-                          {isRowSelected(counterparty.id) && (
+                          <td className={cn(styles.tableCell, styles.tableCellCheckbox)} onClick={(e) => e.stopPropagation()}>
+                            <div className={styles.checkboxWrapper}>
+                              <div className={styles.checkboxContainer}>
+                                <input
+                                  type="checkbox"
+                                  checked={isRowSelected(item.id)}
+                                  onChange={() => toggleRowSelection(item.id)}
+                                  className={styles.checkboxInput}
+                                />
+                                <div className={cn(
+                                  styles.checkbox,
+                                  isRowSelected(item.id) ? styles.checked : styles.unchecked
+                                )}>
+                                  {isRowSelected(item.id) && (
                             <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                         </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className={cn(styles.tableCell, styles.text)}>{item.nazvanie}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.polnoe_imya || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.gruppa || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.tip || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.inn || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.kpp || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.nomer_scheta || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.chart_of_accounts_id_display || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.chart_of_accounts_id_2_display || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.counterparties_group || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>{item.komentariy || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.data_sozdaniya || '–'}</td>
+                          <td className={cn(styles.tableCell, styles.textMuted)}>{item.primenyat_stat_i_po_umolchaniyu || '–'}</td>
+                          <td className={cn(styles.tableCell)} onClick={(e) => e.stopPropagation()}>
+                            <CounterpartyMenu
+                              counterparty={item}
+                              onEdit={(cp) => setEditingCounterparty(cp)}
+                              onDelete={(cp) => setDeletingCounterparty(cp)}
+                            />
                       </td>
-                      <td className={cn(styles.tableCell, styles.text)}>{counterparty.name}</td>
-                      <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.inn || '–'}</td>
-                      <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.group || '–'}</td>
                     </tr>
-                  ))
+                      )
+                    }
+                  })
                 )}
               </tbody>
             </table>
@@ -208,6 +732,77 @@ export default function CounterpartiesPage() {
           </div>
         </div>
       </div>
+
+      {/* Create Modal */}
+      <CreateCounterpartyModal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false)
+          setPreselectedGroupId(null)
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['counterpartiesV2'] })
+          queryClient.invalidateQueries({ queryKey: ['counterpartiesGroupsV2'] })
+        }}
+        preselectedGroupId={preselectedGroupId}
+      />
+      <EditCounterpartyModal
+        isOpen={!!editingCounterparty}
+        onClose={() => {
+          setEditingCounterparty(null)
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['counterpartiesV2'] })
+        }}
+        counterparty={editingCounterparty}
+      />
+      <EditCounterpartyGroupModal
+        isOpen={!!editingGroup}
+        onClose={() => {
+          setEditingGroup(null)
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['counterpartiesGroupsV2'] })
+          queryClient.invalidateQueries({ queryKey: ['counterpartiesV2'] })
+        }}
+        group={editingGroup}
+      />
+      <DeleteGroupConfirmModal
+        isOpen={!!deletingGroup}
+        group={deletingGroup}
+        onConfirm={async () => {
+          if (deletingGroup?.guid) {
+            try {
+              await deleteGroupMutation.mutateAsync([deletingGroup.guid])
+              setDeletingGroup(null)
+              // Invalidate queries to refresh data
+              queryClient.invalidateQueries({ queryKey: ['counterpartiesGroupsV2'] })
+              queryClient.invalidateQueries({ queryKey: ['counterpartiesV2'] })
+            } catch (error) {
+              console.error('Error deleting group:', error)
+            }
+          }
+        }}
+        onCancel={() => setDeletingGroup(null)}
+        isDeleting={deleteGroupMutation.isPending}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteCounterpartyConfirmModal
+        isOpen={!!deletingCounterparty}
+        counterparty={deletingCounterparty}
+        onConfirm={async () => {
+          if (deletingCounterparty?.guid) {
+            try {
+              await deleteMutation.mutateAsync([deletingCounterparty.guid])
+              setDeletingCounterparty(null)
+              // Invalidate queries to refresh data
+              queryClient.invalidateQueries({ queryKey: ['counterpartiesV2'] })
+            } catch (error) {
+              console.error('Error deleting counterparty:', error)
+            }
+          }
+        }}
+        onCancel={() => setDeletingCounterparty(null)}
+        isDeleting={deleteMutation.isPending}
+      />
     </div>
   )
 }

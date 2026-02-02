@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { apiConfig } from '@/lib/config/api'
 import { makeUcodeViewsRequest, handleUcodeResponse, getCorsHeaders, createOptionsResponse } from '@/lib/api/ucode/base'
+import { makeUcodeV2Request, parseDataParam } from '@/app/api/utils/ucode-v2'
 
 export async function POST(request) {
   try {
@@ -78,6 +79,62 @@ export async function POST(request) {
         status: statusCode,
         headers: getCorsHeaders()
       }
+    )
+  }
+}
+
+/**
+ * GET /api/chart-of-accounts
+ * Get chart of accounts list using v2/items/chart_of_accounts endpoint
+ */
+export async function GET(request) {
+  const dataParams = parseDataParam(request)
+  return makeUcodeV2Request({
+    request,
+    endpoint: 'chart_of_accounts',
+    method: 'GET',
+    queryParams: {
+      data: JSON.stringify(dataParams)
+    }
+  })
+}
+
+/**
+ * DELETE /api/chart-of-accounts
+ * Delete chart of accounts items using v2/items/chart_of_accounts endpoint
+ */
+export async function DELETE(request) {
+  try {
+    const body = await request.json()
+    const { ids } = body
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          description: 'Ids is required and must be a non-empty array',
+          data: 'Missing or invalid ids field in request body'
+        },
+        { status: 400, headers: getCorsHeaders() }
+      )
+    }
+
+    return makeUcodeV2Request({
+      request,
+      endpoint: 'chart_of_accounts',
+      method: 'DELETE',
+      data: { ids }
+    })
+  } catch (error) {
+    console.error('Delete chart of accounts error:', error)
+    
+    return NextResponse.json(
+      {
+        status: 'ERROR',
+        description: error.message || 'Failed to delete chart of accounts items',
+        data: error.message || 'Internal server error'
+      },
+      { status: 500, headers: getCorsHeaders() }
     )
   }
 }

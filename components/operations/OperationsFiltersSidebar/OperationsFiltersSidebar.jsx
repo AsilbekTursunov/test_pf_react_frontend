@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/app/lib/utils'
 import styles from './OperationsFiltersSidebar.module.scss'
 
@@ -29,42 +29,128 @@ export function OperationsFiltersSidebar({
   const [isDatePaymentModalOpen, setIsDatePaymentModalOpen] = useState(false)
   const [isDateStartModalOpen, setIsDateStartModalOpen] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0))
+  const [currentMonthStart, setCurrentMonthStart] = useState(new Date(2026, 0))
   const [activeInput, setActiveInput] = useState(null)
+  const [activeInputStart, setActiveInputStart] = useState(null)
   const [tempStartDate, setTempStartDate] = useState(null)
   const [tempEndDate, setTempEndDate] = useState(null)
+  const [tempStartDateStart, setTempStartDateStart] = useState(null)
+  const [tempEndDateStart, setTempEndDateStart] = useState(null)
   const [isClosing, setIsClosing] = useState(false)
+  const [openUpward, setOpenUpward] = useState(false)
+  const [openUpwardStart, setOpenUpwardStart] = useState(false)
   const [openParameterDropdown, setOpenParameterDropdown] = useState(null)
   const datePickerRef = useRef(null)
   const dateStartPickerRef = useRef(null)
+  const datePickerModalRef = useRef(null)
+  const dateStartPickerModalRef = useRef(null)
   const parameterDropdownRef = useRef(null)
   const accountsDropdownRef = useRef(null)
   const counterAgentsDropdownRef = useRef(null)
+  const justOpenedRef = useRef(false)
+  const justOpenedStartRef = useRef(false)
+  
+  // Функция для определения направления открытия
+  const calculateOpenDirection = useCallback((ref, modalHeight) => {
+    if (!ref?.current) return false
+    const buttonRect = ref.current.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - buttonRect.bottom
+    const spaceAbove = buttonRect.top
+    return spaceBelow < modalHeight || (spaceAbove > spaceBelow && spaceAbove > 100)
+  }, [])
+  
+  // Определяем направление открытия для первого выпадающего списка
+  useEffect(() => {
+    if (isDatePaymentModalOpen && datePickerRef.current) {
+      const modalHeight = activeInput ? 400 : 200
+      const shouldOpenUpward = calculateOpenDirection(datePickerRef, modalHeight)
+      setOpenUpward(shouldOpenUpward)
+    }
+  }, [isDatePaymentModalOpen, activeInput, calculateOpenDirection])
+  
+  // Определяем направление открытия для второго выпадающего списка
+  useEffect(() => {
+    if (isDateStartModalOpen && dateStartPickerRef.current) {
+      const modalHeight = activeInputStart ? 400 : 200
+      const shouldOpenUpward = calculateOpenDirection(dateStartPickerRef, modalHeight)
+      setOpenUpwardStart(shouldOpenUpward)
+    }
+  }, [isDateStartModalOpen, activeInputStart, calculateOpenDirection])
+  
+  // Пересчитываем позицию при изменении размера окна или прокрутке
+  useEffect(() => {
+    const handleResize = () => {
+      if (isDatePaymentModalOpen && datePickerRef.current) {
+        const modalHeight = activeInput ? 400 : 200
+        const shouldOpenUpward = calculateOpenDirection(datePickerRef, modalHeight)
+        setOpenUpward(shouldOpenUpward)
+      }
+      if (isDateStartModalOpen && dateStartPickerRef.current) {
+        const modalHeight = activeInputStart ? 400 : 200
+        const shouldOpenUpward = calculateOpenDirection(dateStartPickerRef, modalHeight)
+        setOpenUpwardStart(shouldOpenUpward)
+      }
+    }
+    
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('scroll', handleResize, true)
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('scroll', handleResize, true)
+    }
+  }, [isDatePaymentModalOpen, isDateStartModalOpen, activeInput, activeInputStart, calculateOpenDirection])
 
-  const closeDatePaymentModal = () => {
+  const closeDatePaymentModal = useCallback(() => {
     setIsClosing(true)
     setTimeout(() => {
       setIsDatePaymentModalOpen(false)
       setIsClosing(false)
       setActiveInput(null)
+      setTempStartDate(null)
+      setTempEndDate(null)
     }, 200)
-  }
+  }, [])
 
-  const closeDateStartModal = () => {
+  const closeDateStartModal = useCallback(() => {
     setIsClosing(true)
     setTimeout(() => {
       setIsDateStartModalOpen(false)
       setIsClosing(false)
-      setActiveInput(null)
+      setActiveInputStart(null)
+      setTempStartDateStart(null)
+      setTempEndDateStart(null)
     }, 200)
-  }
+  }, [])
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
-        closeDatePaymentModal()
+      // Игнорируем клики сразу после открытия
+      if (justOpenedRef.current) {
+        justOpenedRef.current = false
+        return
       }
-      if (dateStartPickerRef.current && !dateStartPickerRef.current.contains(event.target)) {
-        closeDateStartModal()
+      if (justOpenedStartRef.current) {
+        justOpenedStartRef.current = false
+        return
+      }
+
+      // Проверяем клик вне модального окна для даты оплаты
+      if (isDatePaymentModalOpen) {
+        const clickedInsideButton = datePickerRef.current?.contains(event.target)
+        const clickedInsideModal = datePickerModalRef.current?.contains(event.target)
+        if (!clickedInsideButton && !clickedInsideModal) {
+          closeDatePaymentModal()
+        }
+      }
+
+      // Проверяем клик вне модального окна для даты начала
+      if (isDateStartModalOpen) {
+        const clickedInsideButton = dateStartPickerRef.current?.contains(event.target)
+        const clickedInsideModal = dateStartPickerModalRef.current?.contains(event.target)
+        if (!clickedInsideButton && !clickedInsideModal) {
+          closeDateStartModal()
+        }
       }
       
       // Check for accounts dropdown
@@ -109,9 +195,16 @@ export function OperationsFiltersSidebar({
         }
       }
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [openParameterDropdown])
+    // Добавляем небольшую задержку перед добавлением обработчика, чтобы избежать немедленного закрытия
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside)
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [openParameterDropdown ?? null, isDatePaymentModalOpen ?? false, isDateStartModalOpen ?? false, closeDatePaymentModal, closeDateStartModal])
 
   const formatDateRange = (range) => {
     if (!range) return null
@@ -175,9 +268,9 @@ export function OperationsFiltersSidebar({
                   onFilterChange('type', 'nachisleniye')
                 }}
                 style={{
-                  '--checkbox-bg': selectedFilters.nachisleniye ? '#17a2b8' : 'white',
-                  '--checkbox-border': selectedFilters.nachisleniye ? '#17a2b8' : '#cbd5e1',
-                  '--checkbox-hover-border': '#94a3b8',
+                  '--checkbox-bg': selectedFilters.nachisleniye ? '#6366f1' : 'white',
+                  '--checkbox-border': selectedFilters.nachisleniye ? '#6366f1' : '#d1d5db',
+                  '--checkbox-hover-border': '#9ca3af',
                   cursor: 'pointer'
                 }}
               >
@@ -215,9 +308,9 @@ export function OperationsFiltersSidebar({
                       selectedFilters[item.key] && styles.checkboxChecked
                     )}
                     style={{
-                      '--checkbox-bg': selectedFilters[item.key] ? '#17a2b8' : 'white',
-                      '--checkbox-border': selectedFilters[item.key] ? '#17a2b8' : '#cbd5e1',
-                      '--checkbox-hover-border': '#94a3b8'
+                      '--checkbox-bg': selectedFilters[item.key] ? '#6366f1' : 'white',
+                      '--checkbox-border': selectedFilters[item.key] ? '#6366f1' : '#d1d5db',
+                      '--checkbox-hover-border': '#9ca3af'
                     }}
                   >
                     {selectedFilters[item.key] && (
@@ -255,9 +348,9 @@ export function OperationsFiltersSidebar({
                       dateFilters[item.key] && styles.checkboxChecked
                     )}
                     style={{
-                      '--checkbox-bg': dateFilters[item.key] ? '#17a2b8' : 'white',
-                      '--checkbox-border': dateFilters[item.key] ? '#17a2b8' : '#cbd5e1',
-                      '--checkbox-hover-border': '#94a3b8'
+                      '--checkbox-bg': dateFilters[item.key] ? '#6366f1' : 'white',
+                      '--checkbox-border': dateFilters[item.key] ? '#6366f1' : '#d1d5db',
+                      '--checkbox-hover-border': '#9ca3af'
                     }}
                   >
                     {dateFilters[item.key] && (
@@ -293,15 +386,19 @@ export function OperationsFiltersSidebar({
           ) : (
             <div className={styles.datePickerButton} ref={datePickerRef}>
               <button 
-                onClick={() => {
-                  setIsDatePaymentModalOpen(!isDatePaymentModalOpen)
-                  if (isDateStartModalOpen) {
-                    closeDateStartModal()
-                  }
+                onClick={(e) => {
+                  e.stopPropagation()
                   if (!isDatePaymentModalOpen) {
+                    justOpenedRef.current = true
+                    setIsDatePaymentModalOpen(true)
+                    if (isDateStartModalOpen) {
+                      closeDateStartModal()
+                    }
                     setTempStartDate(null)
                     setTempEndDate(null)
                     setActiveInput(null)
+                  } else {
+                    closeDatePaymentModal()
                   }
                 }}
                 className={styles.datePickerButtonInner}
@@ -319,12 +416,26 @@ export function OperationsFiltersSidebar({
               {isDatePaymentModalOpen && (
                 <div 
                   key="date-payment-modal"
-                  className={styles.datePickerModal}
+                  ref={datePickerModalRef}
+                  className={cn(
+                    styles.datePickerModal,
+                    openUpward ? styles.openUpward : ''
+                  )}
                   style={{ 
-                    top: datePickerRef.current?.getBoundingClientRect().bottom + 8 + 'px',
+                    top: (() => {
+                      if (!datePickerRef.current) return 'auto'
+                      const buttonRect = datePickerRef.current.getBoundingClientRect()
+                      const modalHeight = activeInput ? 400 : 200
+                      if (openUpward) {
+                        return (buttonRect.top - modalHeight - 8) + 'px'
+                      }
+                      return (buttonRect.bottom + 8) + 'px'
+                    })(),
                     left: '280px',
                     '--modal-width': activeInput ? '600px' : '440px',
-                    '--modal-animation': isClosing ? 'fadeSlideOut 0.2s ease-in' : 'fadeSlideIn 0.25s ease-out'
+                    '--modal-animation': isClosing 
+                      ? (openUpward ? 'fadeSlideOutUp 0.2s ease-in' : 'fadeSlideOut 0.2s ease-in')
+                      : (openUpward ? 'fadeSlideInUp 0.25s ease-out' : 'fadeSlideIn 0.25s ease-out')
                   }}
                 >
                   <div className={styles.datePickerModalContent}>
@@ -510,9 +621,9 @@ export function OperationsFiltersSidebar({
                       dateStartFilters[item.key] && styles.checkboxChecked
                     )}
                     style={{
-                      '--checkbox-bg': dateStartFilters[item.key] ? '#17a2b8' : 'white',
-                      '--checkbox-border': dateStartFilters[item.key] ? '#17a2b8' : '#cbd5e1',
-                      '--checkbox-hover-border': '#94a3b8'
+                      '--checkbox-bg': dateStartFilters[item.key] ? '#6366f1' : 'white',
+                      '--checkbox-border': dateStartFilters[item.key] ? '#6366f1' : '#d1d5db',
+                      '--checkbox-hover-border': '#9ca3af'
                     }}
                   >
                     {dateStartFilters[item.key] && (
@@ -548,15 +659,19 @@ export function OperationsFiltersSidebar({
           ) : (
             <div className={styles.datePickerButton} ref={dateStartPickerRef}>
               <button 
-                onClick={() => {
-                  setIsDateStartModalOpen(!isDateStartModalOpen)
-                  if (isDatePaymentModalOpen) {
-                    closeDatePaymentModal()
-                  }
+                onClick={(e) => {
+                  e.stopPropagation()
                   if (!isDateStartModalOpen) {
-                    setTempStartDate(null)
-                    setTempEndDate(null)
-                    setActiveInput(null)
+                    justOpenedStartRef.current = true
+                    setIsDateStartModalOpen(true)
+                    if (isDatePaymentModalOpen) {
+                      closeDatePaymentModal()
+                    }
+                    setTempStartDateStart(null)
+                    setTempEndDateStart(null)
+                    setActiveInputStart(null)
+                  } else {
+                    closeDateStartModal()
                   }
                 }}
                 className={styles.datePickerButtonInner}
@@ -574,12 +689,26 @@ export function OperationsFiltersSidebar({
               {isDateStartModalOpen && (
                 <div 
                   key="date-start-modal"
-                  className={styles.datePickerModal}
+                  ref={dateStartPickerModalRef}
+                  className={cn(
+                    styles.datePickerModal,
+                    openUpwardStart ? styles.openUpward : ''
+                  )}
                   style={{ 
-                    top: dateStartPickerRef.current?.getBoundingClientRect().bottom + 8 + 'px',
+                    top: (() => {
+                      if (!dateStartPickerRef.current) return 'auto'
+                      const buttonRect = dateStartPickerRef.current.getBoundingClientRect()
+                      const modalHeight = activeInputStart ? 400 : 200
+                      if (openUpwardStart) {
+                        return (buttonRect.top - modalHeight - 8) + 'px'
+                      }
+                      return (buttonRect.bottom + 8) + 'px'
+                    })(),
                     left: '280px',
-                    '--modal-width': activeInput ? '600px' : '440px',
-                    '--modal-animation': isClosing ? 'fadeSlideOut 0.2s ease-in' : 'fadeSlideIn 0.25s ease-out'
+                    '--modal-width': activeInputStart ? '600px' : '440px',
+                    '--modal-animation': isClosing 
+                      ? (openUpwardStart ? 'fadeSlideOutUp 0.2s ease-in' : 'fadeSlideOut 0.2s ease-in')
+                      : (openUpwardStart ? 'fadeSlideInUp 0.25s ease-out' : 'fadeSlideIn 0.25s ease-out')
                   }}
                 >
                   <div className={styles.datePickerModalContent}>
@@ -604,20 +733,20 @@ export function OperationsFiltersSidebar({
                       </div>
 
                       {/* Calendar - показывается только когда активен инпут */}
-                      {activeInput && (
+                      {activeInputStart && (
                         <div className={styles.calendar}>
                           <div className={styles.calendarHeader}>
                             <button 
-                              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                              onClick={() => setCurrentMonthStart(new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() - 1))}
                               className={styles.calendarNavButton}
                             >
                               «
                             </button>
                             <span className={styles.calendarMonth}>
-                              {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
+                              {currentMonthStart.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
                             </span>
                             <button 
-                              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                              onClick={() => setCurrentMonthStart(new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1))}
                               className={styles.calendarNavButton}
                             >
                               »
@@ -634,14 +763,14 @@ export function OperationsFiltersSidebar({
 
                           <div className={styles.calendarDays}>
                             {Array.from({ length: 35 }, (_, i) => {
-                              const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+                              const firstDay = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth(), 1)
                               const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
                               const dayNum = i - startDay + 1
-                              const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum)
-                              const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
+                              const date = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth(), dayNum)
+                              const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 0).getDate()
                               const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
-                              const isSelected = (tempStartDate && date.toDateString() === tempStartDate.toDateString()) || 
-                                                   (tempEndDate && date.toDateString() === tempEndDate.toDateString())
+                              const isSelected = (tempStartDateStart && date.toDateString() === tempStartDateStart.toDateString()) || 
+                                                   (tempEndDateStart && date.toDateString() === tempEndDateStart.toDateString())
 
                               return (
                                 <button
@@ -649,10 +778,10 @@ export function OperationsFiltersSidebar({
                                   disabled={!isCurrentMonth}
                                   onClick={() => {
                                     if (isCurrentMonth) {
-                                      if (activeInput === 'start') {
-                                        setTempStartDate(date)
-                                      } else if (activeInput === 'end') {
-                                        setTempEndDate(date)
+                                      if (activeInputStart === 'start') {
+                                        setTempStartDateStart(date)
+                                      } else if (activeInputStart === 'end') {
+                                        setTempEndDateStart(date)
                                       }
                                     }
                                   }}
@@ -676,10 +805,13 @@ export function OperationsFiltersSidebar({
                     {/* Date Inputs */}
                     <div className={styles.dateInputs}>
                       <button
-                        onClick={() => setActiveInput('start')}
+                        onClick={() => {
+                          setActiveInputStart('start')
+                          if (activeInput) setActiveInput(null)
+                        }}
                         className={cn(
                           styles.dateInput,
-                          activeInput === 'start' ? styles.active : styles.inactive
+                          activeInputStart === 'start' ? styles.active : styles.inactive
                         )}
                       >
                         <svg className={styles.dateInputIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -689,15 +821,18 @@ export function OperationsFiltersSidebar({
                           <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                         <span className={styles.dateInputText}>
-                          {tempStartDate ? tempStartDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Начало периода'}
+                          {tempStartDateStart ? tempStartDateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Начало периода'}
                         </span>
                       </button>
                       <span className={styles.dateInputSeparator}>—</span>
                       <button
-                        onClick={() => setActiveInput('end')}
+                        onClick={() => {
+                          setActiveInputStart('end')
+                          if (activeInput) setActiveInput(null)
+                        }}
                         className={cn(
                           styles.dateInput,
-                          activeInput === 'end' ? styles.active : styles.inactive
+                          activeInputStart === 'end' ? styles.active : styles.inactive
                         )}
                       >
                         <svg className={styles.dateInputIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -707,7 +842,7 @@ export function OperationsFiltersSidebar({
                           <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                         <span className={styles.dateInputText}>
-                          {tempEndDate ? tempEndDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Конец периода'}
+                          {tempEndDateStart ? tempEndDateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Конец периода'}
                         </span>
                       </button>
                     </div>
@@ -716,8 +851,8 @@ export function OperationsFiltersSidebar({
                     <div className={styles.datePickerActions}>
                       <button
                         onClick={() => {
-                          setTempStartDate(null)
-                          setTempEndDate(null)
+                          setTempStartDateStart(null)
+                          setTempEndDateStart(null)
                           closeDateStartModal()
                         }}
                         className={cn(styles.datePickerActionButton, styles.cancel)}
@@ -726,8 +861,8 @@ export function OperationsFiltersSidebar({
                       </button>
                       <button
                         onClick={() => {
-                          if (tempStartDate && tempEndDate) {
-                            onDateStartRangeChange({ start: tempStartDate, end: tempEndDate })
+                          if (tempStartDateStart && tempEndDateStart) {
+                            onDateStartRangeChange({ start: tempStartDateStart, end: tempEndDateStart })
                           }
                           closeDateStartModal()
                         }}
@@ -880,9 +1015,9 @@ export function OperationsFiltersSidebar({
                                       onAccountToggle(account.guid)
                                     }}
                                     style={{
-                                      '--checkbox-bg': selectedAccounts[account.guid] ? '#17a2b8' : 'white',
-                                      '--checkbox-border': selectedAccounts[account.guid] ? '#17a2b8' : '#cbd5e1',
-                                      '--checkbox-hover-border': '#94a3b8'
+                                      '--checkbox-bg': selectedAccounts[account.guid] ? '#6366f1' : 'white',
+                                      '--checkbox-border': selectedAccounts[account.guid] ? '#6366f1' : '#d1d5db',
+                                      '--checkbox-hover-border': '#9ca3af'
                                     }}
                                   >
                                     {selectedAccounts[account.guid] && (
@@ -898,7 +1033,7 @@ export function OperationsFiltersSidebar({
                           </div>
                         ))
                       ) : (
-                        <div className={styles.parameterItemLabel} style={{ padding: '0.5rem', color: '#94a3b8' }}>
+                        <div className={styles.parameterItemLabel} style={{ padding: '0.5rem', color: '#9ca3af' }}>
                           Нет доступных счетов
                         </div>
                       )}
@@ -1041,9 +1176,9 @@ export function OperationsFiltersSidebar({
                                     onCounterAgentToggle(ca.guid)
                                   }}
                                   style={{
-                                    '--checkbox-bg': selectedCounterAgents[ca.guid] ? '#17a2b8' : 'white',
-                                    '--checkbox-border': selectedCounterAgents[ca.guid] ? '#17a2b8' : '#cbd5e1',
-                                    '--checkbox-hover-border': '#94a3b8'
+                                    '--checkbox-bg': selectedCounterAgents[ca.guid] ? '#6366f1' : 'white',
+                                    '--checkbox-border': selectedCounterAgents[ca.guid] ? '#6366f1' : '#d1d5db',
+                                    '--checkbox-hover-border': '#9ca3af'
                                   }}
                                 >
                                   {selectedCounterAgents[ca.guid] && (
@@ -1059,7 +1194,7 @@ export function OperationsFiltersSidebar({
                           </div>
                         ))
                       ) : (
-                        <div className={styles.parameterItemLabel} style={{ padding: '0.5rem', color: '#94a3b8' }}>
+                        <div className={styles.parameterItemLabel} style={{ padding: '0.5rem', color: '#9ca3af' }}>
                           Нет доступных контрагентов
                         </div>
                       )}

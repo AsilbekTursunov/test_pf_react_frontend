@@ -28,7 +28,7 @@
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   z-index: 50;
@@ -100,7 +100,7 @@
 
 .actions {
   padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .actionsRow {
@@ -139,18 +139,18 @@
 }
 
 .actionButtonSecondary {
-  background-color: #f1f5f9;
+  background-color: #f3f4f6;
   color: #334155;
 
   &:hover {
-    background-color: #e2e8f0;
+    background-color: #e5e7eb;
   }
 }
 
 .actionButtonIconSecondary {
   width: 2rem;
   height: 2rem;
-  background-color: #cbd5e1;
+  background-color: #d1d5db;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -174,7 +174,7 @@
 
 .historyHeaderText {
   font-size: 14px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .loading {
@@ -208,7 +208,7 @@
 .messageAvatar {
   width: 2.5rem;
   height: 2.5rem;
-  background-color: #e2e8f0;
+  background-color: #e5e7eb;
   border-radius: 50%;
   flex-shrink: 0;
   display: flex;
@@ -254,7 +254,7 @@
 
 .messageTime {
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .messageNotification {
@@ -277,13 +277,13 @@
 
 .messageSubtitle {
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
   margin-top: 0.25rem;
 }
 
 .inputSection {
   padding: 1rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #f3f4f6;
 }
 
 .inputRow {
@@ -294,7 +294,7 @@
 .input {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   font-size: 14px;
 

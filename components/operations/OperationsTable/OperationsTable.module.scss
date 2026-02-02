@@ -1,7 +1,7 @@
 .container {
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   overflow: hidden;
 }
 
@@ -10,8 +10,8 @@
 }
 
 .tableHeader {
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .tableHeaderRow {
@@ -23,7 +23,7 @@
   text-align: left;
   font-size: 13px;
   font-weight: 400;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .tableHeaderCellCheckbox {
@@ -39,16 +39,16 @@
 }
 
 .tableRow {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
   transition: background-color 0.2s;
   cursor: pointer;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 
   &.selected {
-    background-color: #dbeafe;
+    background-color: #e0e7ff;
   }
 }
 
@@ -90,15 +90,15 @@
   cursor: pointer;
 
   &.checked {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
+    background-color: #6366f1;
+    border-color: #6366f1;
   }
 
   &.unchecked {
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
 
     &:hover {
-      border-color: #94a3b8;
+      border-color: #9ca3af;
     }
   }
 }
@@ -110,7 +110,7 @@
 }
 
 .dateCell {
-  color: #17a2b8;
+  color: #6366f1;
 }
 
 .accountCell {
@@ -132,11 +132,11 @@
 }
 
 .counterpartyCell {
-  color: #17a2b8;
+  color: #6366f1;
 }
 
 .categoryCell {
-  color: #17a2b8;
+  color: #6366f1;
 }
 
 .projectCell {
@@ -156,5 +156,238 @@
 
   &.negative {
     color: #ef4444;
+  }
+}
+
+// Menu styles
+.menuContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1; // Создаем stacking context для контейнера
+}
+
+.menuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s;
+  border-radius: 0.25rem;
+  position: relative;
+  z-index: 2; // Кнопка выше фона ячейки
+
+  &:hover {
+    color: #6b7280;
+    background-color: #f3f4f6;
+  }
+}
+
+.menuIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.menuDropdown {
+  position: fixed;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 99999; // Очень высокий z-index, чтобы быть выше всех элементов
+  min-width: 180px;
+  overflow: hidden;
+  isolation: isolate; // Создаем новый stacking context
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  font-size: 13px;
+  color: #334155;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  &.menuItemDanger {
+    color: #ef4444;
+
+    &:hover {
+      background-color: #fef2f2;
+    }
+  }
+}
+
+.menuItemIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+// Delete confirmation modal
+.deleteModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1001;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.deleteModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.deleteModalTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.deleteModalClose {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.deleteModalBody {
+  padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.deleteModalText {
+  font-size: 14px;
+  color: #475569;
+  margin: 0 0 1rem 0;
+}
+
+.deleteModalInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.deleteModalInfoItem {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deleteModalInfoLabel {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.deleteModalInfoValue {
+  font-size: 13px;
+  color: #334155;
+}
+
+.deleteModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.deleteModalButtonCancel {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  color: #4b5563;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+  }
+}
+
+.deleteModalButtonConfirm {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  background-color: #ef4444;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #dc2626;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }

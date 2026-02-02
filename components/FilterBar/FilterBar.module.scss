@@ -8,7 +8,7 @@
   background-color: white;
   padding: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
@@ -24,7 +24,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
-  background-color: #f1f5f9;
+  background-color: #f3f4f6;
   border-radius: 0.5rem;
   font-size: 14px;
   font-weight: 500;
@@ -33,7 +33,7 @@
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #e2e8f0;
+    background-color: #e5e7eb;
   }
 }
 
@@ -45,13 +45,13 @@
 .dateChevron {
   width: 14px;
   height: 14px;
-  color: #94a3b8;
+  color: #9ca3af;
   margin-left: 0.25rem;
 }
 
 .periodToggle {
   display: flex;
-  background-color: #f1f5f9;
+  background-color: #f3f4f6;
   padding: 0.25rem;
   border-radius: 0.5rem;
 }
@@ -70,7 +70,7 @@
   }
 
   &.inactive {
-    color: #64748b;
+    color: #6b7280;
 
     &:hover {
       color: #334155;
@@ -81,7 +81,7 @@
 .separator {
   width: 1px;
   height: 1.5rem;
-  background-color: #e2e8f0;
+  background-color: #e5e7eb;
   margin: 0 0.5rem;
 }
 
@@ -96,7 +96,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   font-size: 14px;
   color: #475569;
@@ -104,14 +104,14 @@
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
 .filterChevron {
   width: 14px;
   height: 14px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .rightSection {

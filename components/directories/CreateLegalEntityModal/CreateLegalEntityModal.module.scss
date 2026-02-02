@@ -1,0 +1,256 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  transition: opacity 0.25s ease-in-out;
+  background-color: lab(34.66 -0.95 -5.29 / 0.78);
+
+  &.closing {
+    opacity: 0;
+  }
+
+  &.opening {
+    opacity: 1;
+  }
+}
+
+.modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 60;
+  width: 600px;
+  max-height: 90vh;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease-in-out;
+  display: flex;
+  flex-direction: column;
+
+  &.closing {
+    opacity: 0;
+    transform: scale(0.95) translateX(-50%) translateY(-48%);
+  }
+
+  &.opening {
+    opacity: 1;
+    transform: scale(1) translateX(-50%) translateY(-50%);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #334155;
+  }
+}
+
+.closeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  outline: none;
+  transition: border-color 0.2s;
+  color: #0f172a;
+  background-color: white;
+
+  &:focus {
+    border-color: #6366f1;
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+  }
+
+  &.inputError {
+    border-color: #ef4444;
+  }
+}
+
+.innKppContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  .input {
+    flex: 1;
+  }
+}
+
+.slash {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.innKppContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slash {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  outline: none;
+  transition: border-color 0.2s;
+  color: #0f172a;
+  background-color: white;
+  resize: vertical;
+  font-family: inherit;
+
+  &:focus {
+    border-color: #6366f1;
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+  }
+}
+
+.link {
+  font-size: 13px;
+  color: #6366f1;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+  }
+}
+
+.errorMessage {
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 0.25rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.saveButton {
+  padding: 0.625rem 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: #138496;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.cancelButton {
+  padding: 0.625rem 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #e3f2fd;
+  color: #6366f1;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #b3d9f0;
+  }
+}

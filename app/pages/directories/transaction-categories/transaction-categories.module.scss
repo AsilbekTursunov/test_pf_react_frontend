@@ -22,12 +22,14 @@
 
 @keyframes collapseUp {
   from {
-    max-height: 1000px;
+    max-height: 2000px;
     opacity: 1;
+    transform: translateY(0);
   }
   to {
     max-height: 0;
     opacity: 0;
+    transform: translateY(-10px);
   }
 }
 
@@ -35,10 +37,12 @@
   from {
     max-height: 0;
     opacity: 0;
+    transform: translateY(-10px);
   }
   to {
-    max-height: 1000px;
+    max-height: 2000px;
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -67,12 +71,14 @@
 
   @keyframes collapseUp {
     from {
-      max-height: 1000px;
+      max-height: 2000px;
       opacity: 1;
+      transform: translateY(0);
     }
     to {
       max-height: 0;
       opacity: 0;
+      transform: translateY(-10px);
     }
   }
 
@@ -80,10 +86,12 @@
     from {
       max-height: 0;
       opacity: 0;
+      transform: translateY(-10px);
     }
     to {
-      max-height: 1000px;
+      max-height: 2000px;
       opacity: 1;
+      transform: translateY(0);
     }
   }
 }
@@ -91,7 +99,7 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .content {
@@ -102,7 +110,7 @@
 
 .header {
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
   padding: 1rem 1.5rem;
   flex-shrink: 0;
 }
@@ -112,6 +120,28 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.createButton {
+  padding: 0.5rem 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #138496;
+  }
 }
 
 .title {
@@ -131,12 +161,19 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 13px;
-  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  background-color: white;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
   }
 }
 
@@ -147,7 +184,7 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .tabsContainer {
@@ -176,14 +213,14 @@
   }
 
   &.active {
-    color: #17a2b8;
-    border-color: #17a2b8;
+    color: #6366f1;
+    border-color: #6366f1;
     z-index: 10;
   }
 
   &.inactive {
     color: #475569;
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
 
     &:hover {
       color: #0f172a;
@@ -199,16 +236,27 @@
 .sidebar {
   width: 560px;
   background-color: white;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #e5e7eb;
   overflow-y: auto;
 }
 
 .sidebarContent {
   padding: 1rem;
+  padding-bottom: 1.5rem;
+  
+  > :last-child {
+    margin-bottom: 0;
+  }
 }
 
 .categoryItem {
   animation: var(--category-animation, none);
+  margin-bottom: 0.5rem;
+  overflow: visible; // Allow dropdown to overflow
+}
+
+.lastCategoryItem {
+  margin-bottom: 1rem !important;
 }
 
 .categoryCard {
@@ -217,23 +265,31 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 0.25rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   background-color: white;
   cursor: pointer;
   transition: border-color 0.2s;
+  overflow: visible; // Allow dropdown to overflow
 
   &:hover {
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
   }
 
   &.selected {
-    border-color: #17a2b8;
-    background-color: #f8fafc;
+    border-color: #6366f1;
+    background-color: #f9fafb;
+  }
+
+  // Ensure menu container is clickable and above other elements
+  [data-menu-container] {
+    pointer-events: auto;
+    position: relative;
+    z-index: 1000;
   }
 }
 
 .expandIcon {
-  color: #94a3b8;
+  color: #9ca3af;
   flex-shrink: 0;
   width: 1rem;
   height: 1rem;
@@ -276,13 +332,13 @@
   padding: 0.125rem 0.5rem;
   font-size: 11px;
   font-weight: 400;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .categoryBadgeColored {
   padding: 0.125rem 0.5rem;
   font-size: 11px;
-  background-color: #94a3b8;
+  background-color: #9ca3af;
   color: white;
   border-radius: 0.25rem;
   font-weight: 500;
@@ -291,17 +347,17 @@
 .lockIcon {
   width: 1rem;
   height: 1rem;
-  color: #cbd5e1;
+  color: #d1d5db;
   flex-shrink: 0;
 }
 
 .menuButton {
-  color: #94a3b8;
+  color: #9ca3af;
   flex-shrink: 0;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -311,18 +367,33 @@
 }
 
 .childrenContainer {
-  display: grid;
-  overflow: hidden;
-  animation: var(--children-animation, none);
+  display: block;
+  overflow: visible; // Allow dropdown to overflow
+  will-change: max-height, opacity, transform;
+  
+  &.expanding {
+    animation: expandDown 0.3s ease-out forwards;
+  }
+  
+  &.collapsing {
+    animation: collapseUp 0.25s ease-in-out forwards;
+  }
 }
 
 .childrenInner {
   margin-left: 2rem;
   margin-top: 0.5rem;
+  // padding-bottom: 0.5rem;
 }
 
 .childItem {
   animation: var(--child-animation, none);
+  margin-bottom: 0.5rem;
+  overflow: visible; // Allow dropdown to overflow
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .rightContent {
@@ -375,7 +446,7 @@
   color: #0f172a;
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .cardContent {
@@ -435,7 +506,7 @@
 .badge {
   padding: 0.125rem 0.5rem;
   font-size: 11px;
-  background-color: #cbd5e1;
+  background-color: #d1d5db;
   color: #334155;
   border-radius: 0.25rem;
   font-weight: 500;
@@ -447,26 +518,26 @@
 }
 
 .badgePrimary {
-  background-color: #17a2b8;
+  background-color: #6366f1;
   color: white;
 }
 
 .badgeSoon {
   padding: 0.125rem 0.5rem;
   font-size: 10px;
-  background-color: #94a3b8;
+  background-color: #9ca3af;
   color: white;
   border-radius: 0.25rem;
 }
 
 .sectionDivider {
   padding-top: 0.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .sectionDividerBold {
   padding-top: 0.75rem;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1px solid #d1d5db;
 }
 
 .sectionDividerExtraBold {
@@ -492,4 +563,15 @@
 
 .cardFullHeight {
   height: 100%;
+}
+
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 0.375rem;
+  margin: 1rem 0;
 }

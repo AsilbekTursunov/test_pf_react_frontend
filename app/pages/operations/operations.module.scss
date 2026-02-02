@@ -69,14 +69,14 @@
 .container {
   display: flex;
   height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
   position: relative;
 }
 
 .sidebar {
   width: 280px;
   background-color: white;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -104,12 +104,12 @@
 }
 
 .sidebarCloseButton {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 18px;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -145,16 +145,16 @@
   justify-content: center;
   transition: all 0.2s;
   background-color: var(--checkbox-bg, white);
-  border-color: var(--checkbox-border, #cbd5e1);
+  border-color: var(--checkbox-border, #d1d5db);
 
   &:hover {
-    border-color: var(--checkbox-hover-border, #94a3b8);
+    border-color: var(--checkbox-hover-border, #9ca3af);
   }
 }
 
 .checkboxChecked {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
+  background-color: #6366f1;
+  border-color: #6366f1;
 }
 
 .checkboxIcon {
@@ -198,14 +198,14 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 }
 
 .dateRangeIcon {
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .dateRangeText {
@@ -215,12 +215,12 @@
 }
 
 .dateRangeClear {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 16px;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -237,15 +237,15 @@
   width: 100%;
   text-align: left;
   font-size: 13px;
-  color: #64748b;
+  color: #6b7280;
   transition: all 0.2s;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 
   &:hover {
     color: #334155;
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
   }
 }
 
@@ -259,7 +259,7 @@
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   z-index: 1000;
   animation: var(--modal-animation, fadeSlideIn 0.25s ease-out);
   width: var(--modal-width, 440px);
@@ -272,7 +272,7 @@
 .datePickerModalTitle {
   font-size: 14px;
   font-weight: 400;
-  color: #64748b;
+  color: #6b7280;
   margin-bottom: 0.75rem;
 }
 
@@ -291,8 +291,8 @@
 .quickRangeButton {
   padding: 0.375rem 0.75rem;
   font-size: 13px;
-  color: #17a2b8;
-  background-color: #f8fafc;
+  color: #6366f1;
+  background-color: #f9fafb;
   transition: background-color 0.2s;
   text-align: left;
   font-weight: 400;
@@ -305,7 +305,7 @@
 
 .calendar {
   width: 240px;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
   border-radius: 0.25rem;
   padding: 0.625rem;
   animation: fadeSlideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -349,7 +349,7 @@
 .calendarWeekday {
   text-align: center;
   font-size: 10px;
-  color: #64748b;
+  color: #6b7280;
   font-weight: 500;
   padding: 0.25rem 0;
 }
@@ -370,7 +370,7 @@
   transition: all 0.2s;
 
   &.disabled {
-    color: #cbd5e1;
+    color: #d1d5db;
     cursor: default;
   }
 
@@ -395,7 +395,7 @@
   }
 
   &.selected {
-    background-color: #17a2b8;
+    background-color: #6366f1;
     color: white;
     font-weight: 600;
     cursor: pointer;
@@ -420,15 +420,15 @@
   transition: all 0.2s;
 
   &.active {
-    border-color: #17a2b8;
+    border-color: #6366f1;
     background-color: #f0f9fa;
   }
 
   &.inactive {
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
 
     &:hover {
-      background-color: #f8fafc;
+      background-color: #f9fafb;
     }
   }
 }
@@ -436,7 +436,7 @@
 .dateInputIcon {
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .dateInputText {
@@ -445,7 +445,7 @@
 }
 
 .dateInputSeparator {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 14px;
 }
 
@@ -456,7 +456,7 @@
   gap: 0.5rem;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .datePickerActionButton {
@@ -475,7 +475,7 @@
 
   &.apply {
     padding: 0.375rem 1.25rem;
-    background-color: #17a2b8;
+    background-color: #6366f1;
     color: white;
     border-radius: 0.25rem;
 
@@ -500,18 +500,18 @@
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   background-color: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
 .parameterDropdownIcon {
   width: 0.875rem;
   height: 0.875rem;
-  color: #94a3b8;
+  color: #9ca3af;
   transition: transform 0.2s;
 }
 
@@ -528,7 +528,7 @@
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   z-index: 1000;
   max-height: 400px;
   overflow: hidden;
@@ -538,7 +538,7 @@
 
 .parameterDropdownSearch {
   padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .parameterDropdownSearchInput {
@@ -548,13 +548,13 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 13px;
-  color: #94a3b8;
-  border: 1px solid #cbd5e1;
+  color: #9ca3af;
+  border: 1px solid #d1d5db;
   border-radius: 0.5rem;
 
   &:focus {
     outline: none;
-    border-color: #94a3b8;
+    border-color: #9ca3af;
   }
 }
 
@@ -565,18 +565,18 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .parameterDropdownSelectAll {
   padding: 0.5rem 0.75rem;
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .parameterDropdownSelectAllButton {
   font-size: 14px;
-  color: #17a2b8;
+  color: #6366f1;
   font-weight: 400;
   transition: color 0.2s;
 
@@ -588,7 +588,7 @@
 .parameterDropdownList {
   flex: 1;
   overflow-y: auto;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .parameterDropdownListInner {
@@ -640,18 +640,18 @@
   padding: 0.5rem 0.75rem;
   font-size: 13px;
   color: #334155;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 }
 
 .amountInputSeparator {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 13px;
 }
 
@@ -665,7 +665,7 @@
 
 .header {
   background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
   padding: 0.875rem 1.5rem;
 }
 
@@ -682,12 +682,12 @@
 }
 
 .headerMenuButton {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 16px;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -714,13 +714,13 @@
   padding-top: 0.375rem;
   padding-bottom: 0.375rem;
   font-size: 13px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 }
 
@@ -731,7 +731,7 @@
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .headerExportButton {
@@ -740,12 +740,12 @@
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
   font-size: 13px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
@@ -755,25 +755,44 @@
 }
 
 .headerMoreButton {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 20px;
   padding: 0 0.5rem;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
 .tableArea {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: auto;
-  background-color: #f8fafc;
+  overflow: hidden; // Убираем overflow отсюда
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 1.5rem 1.5rem 60px 1.5rem; // Top, right, bottom, left
+  padding: 1.5rem;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(226, 232, 240, 0.5), transparent);
+  }
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+  border-radius: 0.75rem;
+  // Создаем новый контекст для sticky
 }
 
 .selectionBar {
@@ -832,7 +851,7 @@
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
   transition: color 0.2s;
 
   &:hover {
@@ -848,24 +867,51 @@
 .table {
   width: 100%;
   background-color: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 0.75rem;
+  overflow: visible; // Изменено для работы sticky
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  position: relative;
 }
 
 .tableHeader {
-  background-color: white;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   position: sticky;
   top: 0;
   z-index: 10;
+  border-bottom: 2px solid #e2e8f0;
+  backdrop-filter: blur(8px);
+}
+
+.tableHeaderCellActions {
+  position: sticky;
+  right: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-left: 1px solid #e2e8f0;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 21;
+  min-width: 60px;
+  width: 60px;
+  text-align: center;
+  padding: 0.875rem 0.5rem;
 }
 
 .tableHeaderRow {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .tableHeaderCell {
-  padding: 0.625rem 0.75rem;
+  padding: 0.875rem 0.75rem;
   text-align: left;
   white-space: nowrap;
   min-width: fit-content;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
 }
 
 .tableHeaderCellCheckbox {
@@ -887,9 +933,11 @@
 
 .tableHeaderCell {
   font-size: 12px;
-  font-weight: 400;
-  color: #94a3b8;
-  background-color: white;
+  font-weight: 600;
+  color: #475569;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   
   &:has(.tableHeaderButton) {
     font-weight: 600;
@@ -906,25 +954,95 @@
   width: 18px;
   height: 18px;
   border-radius: 0.125rem;
-  border: 2px solid #cbd5e1;
+  border: 2px solid #d1d5db;
   background-color: white;
 }
 
 .tableRow {
   border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.2s;
+  transition: all 0.15s ease;
   cursor: pointer;
+  background-color: white;
+  position: relative;
+
+  &:nth-child(even) {
+    background-color: #fafbfc;
+  }
+
+  &:hover {
+    background-color: #f1f5f9 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
 
   &.selected {
-    background-color: #e3f2fd;
+    background-color: #eff6ff !important;
+    border-left: 3px solid #3b82f6;
+    
+    &:hover {
+      background-color: #dbeafe !important;
+    }
   }
 }
 
 .tableCell {
-  padding: 0.75rem;
+  padding: 1rem 0.75rem;
   font-size: 13px;
-  color: #0f172a;
+  color: #1e293b;
   white-space: nowrap;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+  background-color: inherit;
+}
+
+.tableCellActions {
+  position: sticky;
+  right: 0;
+  background-color: white;
+  border-left: 1px solid #e2e8f0;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  min-width: 60px;
+  width: 60px;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  
+  // Важно: не создаем stacking context для ячейки, чтобы выпадающее меню могло выйти за его пределы
+  isolation: auto;
+  
+  // Важно: явно задаем фон для всех состояний
+  .tableRow:nth-child(even) & {
+    background-color: #fafbfc;
+  }
+  
+  .tableRow:hover & {
+    background-color: #f1f5f9 !important;
+  }
+  
+  .tableRow.selected & {
+    background-color: #eff6ff !important;
+  }
+  
+  .tableRow.selected:hover & {
+    background-color: #dbeafe !important;
+  }
+}
+
+.emptyRow {
+  cursor: default;
+  pointer-events: none;
+  
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+.emptyCell {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  pointer-events: none;
+  user-select: none;
 }
 
 .tableCellCheckbox {
@@ -938,11 +1056,11 @@
 }
 
 .expandButton {
-  color: #94a3b8;
+  color: #9ca3af;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -958,42 +1076,91 @@
 
 .datePrimary {
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
   font-weight: 400;
 }
 
 .dateSecondary {
   font-size: 11px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .accountCell {
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
 }
 
-.typeBadge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
+.typeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
-.typeBadgeIn {
-  background-color: #dcfce7;
+.typeIconIn {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
   color: #166534;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
 }
 
-.typeBadgeOut {
-  background-color: #fee2e2;
+.typeIconOut {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
   color: #991b1b;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
 }
 
-.typeBadgeTransfer {
-  background-color: #475569;
-  color: #ffffff;
+.typeIconTransfer {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  color: #475569;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
+  }
+}
+
+.paymentStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.paymentStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.paymentStatusConfirmed {
+  color: #166534;
+  
+  .paymentStatusDot {
+    background-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  }
+}
+
+.paymentStatusNotConfirmed {
+  color: #991b1b;
+  
+  .paymentStatusDot {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  }
 }
 
 .counterpartyCell {
@@ -1003,7 +1170,7 @@
 
 .statusCell {
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
 }
 
 .projectCell {
@@ -1017,20 +1184,25 @@
   font-weight: 400;
 
   &.positive {
-    color: #22c55e;
+    color: #22c55e; // Зеленый для поступлений
   }
 
   &.negative {
-    color: #ef4444;
+    color: #ef4444; // Красный для выплат
+  }
+
+  &.neutral {
+    color: #9ca3af; // Серый для перемещений и начислений
   }
 }
 
 .sectionHeader {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .sectionHeaderCell {
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
 }
 
 .sectionHeaderTitle {
@@ -1041,7 +1213,7 @@
 
 .childRow {
   background-color: #f5f5f5;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 
@@ -1079,7 +1251,8 @@
 }
 
 .footerTotal {
-  color: #22c55e;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .modalOverlay {
@@ -1144,7 +1317,7 @@
 }
 
 .modalHeader {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
   padding: 1rem 1.5rem;
   background-color: white;
 }
@@ -1163,12 +1336,12 @@
 }
 
 .modalCloseButton {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 20px;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -1177,7 +1350,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 13px;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .modalHeaderIcon {
@@ -1208,7 +1381,7 @@
 
   &.inactive {
     color: #475569;
-    background-color: #f1f5f9;
+    background-color: #f3f4f6;
   }
 }
 
@@ -1247,22 +1420,22 @@
   flex: 1;
   padding: 0.5rem 0.75rem;
   font-size: 13px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 }
 
 .readonly {
-  color: #64748b;
+  color: #6b7280;
 }
 
 .modalFormInputBordered {
-  border: 2px solid #17a2b8;
+  border: 2px solid #6366f1;
 }
 
 .modalFormInputWithButton {
@@ -1274,11 +1447,11 @@
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #9ca3af;
   transition: color 0.2s;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -1305,7 +1478,7 @@
 
 .modalFormButton {
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
   transition: color 0.2s;
 
   &:hover {
@@ -1317,12 +1490,12 @@
   padding: 0.5rem 1rem;
   font-size: 13px;
   color: #475569;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
@@ -1334,7 +1507,7 @@
 .modalFormTag {
   padding: 0.25rem 0.75rem;
   font-size: 12px;
-  background-color: #e2e8f0;
+  background-color: #e5e7eb;
   color: #334155;
   border-radius: 0.25rem;
   display: flex;
@@ -1343,7 +1516,7 @@
 }
 
 .modalFormTagButton {
-  color: #64748b;
+  color: #6b7280;
   transition: color 0.2s;
 
   &:hover {
@@ -1352,7 +1525,7 @@
 }
 
 .modalFormTable {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 }
 
@@ -1361,7 +1534,7 @@
 }
 
 .modalFormTableHeader {
-  background-color: #f8fafc;
+  background-color: #f9fafb;
 }
 
 .modalFormTableHeaderCell {
@@ -1379,7 +1552,7 @@
 }
 
 .modalFormTableRow {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .modalFormTableCell {
@@ -1391,7 +1564,7 @@
   width: 1rem;
   height: 1rem;
   display: inline;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .modalFormTableCheckbox {
@@ -1400,8 +1573,8 @@
 }
 
 .modalFormTableFooter {
-  background-color: #f8fafc;
-  border-top: 2px solid #cbd5e1;
+  background-color: #f9fafb;
+  border-top: 2px solid #d1d5db;
 }
 
 .modalFormTableFooterCell {
@@ -1422,13 +1595,13 @@
 
 .modalFormSectionLine {
   flex: 1;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1px solid #d1d5db;
 }
 
 .modalFormSectionTitle {
   padding: 0 0.75rem;
   font-size: 11px;
-  color: #94a3b8;
+  color: #9ca3af;
   text-transform: uppercase;
 }
 
@@ -1436,8 +1609,8 @@
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  border: 1px solid #cbd5e1;
-  color: #17a2b8;
+  border: 1px solid #d1d5db;
+  color: #6366f1;
 }
 
 .modalFormCheckboxLabel {
@@ -1455,11 +1628,11 @@
 .modalFormInfoIcon {
   width: 0.75rem;
   height: 0.75rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .modalFooter {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
@@ -1470,7 +1643,7 @@
 .modalFooterButton {
   padding: 0.5rem 1.25rem;
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
   font-weight: 500;
   transition: color 0.2s;
 

@@ -26,6 +26,7 @@ export function Header() {
     const entityMenuRef = useRef(null)
     const groupMenuRef = useRef(null)
     const viewRef = useRef(null)
+    const viewButtonRef = useRef(null)
     const profileRef = useRef(null)
     const notificationsRef = useRef(null)
 
@@ -70,6 +71,7 @@ export function Header() {
             document.body.style.overflow = 'auto'
         }
     }, [isBalanceOpen])
+
 
     const toggleExpandEntity = (id) => {
         setExpandedEntities(prev =>
@@ -171,13 +173,13 @@ export function Header() {
                             </div>
 
                             <div className={styles.megaMenuSection}>
-                                <h3 className={styles.megaMenuTitle}>Демонстрация ПланФакта</h3>
+                                <h3 className={styles.megaMenuTitle}>Демонстрация ФинансУчета</h3>
                                 <div className={styles.megaMenuDemo}>
                                     <div className={styles.megaMenuDemoIcon}>
                                         <Video size={20} fill="currentColor" />
                                     </div>
                                     <p className={styles.megaMenuDemoText}>
-                                        Эксперт ПланФакта за 15 минут бесплатно покажет, как сервис будет полезен вашему бизнесу
+                                        Эксперт ФинансУчета за 15 минут бесплатно покажет, как сервис будет полезен вашему бизнесу
                                     </p>
                                     <a href="#" className={styles.megaMenuDemoLink}>Записаться на демо</a>
                                 </div>
@@ -192,7 +194,7 @@ export function Header() {
                                         <Smartphone size={24} className={cn(styles.megaMenuAppIcon, styles.megaMenuAppIconSmartphone)} />
                                     </div>
                                     <p className={styles.megaMenuDemoText}>
-                                        Управляйте бизнесом со смартфона с помощью приложения ПланФакт
+                                        Управляйте бизнесом со смартфона с помощью приложения ФинансУчет
                                     </p>
                                     <a href="#" className={styles.megaMenuDemoLink}>Скачать</a>
                                 </div>
@@ -212,9 +214,8 @@ export function Header() {
                     )}
                 </div>
 
-                {/* Right side containers */}
-                <div className={styles.rightSection}>
-                    {/* Balance Section */}
+                {/* Center section: Balance */}
+                <div className={styles.centerSection}>
                     <div className={styles.balanceSection} ref={balanceRef}>
                         <div
                             onClick={() => {
@@ -243,6 +244,7 @@ export function Header() {
                                                 </div>
                                                 <div className={styles.viewDropdown} ref={viewRef}>
                                                     <button
+                                                        ref={viewButtonRef}
                                                         onClick={() => setIsViewOpen(!isViewOpen)}
                                                         className={styles.viewButton}
                                                     >
@@ -377,6 +379,7 @@ export function Header() {
                                                 </div>
                                                 <div className={styles.viewDropdown} ref={viewRef}>
                                                     <button
+                                                        ref={viewButtonRef}
                                                         onClick={() => setIsViewOpen(!isViewOpen)}
                                                         className={styles.viewButton}
                                                     >
@@ -620,33 +623,67 @@ export function Header() {
                             </div>
                         )}
                     </div>
-                    {/* Sparkline Section */}
-                    <div
-                        onClick={() => {
-                            setIsBalanceOpen(!isBalanceOpen)
-                            setIsHelpOpen(false)
-                        }}
-                        className={styles.sparklineSection}
-                    >
-                        <div className={styles.sparkline}>
-                            <svg viewBox="0 0 100 30" width="100%" height="100%" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                                <path
-                                    d="M0,8 L10,8 L11,15 L15,10 L18,22 L22,12 L25,18 L30,12 L35,15 L40,8 L45,18 L50,12 L55,20 L60,15 L65,18 L70,8 L75,18 L80,22 L85,15"
-                                    fill="none"
-                                    stroke="#4ade80"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                />
-                                <path
-                                    d="M85,15 L88,25 L92,25 L95,15 L100,20"
-                                    fill="none"
-                                    stroke="#ef4444"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                    opacity="0.6"
-                                />
-                            </svg>
+                </div>
+
+                {/* Right side containers */}
+                <div className={styles.rightSection}>
+                    {/* Notification & Billing */}
+                    <div className={styles.notificationsSection}>
+                        <div style={{ position: 'relative' }} ref={notificationsRef}>
+                            <button 
+                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                className={styles.notificationsButton}
+                            >
+                                <Bell size={18} fill="currentColor" />
+                            </button>
+
+                            {/* Notifications Modal */}
+                            {isNotificationsOpen && (
+                                <div className={styles.notificationsModal}>
+                                    <div className={styles.notificationsModalContent}>
+                                        <div className={styles.notificationsModalHeader}>
+                                            <h2 className={styles.notificationsModalTitle}>Уведомления</h2>
+                                            <button 
+                                                onClick={() => setIsNotificationsOpen(false)}
+                                                className={styles.notificationsModalClose}
+                                            >
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <div className={styles.notificationsModalBody}>
+                                            <div className={styles.notificationsModalIcon}>
+                                                <div className={styles.notificationsModalIconGradient}></div>
+                                                <div className={styles.notificationsModalIconInner}>
+                                                    <div className={cn(styles.notificationsModalIconBox, styles.notificationsModalIconBoxBlue)}>
+                                                        <svg className={styles.notificationsModalIconSvg} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div className={cn(styles.notificationsModalIconBox, styles.notificationsModalIconBoxGreen)} style={{ marginLeft: '0.5rem' }}>
+                                                        <svg className={styles.notificationsModalIconSvg} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                                            <path d="M9 11l3 3l8-8"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <h3 className={styles.notificationsModalEmptyTitle}>Здесь пока пусто</h3>
+                                            <p className={styles.notificationsModalEmptyText}>
+                                                Новые уведомления появятся в этом окне
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
+                        <button className={styles.billingButton}>
+                            Тарифы и оплата
+                        </button>
                     </div>
 
                     {/* User Info Section */}
@@ -665,7 +702,7 @@ export function Header() {
                             }}
                             className={styles.profileTrigger}
                         >
-                            <span className={styles.profileEmail}>demo-guest@planfact.io</span>
+                            <span className={styles.profileEmail}>demo-guest@finansuchet.io</span>
                             <ChevronDown size={14} className={cn(styles.profileChevron, isProfileOpen && styles.open)} />
                         </div>
                         <p className={styles.profileSubtext}>Подписка активна</p>
@@ -676,7 +713,7 @@ export function Header() {
                                 className={cn(styles.profileDropdown, isProfileClosing ? styles.closing : styles.opening)}
                             >
                                 <div className={styles.profileDropdownHeader}>
-                                    <div className={styles.profileDropdownEmail}>demo-guest@planfact.io</div>
+                                    <div className={styles.profileDropdownEmail}>demo-guest@finansuchet.io</div>
                                     <div className={styles.profileDropdownStatus}>Подписка активна</div>
                                 </div>
                                 
@@ -698,7 +735,7 @@ export function Header() {
                                             icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                             </svg>,
-                                            text: 'Обучиться ПланФакту' 
+                                            text: 'Обучиться ФинансУчету' 
                                         },
                                         { 
                                             icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -797,65 +834,6 @@ export function Header() {
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    {/* Notification & Billing */}
-                    <div className={styles.notificationsSection}>
-                        <div style={{ position: 'relative' }} ref={notificationsRef}>
-                            <button 
-                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                                className={styles.notificationsButton}
-                            >
-                                <Bell size={18} fill="currentColor" />
-                            </button>
-
-                            {/* Notifications Modal */}
-                            {isNotificationsOpen && (
-                                <div className={styles.notificationsModal}>
-                                    <div className={styles.notificationsModalContent}>
-                                        <div className={styles.notificationsModalHeader}>
-                                            <h2 className={styles.notificationsModalTitle}>Уведомления</h2>
-                                            <button 
-                                                onClick={() => setIsNotificationsOpen(false)}
-                                                className={styles.notificationsModalClose}
-                                            >
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <div className={styles.notificationsModalBody}>
-                                            <div className={styles.notificationsModalIcon}>
-                                                <div className={styles.notificationsModalIconGradient}></div>
-                                                <div className={styles.notificationsModalIconInner}>
-                                                    <div className={cn(styles.notificationsModalIconBox, styles.notificationsModalIconBoxBlue)}>
-                                                        <svg className={styles.notificationsModalIconSvg} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                                        </svg>
-                                                    </div>
-                                                    <div className={cn(styles.notificationsModalIconBox, styles.notificationsModalIconBoxGreen)} style={{ marginLeft: '0.5rem' }}>
-                                                        <svg className={styles.notificationsModalIconSvg} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                                            <path d="M9 11l3 3l8-8"></path>
-                                                        </svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <h3 className={styles.notificationsModalEmptyTitle}>Здесь пока пусто</h3>
-                                            <p className={styles.notificationsModalEmptyText}>
-                                                Новые уведомления появятся в этом окне
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <button className={styles.billingButton}>
-                            Тарифы и оплата
-                        </button>
                     </div>
                 </div>
             </header>

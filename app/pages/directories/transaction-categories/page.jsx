@@ -2,9 +2,175 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/app/lib/utils'
-import { useChartOfAccounts } from '@/hooks/useDashboard'
+import { useChartOfAccounts, useChartOfAccountsV2, useDeleteChartOfAccounts } from '@/hooks/useDashboard'
 import { getProjectId } from '@/lib/config/api'
+import CreateChartOfAccountsModal from '@/components/directories/CreateChartOfAccountsModal/CreateChartOfAccountsModal'
+import EditChartOfAccountsModal from '@/components/directories/EditChartOfAccountsModal/EditChartOfAccountsModal'
+import { CategoryMenu } from '@/components/directories/CategoryMenu/CategoryMenu'
+import { DeleteCategoryConfirmModal } from '@/components/directories/DeleteCategoryConfirmModal/DeleteCategoryConfirmModal'
+import { showSuccessNotification, showErrorNotification } from '@/lib/utils/notifications'
 import styles from './transaction-categories.module.scss'
+
+// Recursive component for rendering category tree
+function CategoryTreeItem({ 
+  category, 
+  level = 0, 
+  categoryIndex = 0,
+  expandedCategories, 
+  closingCategories, 
+  selectedCategory, 
+  onToggleCategory, 
+  onSelectCategory,
+  onEditCategory,
+  onDeleteCategory,
+  styles,
+  cn,
+  isLast = false
+}) {
+  const hasChildren = category.children && category.children.length > 0
+  const isExpanded = expandedCategories.includes(category.id)
+  const isClosing = closingCategories.includes(category.id)
+  const isSelected = selectedCategory === category.id
+  
+  // Debug: log category data for children
+  if (level > 0) {
+    console.log(`CategoryTreeItem level ${level}:`, {
+      name: category.name,
+      guid: category.guid,
+      id: category.id,
+      hasMenu: category.hasMenu,
+      hasChildren
+    })
+  }
+
+  return (
+    <div 
+      className={cn(
+        level === 0 ? styles.categoryItem : styles.childItem,
+        isLast && level === 0 && styles.lastCategoryItem
+      )}
+    >
+      <div
+        data-category-card
+        className={cn(
+          styles.categoryCard,
+          isSelected && styles.selected
+        )}
+        onClick={(e) => {
+          // Don't trigger if click was on menu container or menu button
+          const menuContainer = e.target.closest('[data-menu-container]')
+          const menuButton = e.target.closest('button[class*="menuButton"]')
+          if (menuContainer || menuButton) {
+            e.stopPropagation()
+            return
+          }
+          if (hasChildren) {
+            onToggleCategory(category.id)
+          } else {
+            onSelectCategory(category.id)
+          }
+        }}
+        onMouseDown={(e) => {
+          // Prevent event bubbling for menu interactions
+          const menuContainer = e.target.closest('[data-menu-container]')
+          const menuButton = e.target.closest('button[class*="menuButton"]')
+          if (menuContainer || menuButton) {
+            e.stopPropagation()
+          }
+        }}
+        style={level === 0 ? {
+          '--category-animation': `fadeSlideUp 0.3s ease-out ${categoryIndex * 0.06}s backwards`
+        } : {
+          '--child-animation': isClosing
+            ? `fadeSlideOut 0.15s ease-in ${categoryIndex * 0.03}s backwards`
+            : `fadeSlideUp 0.2s ease-out ${categoryIndex * 0.05}s backwards`
+        }}
+      >
+        {hasChildren && (
+          <div className={styles.expandIcon}>
+            <svg className={styles.expandIconHorizontal} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+            </svg>
+            <svg 
+              className={cn(
+                styles.expandIconVertical,
+                isExpanded ? styles.expanded : styles.collapsed
+              )}
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth="2.5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4" />
+            </svg>
+          </div>
+        )}
+        
+        {!hasChildren && level > 0 && (
+          <span style={{ width: '0.75rem', display: 'inline-block' }} />
+        )}
+        
+        <span className={styles.categoryName}>{category.name}</span>
+        
+        {category.badge && (
+          <span className={level === 0 ? styles.categoryBadge : styles.categoryBadgeColored}>
+            {category.badge}
+          </span>
+        )}
+        
+        {category.hasLock && (
+          <svg className={styles.lockIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        )}
+        
+        {category.hasMenu && (
+          <div 
+            data-menu-container
+            style={{ marginLeft: 'auto', flexShrink: 0 }}
+          >
+            <CategoryMenu
+              category={category}
+              onEdit={onEditCategory}
+              onDelete={onDeleteCategory}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Children - recursively render */}
+      {hasChildren && (isExpanded || isClosing) && (
+        <div 
+          className={cn(
+            styles.childrenContainer,
+            isClosing ? styles.collapsing : styles.expanding
+          )}
+        >
+          <div className={styles.childrenInner}>
+            {category.children.map((child, childIndex) => (
+              <CategoryTreeItem
+                key={child.id}
+                category={child}
+                level={level + 1}
+                categoryIndex={childIndex}
+                expandedCategories={expandedCategories}
+                closingCategories={closingCategories}
+                selectedCategory={selectedCategory}
+                onToggleCategory={onToggleCategory}
+                onSelectCategory={onSelectCategory}
+                onEditCategory={onEditCategory}
+                onDeleteCategory={onDeleteCategory}
+                styles={styles}
+                cn={cn}
+                isLast={childIndex === category.children.length - 1 && !child.children}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function TransactionCategoriesPage() {
   // Get project ID from global config
@@ -14,6 +180,13 @@ export default function TransactionCategoriesPage() {
   const [expandedCategories, setExpandedCategories] = useState([1, 2, 3])
   const [closingCategories, setClosingCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [categoryToEdit, setCategoryToEdit] = useState(null)
+  const [categoryToDelete, setCategoryToDelete] = useState(null)
+  
+  const deleteMutation = useDeleteChartOfAccounts()
 
   const toggleCategory = (id) => {
     if (expandedCategories.includes(id)) {
@@ -64,26 +237,175 @@ export default function TransactionCategoriesPage() {
     'capital': 'Капитал'
   }
 
-  // Fetch chart of accounts data for active tab
-  // projectId is now taken from global config automatically
-  const { data: chartOfAccountsData, isLoading: isLoadingChartOfAccounts, error: chartOfAccountsError } = useChartOfAccounts({
-    tip: tabToTipMap[activeTab] ? [tabToTipMap[activeTab]] : [],
-    limit: 100,
-    offset: 0
+  // Fetch chart of accounts data using v2 endpoint (GET request with empty data)
+  const { data: chartOfAccountsData, isLoading: isLoadingChartOfAccounts, error: chartOfAccountsError } = useChartOfAccountsV2({
+    data: {}
   })
 
   const chartOfAccountsItems = chartOfAccountsData?.data?.data?.response || []
   
+  // Debug logging
+  useEffect(() => {
+    console.log('Chart of accounts data:', chartOfAccountsData)
+    console.log('Chart of accounts items:', chartOfAccountsItems)
+    console.log('Is loading:', isLoadingChartOfAccounts)
+    console.log('Error:', chartOfAccountsError)
+  }, [chartOfAccountsData, chartOfAccountsItems, isLoadingChartOfAccounts, chartOfAccountsError])
+  
+  // Filter items by active tab
+  const filteredItems = useMemo(() => {
+    if (!tabToTipMap[activeTab]) return chartOfAccountsItems
+    const tipValue = tabToTipMap[activeTab]
+    const filtered = chartOfAccountsItems.filter(item => {
+      if (!item.tip || !Array.isArray(item.tip)) return false
+      return item.tip.includes(tipValue)
+    })
+    console.log('Filtered items for tab', activeTab, ':', filtered)
+    return filtered
+  }, [chartOfAccountsItems, activeTab])
+  
   // Convert chart of accounts items to category format for display
+  // Build proper hierarchy: items with chart_of_accounts_id_2 are children
   const chartOfAccountsCategories = useMemo(() => {
-    return chartOfAccountsItems.map(item => ({
+    if (filteredItems.length === 0) {
+      console.log('No filtered items, returning empty array')
+      return []
+    }
+    
+    // Create a map of all items by guid for quick lookup (from ALL items)
+    const allItemsMap = new Map()
+    chartOfAccountsItems.forEach(item => {
+      allItemsMap.set(item.guid, item)
+    })
+    
+    // Create a set of filtered item GUIDs for quick lookup
+    const filteredItemsSet = new Set(filteredItems.map(item => item.guid))
+    
+    // Build child items map: parentGuid -> [children]
+    // This includes ALL parent-child relationships from filtered items
+    const childItemsMap = new Map()
+    const allChildGuids = new Set()
+    
+    filteredItems.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        // This item has a parent
+        const parentGuid = item.chart_of_accounts_id_2
+        // Check if parent exists in ALL items (to handle cross-category relationships)
+        // But only add as child if parent is also in filtered items (same category)
+        if (allItemsMap.has(parentGuid) && filteredItemsSet.has(parentGuid)) {
+          // Parent exists in data AND is in filtered items, add this item as child
+          if (!childItemsMap.has(parentGuid)) {
+            childItemsMap.set(parentGuid, [])
+          }
+          childItemsMap.get(parentGuid).push(item)
+          allChildGuids.add(item.guid)
+        }
+      }
+    })
+    
+    console.log('Child items map after building:', Array.from(childItemsMap.entries()).map(([guid, children]) => ({
+      parent: allItemsMap.get(guid)?.nazvanie || guid,
+      parentGuid: guid,
+      children: children.map(c => ({ name: c.nazvanie, guid: c.guid }))
+    })))
+    console.log('All child GUIDs:', Array.from(allChildGuids))
+    
+    // Find items that should be displayed as root items
+    // These are items that are in filtered items AND either:
+    // 1. Have no parent (chart_of_accounts_id_2 is null)
+    // 2. Have a parent that is NOT in filtered items
+    // 3. Are NOT already added as children (to avoid duplicates)
+    const rootItems = []
+    
+    filteredItems.forEach(item => {
+      // Skip if this item is already a child
+      if (allChildGuids.has(item.guid)) {
+        return
+      }
+      
+      if (!item.chart_of_accounts_id_2) {
+        // No parent - definitely a root item
+        rootItems.push(item)
+      } else {
+        // Has parent - check if parent is in filtered items
+        const parentGuid = item.chart_of_accounts_id_2
+        const parentInFiltered = filteredItemsSet.has(parentGuid)
+        
+        if (!parentInFiltered) {
+          // Parent is not in filtered items, so this item is a root item in the filtered view
+          rootItems.push(item)
+        }
+        // If parent is in filtered items, this item should have been added as child above
+        // If it wasn't, there might be a data inconsistency, but we'll treat it as root
+      }
+    })
+    
+    console.log('Root items after filtering:', rootItems.map(r => ({ name: r.nazvanie, guid: r.guid, parent: r.chart_of_accounts_id_2 })))
+    
+    // Build category tree recursively
+    // This function builds the tree and includes all children, even nested ones
+    const buildCategory = (item) => {
+      const directChildren = childItemsMap.get(item.guid) || []
+      
+      // Recursively build children, which will include their own children
+      const children = directChildren.map(child => buildCategory(child))
+      
+      const category = {
       id: item.guid,
+        guid: item.guid, // Ensure guid is correctly set from API response
       name: item.nazvanie,
-      hasMenu: true,
+        hasMenu: true, // All items should have menu, including children
       hasLock: false,
-      children: undefined
-    }))
-  }, [chartOfAccountsItems])
+        children: children.length > 0 ? children : undefined,
+        // Additional data from API response
+        balans: item.balans,
+        komentariy: item.komentariy,
+        tip: item.tip,
+        tip_operatsii: item.tip_operatsii,
+        chart_of_accounts_id_2: item.chart_of_accounts_id_2
+      }
+      
+      // Debug: log category structure
+      if (children.length > 0) {
+        console.log('Built category with children:', {
+          name: category.name,
+          guid: category.guid,
+          hasMenu: category.hasMenu,
+          childrenCount: children.length,
+          children: children.map(c => ({ name: c.name, guid: c.guid, hasMenu: c.hasMenu }))
+        })
+      }
+      
+      return category
+    }
+    
+    const categories = rootItems.map(buildCategory)
+    
+    // Debug: check if all items are included
+    const allProcessedGuids = new Set()
+    const collectGuids = (item) => {
+      allProcessedGuids.add(item.id)
+      if (item.children) {
+        item.children.forEach(collectGuids)
+      }
+    }
+    categories.forEach(collectGuids)
+    
+    const missingItems = filteredItems.filter(item => !allProcessedGuids.has(item.guid))
+    
+    console.log('Built categories:', categories)
+    console.log('Root items count:', rootItems.length)
+    console.log('Root items:', rootItems.map(r => ({ name: r.nazvanie, guid: r.guid })))
+    console.log('Child items map size:', childItemsMap.size)
+    console.log('Child items map:', Array.from(childItemsMap.entries()).map(([guid, children]) => ({
+      parent: allItemsMap.get(guid)?.nazvanie || guid,
+      children: children.map(c => ({ name: c.nazvanie, guid: c.guid }))
+    })))
+    console.log('All processed GUIDs:', Array.from(allProcessedGuids))
+    console.log('Missing items (not in tree):', missingItems.map(i => ({ name: i.nazvanie, guid: i.guid, parent: i.chart_of_accounts_id_2 })))
+    
+    return categories
+  }, [filteredItems, chartOfAccountsItems])
 
   // Use chart of accounts data
   const categories = chartOfAccountsCategories
@@ -101,7 +423,15 @@ export default function TransactionCategoriesPage() {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerTop}>
+            <div className={styles.headerLeft}>
             <h1 className={styles.title}>Учетные статьи</h1>
+              <button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className={styles.createButton}
+              >
+                Создать
+              </button>
+            </div>
             <div className={styles.searchContainer}>
               <input
                 type="text"
@@ -139,220 +469,40 @@ export default function TransactionCategoriesPage() {
           {/* Left Sidebar - Category Tree */}
           <div className={styles.sidebar}>
             <div className={styles.sidebarContent} key={activeTab}>
-              {categories.map((category, categoryIndex) => (
-                <div 
-                  key={`${activeTab}-${category.id}`}
-                  className={styles.categoryItem}
-                  style={{ 
-                    '--category-animation': `fadeSlideUp 0.3s ease-out ${categoryIndex * 0.06}s backwards`
-                  }}
-                >
-                  <div 
-                    className={cn(
-                      styles.categoryCard,
-                      selectedCategory === category.id && styles.selected
-                    )}
-                    onClick={() => {
-                      if (category.children) {
-                        toggleCategory(category.id)
-                      } else {
-                        setSelectedCategory(category.id)
-                      }
-                    }}
-                  >
-                    {category.children && (
-                      <div className={styles.expandIcon}>
-                        {/* Horizontal line (always visible) */}
-                        <svg className={styles.expandIconHorizontal} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                        </svg>
-                        {/* Vertical line (rotates and fades) */}
-                        <svg 
-                          className={cn(
-                            styles.expandIconVertical,
-                            expandedCategories.includes(category.id) ? styles.expanded : styles.collapsed
-                          )}
-                          fill="none" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor" 
-                          strokeWidth="2.5"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4" />
-                        </svg>
-                      </div>
-                    )}
-                    
-                    <span className={styles.categoryName}>{category.name}</span>
-                    
-                    {category.badge && (
-                      <span className={styles.categoryBadge}>
-                        {category.badge}
-                      </span>
-                    )}
-                    
-                    {category.hasLock && (
-                      <svg className={styles.lockIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    )}
-                    
-                    {category.hasMenu && (
-                      <button 
-                        className={styles.menuButton}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <svg className={styles.menuIcon} fill="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="5" r="2" />
-                          <circle cx="12" cy="12" r="2" />
-                          <circle cx="12" cy="19" r="2" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Children - directly under parent */}
-                  {category.children && (expandedCategories.includes(category.id) || closingCategories.includes(category.id)) && (
-                    <div 
-                      className={styles.childrenContainer}
-                      style={{ 
-                        '--children-animation': closingCategories.includes(category.id) 
-                          ? 'collapseUp 0.25s ease-in-out' 
-                          : 'expandDown 0.3s ease-out'
-                      }}
-                    >
-                      <div className={styles.childrenInner}>
-                        {category.children.map((child, childIndex) => (
-                        <div key={child.id} className={styles.childItem}>
-                          <div
-                            className={cn(
-                              styles.categoryCard,
-                              selectedCategory === child.id && styles.selected
-                            )}
-                            onClick={() => {
-                              if (child.children) {
-                                toggleCategory(child.id)
-                              } else {
-                                setSelectedCategory(child.id)
-                              }
-                            }}
-                            style={{ 
-                              '--child-animation': closingCategories.includes(category.id)
-                                ? `fadeSlideOut 0.15s ease-in ${childIndex * 0.03}s backwards`
-                                : `fadeSlideUp 0.2s ease-out ${childIndex * 0.05}s backwards`
-                            }}
-                          >
-                            {child.children && (
-                              <div className={styles.expandIcon}>
-                                {/* Horizontal line (always visible) */}
-                                <svg className={styles.expandIconHorizontal} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                                </svg>
-                                {/* Vertical line (rotates and fades) */}
-                                <svg 
-                                  className={cn(
-                                    styles.expandIconVertical,
-                                    expandedCategories.includes(child.id) ? styles.expanded : styles.collapsed
-                                  )}
-                                  fill="none" 
-                                  viewBox="0 0 24 24" 
-                                  stroke="currentColor" 
-                                  strokeWidth="2.5"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4" />
-                                </svg>
-                              </div>
-                            )}
-                            
-                            <span className={styles.categoryName}>{child.name}</span>
-                            
-                            {child.badge && (
-                              <span className={styles.categoryBadgeColored}>
-                                {child.badge}
-                              </span>
-                            )}
-                            
-                            {child.hasLock && (
-                              <svg className={styles.lockIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                              </svg>
-                            )}
-                            
-                            {child.hasMenu && (
-                              <button 
-                                className={styles.menuButton}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <svg className={styles.menuIcon} fill="currentColor" viewBox="0 0 24 24">
-                                  <circle cx="12" cy="5" r="2" />
-                                  <circle cx="12" cy="12" r="2" />
-                                  <circle cx="12" cy="19" r="2" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Nested children (third level) - directly under their parent */}
-                          {child.children && (expandedCategories.includes(child.id) || closingCategories.includes(child.id)) && (
-                            <div 
-                              className={styles.childrenContainer}
-                              style={{ 
-                                '--children-animation': closingCategories.includes(child.id) 
-                                  ? 'collapseUp 0.25s ease-in-out' 
-                                  : 'expandDown 0.3s ease-out'
-                              }}
-                            >
-                              <div className={styles.childrenInner}>
-                                {child.children.map((nestedChild, nestedIndex) => (
-                                <div
-                                  key={nestedChild.id}
-                                  className={cn(
-                                    styles.categoryCard,
-                                    selectedCategory === nestedChild.id && styles.selected
-                                  )}
-                                  onClick={() => setSelectedCategory(nestedChild.id)}
-                                  style={{ 
-                                    '--child-animation': closingCategories.includes(child.id)
-                                      ? `fadeSlideOut 0.15s ease-in ${nestedIndex * 0.03}s backwards`
-                                      : `fadeSlideUp 0.2s ease-out ${nestedIndex * 0.05}s backwards`
-                                  }}
-                                >
-                                  <span className={styles.categoryName}>{nestedChild.name}</span>
-                                  
-                                  {nestedChild.badge && (
-                                    <span className={styles.categoryBadgeColored}>
-                                      {nestedChild.badge}
-                                    </span>
-                                  )}
-                                  
-                                  {nestedChild.hasLock && (
-                                    <svg className={styles.lockIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                  )}
-                                  
-                                  {nestedChild.hasMenu && (
-                                    <button 
-                                      className={styles.menuButton}
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <svg className={styles.menuIcon} fill="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="12" cy="5" r="2" />
-                                        <circle cx="12" cy="12" r="2" />
-                                        <circle cx="12" cy="19" r="2" />
-                                      </svg>
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      </div>
-                    </div>
-                  )}
+              {isLoadingChartOfAccounts && (
+                <div style={{ padding: '20px', textAlign: 'center' }}>Загрузка...</div>
+              )}
+              {chartOfAccountsError && (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
+                  Ошибка: {chartOfAccountsError.message || 'Не удалось загрузить данные'}
                 </div>
+              )}
+              {!isLoadingChartOfAccounts && !chartOfAccountsError && categories.length === 0 && (
+                <div className={styles.emptyState}>Нет данных для отображения</div>
+              )}
+              {categories.map((category, categoryIndex) => (
+                <CategoryTreeItem
+                  key={`${activeTab}-${category.id}`}
+                  category={category}
+                  level={0}
+                  categoryIndex={categoryIndex}
+                  expandedCategories={expandedCategories}
+                  closingCategories={closingCategories}
+                  selectedCategory={selectedCategory}
+                  onToggleCategory={toggleCategory}
+                  onSelectCategory={setSelectedCategory}
+                  onEditCategory={(cat) => {
+                    setCategoryToEdit(cat)
+                    setIsEditModalOpen(true)
+                  }}
+                  onDeleteCategory={(cat) => {
+                    setCategoryToDelete(cat)
+                    setIsDeleteModalOpen(true)
+                  }}
+                  styles={styles}
+                  cn={cn}
+                  isLast={categoryIndex === categories.length - 1}
+                />
               ))}
             </div>
           </div>
@@ -559,6 +709,47 @@ export default function TransactionCategoriesPage() {
           </div>
         </div>
       </div>
+
+      {/* Create Modal */}
+      <CreateChartOfAccountsModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        initialTab={activeTab}
+      />
+
+      {/* Edit Modal */}
+      <EditChartOfAccountsModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setCategoryToEdit(null)
+        }}
+        category={categoryToEdit}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteCategoryConfirmModal
+        isOpen={isDeleteModalOpen}
+        category={categoryToDelete}
+        onConfirm={async () => {
+          if (categoryToDelete?.guid) {
+            try {
+              await deleteMutation.mutateAsync([categoryToDelete.guid])
+              showSuccessNotification('Учетная статья успешно удалена!')
+              setIsDeleteModalOpen(false)
+              setCategoryToDelete(null)
+            } catch (error) {
+              console.error('Error deleting category:', error)
+              showErrorNotification(error.message || 'Не удалось удалить учетную статью')
+            }
+          }
+        }}
+        onCancel={() => {
+          setIsDeleteModalOpen(false)
+          setCategoryToDelete(null)
+        }}
+        isDeleting={deleteMutation.isPending}
+      />
     </div>
   )
 }

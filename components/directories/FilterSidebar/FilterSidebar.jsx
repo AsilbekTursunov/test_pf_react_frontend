@@ -4,10 +4,8 @@ import { cn } from '@/app/lib/utils'
 import styles from './FilterSidebar.module.scss'
 
 export function FilterSidebar({ isOpen, onClose, children }) {
-  if (!isOpen) return null
-
   return (
-    <div className={styles.sidebar}>
+    <div className={cn(styles.sidebar, isOpen ? styles.open : styles.closed)}>
       <div className={styles.content}>
         <div className={styles.header}>
           <h2 className={styles.title}>Фильтры</h2>
@@ -15,10 +13,14 @@ export function FilterSidebar({ isOpen, onClose, children }) {
             onClick={onClose}
             className={styles.closeButton}
           >
-            ✕
+            <svg className={styles.closeIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        {children}
+        <div className={styles.childrenContainer}>
+          {children}
+        </div>
       </div>
     </div>
   )

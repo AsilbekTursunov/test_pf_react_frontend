@@ -1,7 +1,7 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc; // slate-50
+  background-color: #f9fafb; // slate-50
 }
 
 .content {
@@ -12,7 +12,7 @@
 
 .breadcrumbs {
   background-color: white;
-  border-bottom: 1px solid #e2e8f0; // slate-200
+  border-bottom: 1px solid #e5e7eb; // slate-200
   padding: 0.5rem 1.5rem;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .breadcrumbLink {
-  color: #64748b; // slate-500
+  color: #6b7280; // slate-500
   text-decoration: none;
   transition: color 0.2s;
 
@@ -34,7 +34,7 @@
 }
 
 .breadcrumbSeparator {
-  color: #94a3b8; // slate-400
+  color: #9ca3af; // slate-400
 }
 
 .breadcrumbCurrent {
@@ -42,7 +42,7 @@
 }
 
 .header {
-  background-color: #f8fafc; // slate-50
+  background-color: #f9fafb; // slate-50
   padding: 1.25rem 1.5rem;
   flex-shrink: 0;
 }
@@ -65,7 +65,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 12px;
-  color: #64748b; // slate-500
+  color: #6b7280; // slate-500
 }
 
 .dateText {
@@ -77,19 +77,19 @@
   font-size: 12px;
   color: #334155; // slate-700
   background-color: white;
-  border: 1px solid #cbd5e1; // slate-300
+  border: 1px solid #d1d5db; // slate-300
   border-radius: 0.25rem;
   transition: border-color 0.2s;
   cursor: pointer;
 
   &:hover {
-    border-color: #94a3b8; // slate-400
+    border-color: #9ca3af; // slate-400
   }
 
   &:focus {
     outline: none;
-    border-color: #17a2b8;
-    box-shadow: 0 0 0 1px #17a2b8;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #6366f1;
   }
 }
 
@@ -101,7 +101,7 @@
 .financialCard {
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0; // slate-200
+  border: 1px solid #e5e7eb; // slate-200
   padding: 1rem;
   min-width: 200px;
 }
@@ -141,8 +141,7 @@
 }
 
 .financialItemCurrency {
-  font-size: 16px;
-  color: #94a3b8; // slate-400
+  display: none;
 }
 
 .debitCreditColumn {
@@ -155,7 +154,7 @@
 .debitCreditCard {
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0; // slate-200
+  border: 1px solid #e5e7eb; // slate-200
   padding: 1rem;
   flex: 1;
 }
@@ -168,37 +167,30 @@
 
 .debitCreditValue {
   font-size: 13px;
-  color: #94a3b8; // slate-400
+  color: #9ca3af; // slate-400
 }
 
 .infoCard {
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0; // slate-200
+  border: 1px solid #e5e7eb; // slate-200
   padding: 1.25rem;
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
-.infoCardTop {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.infoCardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
 }
 
-.infoCardText {
-  font-size: 13px;
-  color: #94a3b8; // slate-400
-}
-
-.infoCardTextRight {
-  text-align: right;
-}
-
-.infoCardTextCenter {
-  text-align: center;
+.infoCardDivider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin-bottom: 1rem;
 }
 
 .operationsSection {
@@ -223,9 +215,15 @@
   color: #0f172a; // slate-900
 }
 
+.operationsHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .filtersButton {
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
   background: none;
   border: none;
   cursor: pointer;
@@ -252,19 +250,19 @@
   font-size: 13px;
   color: #475569; // slate-600
   background-color: white;
-  border: 1px solid #cbd5e1; // slate-300
+  border: 1px solid #d1d5db; // slate-300
   border-radius: 0.25rem;
   cursor: pointer;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
   }
 }
 
 .footer {
   background-color: white;
-  border-top: 1px solid #e2e8f0; // slate-200
+  border-top: 1px solid #e5e7eb; // slate-200
   padding: 0.75rem 1.5rem;
   position: sticky;
   bottom: 0;
@@ -296,4 +294,244 @@
 .footerTextGreen {
   font-weight: 500;
   color: #16a34a; // green-600
+}
+
+.footerTextRed {
+  font-weight: 500;
+  color: #dc2626; // red-600
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+}
+
+.operationsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.tableHeader {
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tableHeaderRow {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tableHeaderCell {
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  background-color: white;
+  white-space: nowrap;
+
+  &.tableHeaderCellCheckbox {
+    width: 48px;
+    padding: 0.625rem;
+  }
+
+  &.tableHeaderCellRight {
+    text-align: right;
+  }
+}
+
+.tableBody {
+  // Empty, used for structure
+}
+
+.tableRow {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  &.selected {
+    background-color: #e0f2fe;
+  }
+}
+
+.tableCell {
+  padding: 0.625rem 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
+
+  &.tableCellCheckbox {
+    width: 48px;
+    padding: 0.625rem;
+  }
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 2px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.checked {
+    background-color: #6366f1;
+    border-color: #6366f1;
+  }
+
+  &.unchecked {
+    background-color: white;
+    border-color: #d1d5db;
+
+    &:hover {
+      border-color: #9ca3af;
+    }
+  }
+}
+
+.checkboxIcon {
+  width: 0.625rem;
+  height: 0.625rem;
+  color: white;
+}
+
+.typeBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.typeBadgeIn {
+    background-color: #dcfce7;
+    color: #16a34a;
+  }
+
+  &.typeBadgeOut {
+    background-color: #fee2e2;
+    color: #dc2626;
+  }
+
+  &.typeBadgeTransfer {
+    background-color: #f3f4f6;
+    color: #475569;
+  }
+}
+
+.amountCell {
+  text-align: right;
+  font-weight: 500;
+
+  &.positive {
+    color: #16a34a;
+  }
+
+  &.negative {
+    color: #dc2626;
+  }
+
+  &.neutral {
+    color: #475569;
+  }
+}
+
+.createButton {
+  padding: 0.5rem 1rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  background-color: #6366f1;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #138496;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.emptyStateIcon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 1.5rem;
+  color: #9ca3af;
+}
+
+.emptyStateText {
+  max-width: 400px;
+}
+
+.emptyStateTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.emptyStateSubtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.emptyStateLink {
+  font-size: 13px;
+  color: #6366f1;
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #138496;
+    text-decoration: underline;
+  }
+}
+
+.infoCardDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+}
+
+.infoCardRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.infoCardLabel {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.infoCardValue {
+  font-size: 13px;
+  color: #0f172a;
+  font-weight: 400;
 }

@@ -95,11 +95,11 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 13px;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .closeButton {
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 20px;
   transition: color 0.2s;
   background: none;
@@ -107,7 +107,7 @@
   cursor: pointer;
 
   &:hover {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -132,15 +132,15 @@
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: #f3f4f6;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #d1d5db;
     border-radius: 4px;
     
     &:hover {
-      background: #94a3b8;
+      background: #9ca3af;
     }
   }
 }
@@ -149,7 +149,7 @@
   display: flex;
   gap: 0.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
@@ -217,15 +217,15 @@
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: #f3f4f6;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #d1d5db;
     border-radius: 4px;
     
     &:hover {
-      background: #94a3b8;
+      background: #9ca3af;
     }
   }
 }
@@ -265,7 +265,7 @@
 .labelIcon {
   width: 0.75rem;
   height: 0.75rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .labelSpacer {
@@ -277,19 +277,19 @@
   padding: 0.5rem 0.75rem;
   font-size: 13px;
   color: #0f172a;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   background-color: white;
 
   &::placeholder {
-    color: #94a3b8;
+    color: #9ca3af;
     opacity: 1;
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 
   &[type="date"] {
@@ -301,7 +301,7 @@
     }
     
     &:invalid {
-      color: #94a3b8;
+      color: #9ca3af;
     }
     
     &::-webkit-datetime-edit-text {
@@ -319,12 +319,12 @@
     color: #0f172a;
     
     &::placeholder {
-      color: #94a3b8;
+      color: #9ca3af;
     }
   }
 
   &.readonly {
-    color: #64748b;
+    color: #6b7280;
   }
 }
 
@@ -347,7 +347,7 @@
 
 .button {
   font-size: 13px;
-  color: #17a2b8;
+  color: #6366f1;
   transition: color 0.2s;
 
   &:hover {
@@ -359,12 +359,12 @@
   padding: 0.5rem 1rem;
   font-size: 13px;
   color: #475569;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f9fafb;
   }
 }
 
@@ -372,14 +372,14 @@
   flex: 1;
   padding: 0.5rem 0.75rem;
   font-size: 13px;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 }
 
@@ -388,20 +388,20 @@
   padding: 0.5rem 0.75rem;
   font-size: 13px;
   color: #0f172a;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   resize: none;
   margin-bottom: 1rem;
 
   &::placeholder {
-    color: #94a3b8;
+    color: #9ca3af;
     opacity: 1;
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #17a2b8;
-    border-color: #17a2b8;
+    box-shadow: 0 0 0 1px #6366f1;
+    border-color: #6366f1;
   }
 }
 
@@ -421,21 +421,21 @@
 .sectionLine {
   flex: 1;
   height: 1px;
-  background-color: #e2e8f0;
+  background-color: #e5e7eb;
 }
 
 .sectionTitle {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #9ca3af;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .calendarButton {
   padding: 0.5rem;
-  color: #94a3b8;
-  border: 1px solid #cbd5e1;
+  color: #9ca3af;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   background-color: white;
   cursor: pointer;
@@ -445,8 +445,8 @@
   justify-content: center;
 
   &:hover {
-    border-color: #94a3b8;
-    color: #64748b;
+    border-color: #9ca3af;
+    color: #6b7280;
   }
 }
 
@@ -467,14 +467,14 @@
 .checkbox {
   width: 1rem;
   height: 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   cursor: pointer;
-  accent-color: #17a2b8;
+  accent-color: #6366f1;
 }
 
 .footer {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
@@ -489,7 +489,7 @@
   font-size: 13px;
   color: white;
   font-weight: 500;
-  background-color: #17a2b8;
+  background-color: #6366f1;
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
