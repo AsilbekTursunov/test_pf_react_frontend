@@ -286,21 +286,6 @@ export default function AccountsPage() {
             />
           </div>
         </FilterSection>
-
-        <FilterSection title="Архив">
-          <div className="space-y-2.5">
-            <FilterCheckbox 
-              checked={filters.showActive} 
-              onChange={() => toggleFilter('showActive')} 
-              label="Показать активные" 
-            />
-            <FilterCheckbox 
-              checked={filters.showArchived} 
-              onChange={() => toggleFilter('showArchived')} 
-              label="Показать архивные" 
-            />
-          </div>
-        </FilterSection>
       </FilterSidebar>
 
       <div className={styles.content}>
@@ -323,47 +308,8 @@ export default function AccountsPage() {
                 Создать
               </button>
               
-              {/* Accounting Method Dropdown and Search - on the same level, pushed to the right */}
+              {/* Search - pushed to the right */}
               <div className={styles.headerActionsRight}>
-              <div className={styles.methodDropdown} ref={methodDropdownRef}>
-                <button
-                  onClick={() => setIsMethodDropdownOpen(!isMethodDropdownOpen)}
-                  className={styles.methodButton}
-                >
-                  <span>{accountingMethods.find(m => m.value === accountingMethod)?.label}</span>
-                  <svg 
-                    className={cn(styles.methodButtonIcon, isMethodDropdownOpen && styles.open)}
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {isMethodDropdownOpen && (
-                  <div className={styles.methodDropdownMenu}>
-                    <div className={styles.methodDropdownList}>
-                      {accountingMethods.map((method) => (
-                        <button
-                          key={method.value}
-                          onClick={() => {
-                            setAccountingMethod(method.value)
-                            setIsMethodDropdownOpen(false)
-                          }}
-                          className={cn(
-                            styles.methodDropdownItem,
-                            accountingMethod === method.value ? styles.active : styles.inactive
-                          )}
-                        >
-                          {method.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* Search */}
               <div className={styles.searchContainer}>
                 <input
@@ -388,21 +334,8 @@ export default function AccountsPage() {
             <table className={styles.table}>
               <thead className={styles.tableHead}>
                 <tr>
-                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}>
-                    <div 
-                      onClick={toggleSelectAll}
-                      className={cn(
-                        styles.checkbox,
-                        styles.headerCheckbox,
-                        allSelected() ? styles.selected : styles.unselected
-                      )}
-                    >
-                      {allSelected() && (
-                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
+                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellIndex)}>
+                    №
                   </th>
                   {allFields.map((field) => (
                     <th key={field} className={styles.tableHeaderCell}>
@@ -421,7 +354,7 @@ export default function AccountsPage() {
                     </button>
                   </th>
                   ))}
-                  <th className={styles.tableHeaderCell}></th>
+                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellActions)}></th>
                 </tr>
               </thead>
               <tbody>
@@ -438,35 +371,20 @@ export default function AccountsPage() {
                     </td>
                   </tr>
                 ) : (
-                  bankAccountsItems.map((item) => (
+                  bankAccountsItems.map((item, index) => (
                     <tr 
                       key={item.guid} 
-                      className={cn(
-                        styles.tableRow,
-                        isRowSelected(item.guid) && styles.selected
-                      )}
+                      className={styles.tableRow}
                     >
-                      <td className={cn(styles.tableCell, styles.tableCellCheckbox)}>
-                        <div 
-                          onClick={() => toggleRowSelection(item.guid)}
-                          className={cn(
-                            styles.checkbox,
-                            isRowSelected(item.guid) ? styles.selected : styles.unselected
-                          )}
-                        >
-                          {isRowSelected(item.guid) && (
-                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
+                      <td className={cn(styles.tableCell, styles.tableCellIndex)}>
+                        {index + 1}
                       </td>
                       {allFields.map((field) => (
                         <td key={field} className={cn(styles.tableCell, field === 'komentariy' && styles.commentCell)}>
                           {formatFieldValue(item, field)}
                       </td>
                       ))}
-                      <td className={styles.tableCell} onClick={(e) => e.stopPropagation()}>
+                      <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                         <AccountMenu
                           account={item}
                           onEdit={(account) => setEditingAccount(account)}

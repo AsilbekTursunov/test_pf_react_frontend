@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import styles from './CounterpartyMenu.module.scss'
 
@@ -97,6 +98,16 @@ export function CounterpartyMenu({ counterparty, onEdit, onDelete }) {
     if (onDelete) onDelete(counterparty)
   }
 
+  const handleButtonClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    buttonClickedRef.current = true
+    setIsOpen(prev => !prev)
+    setTimeout(() => {
+      buttonClickedRef.current = false
+    }, 100)
+  }
+
   return (
     <div 
       ref={menuRef}
@@ -106,24 +117,7 @@ export function CounterpartyMenu({ counterparty, onEdit, onDelete }) {
       <button
         ref={buttonRef}
         className={styles.menuButton}
-        onClick={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          buttonClickedRef.current = true
-          
-          setIsOpen(prev => {
-            const newValue = !prev
-            setTimeout(() => {
-              buttonClickedRef.current = false
-            }, 500)
-            return newValue
-          })
-        }}
-        onMouseDown={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          buttonClickedRef.current = true
-        }}
+        onClick={handleButtonClick}
         type="button"
       >
         <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -131,7 +125,7 @@ export function CounterpartyMenu({ counterparty, onEdit, onDelete }) {
         </svg>
       </button>
       
-      {isOpen && (
+      {isOpen && typeof window !== 'undefined' && createPortal(
         <div 
           ref={dropdownRef}
           className={styles.menuDropdown}
@@ -169,7 +163,8 @@ export function CounterpartyMenu({ counterparty, onEdit, onDelete }) {
             </svg>
             <span>Удалить</span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

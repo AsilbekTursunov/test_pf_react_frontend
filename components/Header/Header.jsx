@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
-import { Bell, ChevronDown, Video, Apple, Smartphone, Play, MoreVertical, Maximize2 } from 'lucide-react'
+import { ChevronDown, MoreVertical, Maximize2, User, LogOut } from 'lucide-react'
 import { cn } from '@/app/lib/utils'
 import styles from './Header.module.scss'
 
 export function Header() {
-    const [isHelpOpen, setIsHelpOpen] = useState(false)
     const [isBalanceOpen, setIsBalanceOpen] = useState(false)
     const [balanceView, setBalanceView] = useState('groups')
     const [expandedEntities, setExpandedEntities] = useState([])
@@ -15,26 +14,16 @@ export function Header() {
     const [activeGroupMenu, setActiveGroupMenu] = useState(null)
     const [modalMode, setModalMode] = useState('full')
     const [isViewOpen, setIsViewOpen] = useState(false)
-    const [isProfileOpen, setIsProfileOpen] = useState(false)
-    const [isProfileClosing, setIsProfileClosing] = useState(false)
     const [isLoggingOut, setIsLoggingOut] = useState(false)
-    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
-    const [isEntitiesDropdownOpen, setIsEntitiesDropdownOpen] = useState(false)
 
-    const helpRef = useRef(null)
     const balanceRef = useRef(null)
     const entityMenuRef = useRef(null)
     const groupMenuRef = useRef(null)
     const viewRef = useRef(null)
     const viewButtonRef = useRef(null)
-    const profileRef = useRef(null)
-    const notificationsRef = useRef(null)
 
     useEffect(() => {
         function handleClickOutside(event) {
-            if (helpRef.current && !helpRef.current.contains(event.target)) {
-                setIsHelpOpen(false)
-            }
             if (balanceRef.current && !balanceRef.current.contains(event.target)) {
                 setIsBalanceOpen(false)
                 setActiveEntityMenu(null)
@@ -48,16 +37,6 @@ export function Header() {
             }
             if (viewRef.current && !viewRef.current.contains(event.target)) {
                 setIsViewOpen(false)
-            }
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setIsProfileClosing(true)
-                setTimeout(() => {
-                    setIsProfileOpen(false)
-                    setIsProfileClosing(false)
-                }, 200)
-            }
-            if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-                setIsNotificationsOpen(false)
             }
         }
         document.addEventListener("mousedown", handleClickOutside)
@@ -95,132 +74,12 @@ export function Header() {
             )}
 
             <header className={styles.header}>
-                {/* Left section: Help & Training Dropdown */}
-                <div className={styles.leftSection} ref={helpRef}>
-                    <button
-                        onClick={() => {
-                            setIsHelpOpen(!isHelpOpen)
-                            setIsBalanceOpen(false)
-                        }}
-                        className={cn(styles.helpButton, isHelpOpen && styles.active)}
-                    >
-                        <span>Помощь и обучение</span>
-                        <ChevronDown size={14} className={cn(styles.helpChevron, isHelpOpen && styles.open)} />
-                    </button>
-
-                    {/* Mega Menu Dropdown */}
-                    {isHelpOpen && (
-                        <div className={styles.megaMenu}>
-                            <div className={styles.megaMenuSection}>
-                                <h3 className={styles.megaMenuTitle}>Примеры бизнеса</h3>
-                                <ul className={styles.megaMenuList}>
-                                    {['Строительный бизнес', 'Продажи на Wildberries', 'Маркетинговое агентство', 'Оптово-розничная торговля', 'Тендерный бизнес', 'Медицинский центр'].map((item) => (
-                                        <li key={item}>
-                                            <a href="#" className={styles.megaMenuLink}>{item}</a>
-                                        </li>
-                                    ))}
-                                </ul>
-                                
-                                <div style={{ marginTop: '2rem' }}>
-                                    <div className={styles.entitiesDropdown} style={{ position: 'relative' }}>
-                                        <button 
-                                            onClick={() => setIsEntitiesDropdownOpen(!isEntitiesDropdownOpen)}
-                                            className={styles.megaMenuButton}
-                                        >
-                                            <span className={styles.megaMenuButtonText}>Юрлица и счета</span>
-                                            <ChevronDown size={16} className={cn(styles.megaMenuButtonIcon, isEntitiesDropdownOpen && styles.open)} />
-                                        </button>
-                                        
-                                        {isEntitiesDropdownOpen && (
-                                            <div className={styles.entitiesDropdown}>
-                                                <div className={styles.entitiesDropdownHeader}>
-                                                    <div className={styles.entitiesSearch}>
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="Поиск по списку"
-                                                            className={styles.entitiesSearchInput}
-                                                        />
-                                                        <div className={styles.entitiesSearchIcon}>
-                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                <circle cx="11" cy="11" r="8"></circle>
-                                                                <path d="m21 21-4.35-4.35"></path>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className={styles.entitiesList}>
-                                                    {[
-                                                        'ИП Алексеенко Михаил Фе...',
-                                                        'Сейф',
-                                                        'Альфа банк',
-                                                        'Карта физ. лица',
-                                                        'ООО "Прометей"',
-                                                        'Т-Банк'
-                                                    ].map((item, idx) => (
-                                                        <button 
-                                                            key={idx}
-                                                            className={styles.entityItem}
-                                                        >
-                                                            {item}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className={styles.megaMenuSection}>
-                                <h3 className={styles.megaMenuTitle}>Демонстрация ФинансУчета</h3>
-                                <div className={styles.megaMenuDemo}>
-                                    <div className={styles.megaMenuDemoIcon}>
-                                        <Video size={20} fill="currentColor" />
-                                    </div>
-                                    <p className={styles.megaMenuDemoText}>
-                                        Эксперт ФинансУчета за 15 минут бесплатно покажет, как сервис будет полезен вашему бизнесу
-                                    </p>
-                                    <a href="#" className={styles.megaMenuDemoLink}>Записаться на демо</a>
-                                </div>
-                            </div>
-
-                            <div className={styles.megaMenuSection}>
-                                <h3 className={styles.megaMenuTitle}>Мобильное приложение</h3>
-                                <div className={styles.megaMenuDemo}>
-                                    <div className={styles.megaMenuApps}>
-                                        <Apple size={24} className={styles.megaMenuAppIcon} />
-                                        <Play size={24} className={cn(styles.megaMenuAppIcon, styles.megaMenuAppIconPlay)} />
-                                        <Smartphone size={24} className={cn(styles.megaMenuAppIcon, styles.megaMenuAppIconSmartphone)} />
-                                    </div>
-                                    <p className={styles.megaMenuDemoText}>
-                                        Управляйте бизнесом со смартфона с помощью приложения ФинансУчет
-                                    </p>
-                                    <a href="#" className={styles.megaMenuDemoLink}>Скачать</a>
-                                </div>
-                            </div>
-
-                            <div className={styles.megaMenuSection}>
-                                <h3 className={styles.megaMenuTitle}>Полезные материалы</h3>
-                                <ul className={styles.megaMenuList}>
-                                    {['Справка и инструкции', 'Обучающие видео'].map((item) => (
-                                        <li key={item}>
-                                            <a href="#" className={styles.megaMenuLink}>{item}</a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
                 {/* Center section: Balance */}
                 <div className={styles.centerSection}>
                     <div className={styles.balanceSection} ref={balanceRef}>
                         <div
                             onClick={() => {
                                 setIsBalanceOpen(!isBalanceOpen)
-                                setIsHelpOpen(false)
                             }}
                             className={styles.balanceTrigger}
                         >
@@ -625,215 +484,29 @@ export function Header() {
                     </div>
                 </div>
 
-                {/* Right side containers */}
+                {/* Right side: User icon and Logout button */}
                 <div className={styles.rightSection}>
-                    {/* Notification & Billing */}
-                    <div className={styles.notificationsSection}>
-                        <div style={{ position: 'relative' }} ref={notificationsRef}>
-                            <button 
-                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                                className={styles.notificationsButton}
-                            >
-                                <Bell size={18} fill="currentColor" />
-                            </button>
-
-                            {/* Notifications Modal */}
-                            {isNotificationsOpen && (
-                                <div className={styles.notificationsModal}>
-                                    <div className={styles.notificationsModalContent}>
-                                        <div className={styles.notificationsModalHeader}>
-                                            <h2 className={styles.notificationsModalTitle}>Уведомления</h2>
-                                            <button 
-                                                onClick={() => setIsNotificationsOpen(false)}
-                                                className={styles.notificationsModalClose}
-                                            >
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <div className={styles.notificationsModalBody}>
-                                            <div className={styles.notificationsModalIcon}>
-                                                <div className={styles.notificationsModalIconGradient}></div>
-                                                <div className={styles.notificationsModalIconInner}>
-                                                    <div className={cn(styles.notificationsModalIconBox, styles.notificationsModalIconBoxBlue)}>
-                                                        <svg className={styles.notificationsModalIconSvg} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                                        </svg>
-                                                    </div>
-                                                    <div className={cn(styles.notificationsModalIconBox, styles.notificationsModalIconBoxGreen)} style={{ marginLeft: '0.5rem' }}>
-                                                        <svg className={styles.notificationsModalIconSvg} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                                            <path d="M9 11l3 3l8-8"></path>
-                                                        </svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <h3 className={styles.notificationsModalEmptyTitle}>Здесь пока пусто</h3>
-                                            <p className={styles.notificationsModalEmptyText}>
-                                                Новые уведомления появятся в этом окне
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <button className={styles.billingButton}>
-                            Тарифы и оплата
-                        </button>
-                    </div>
-
-                    {/* User Info Section */}
-                    <div className={styles.profileSection} ref={profileRef}>
-                        <div 
-                            onClick={() => {
-                                if (isProfileOpen) {
-                                    setIsProfileClosing(true)
-                                    setTimeout(() => {
-                                        setIsProfileOpen(false)
-                                        setIsProfileClosing(false)
-                                    }, 200)
-                                } else {
-                                    setIsProfileOpen(true)
-                                }
+                    <div className={styles.logoutSection}>
+                        <button 
+                            onClick={async () => {
+                                setIsLoggingOut(true)
+                                await new Promise(resolve => setTimeout(resolve, 500))
+                                document.cookie = 'isAuthenticated=; path=/; max-age=0'
+                                localStorage.removeItem('isAuthenticated')
+                                localStorage.removeItem('userEmail')
+                                localStorage.removeItem('authToken')
+                                localStorage.removeItem('refreshToken')
+                                localStorage.removeItem('userData')
+                                window.location.href = '/pages/auth'
                             }}
-                            className={styles.profileTrigger}
+                            disabled={isLoggingOut}
+                            className={styles.logoutButton}
                         >
-                            <span className={styles.profileEmail}>demo-guest@finansuchet.io</span>
-                            <ChevronDown size={14} className={cn(styles.profileChevron, isProfileOpen && styles.open)} />
-                        </div>
-                        <p className={styles.profileSubtext}>Подписка активна</p>
-
-                        {/* Profile Dropdown */}
-                        {(isProfileOpen || isProfileClosing) && (
-                            <div 
-                                className={cn(styles.profileDropdown, isProfileClosing ? styles.closing : styles.opening)}
-                            >
-                                <div className={styles.profileDropdownHeader}>
-                                    <div className={styles.profileDropdownEmail}>demo-guest@finansuchet.io</div>
-                                    <div className={styles.profileDropdownStatus}>Подписка активна</div>
-                                </div>
-                                
-                                <div className={styles.profileDropdownMenu}>
-                                    {[
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                            </svg>,
-                                            text: 'Тарифы и оплата' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                            </svg>,
-                                            text: 'Внедрить под ключ' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                            </svg>,
-                                            text: 'Обучиться ФинансУчету' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>,
-                                            text: 'Настройки аккаунта' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>,
-                                            text: 'Помощь и справка' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                            </svg>,
-                                            text: 'Стать партнером' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                                            </svg>,
-                                            text: 'Программа лояльности' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                            </svg>,
-                                            text: 'Скидки от друзей' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>,
-                                            text: 'История обновлений' 
-                                        },
-                                        { 
-                                            icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>,
-                                            text: 'Соглашение' 
-                                        }
-                                    ].map((item, idx) => (
-                                        <button 
-                                            key={idx}
-                                            className={styles.profileDropdownItem}
-                                            style={{ 
-                                                animation: isProfileClosing 
-                                                    ? `fadeSlideOut 0.15s ease-in ${(9 - idx) * 0.02}s backwards`
-                                                    : `fadeSlideUp 0.2s ease-out ${idx * 0.03}s backwards`
-                                            }}
-                                        >
-                                            <span className={styles.profileDropdownItemIcon}>{item.icon}</span>
-                                            <span>{item.text}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                                
-                                <div className={styles.profileDropdownLogout}>
-                                    <button 
-                                        onClick={async () => {
-                                            setIsLoggingOut(true)
-                                            await new Promise(resolve => setTimeout(resolve, 800))
-                                            document.cookie = 'isAuthenticated=; path=/; max-age=0'
-                                            localStorage.removeItem('isAuthenticated')
-                                            localStorage.removeItem('userEmail')
-                                            window.location.href = '/pages/auth'
-                                        }}
-                                        disabled={isLoggingOut}
-                                        className={styles.profileDropdownLogoutButton}
-                                        style={{ 
-                                            animation: isProfileClosing 
-                                                ? 'fadeSlideOut 0.15s ease-in 0s backwards'
-                                                : 'fadeSlideUp 0.2s ease-out 0.3s backwards'
-                                        }}
-                                    >
-                                        {isLoggingOut ? (
-                                            <>
-                                                <svg className={styles.profileDropdownLogoutSpinner} fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                <span className={styles.profileDropdownLogoutText}>Выход...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className={styles.profileDropdownLogoutIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                </svg>
-                                                <span className={styles.profileDropdownLogoutText}>Выйти из аккаунта</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                            <LogOut size={18} className={styles.logoutIcon} />
+                            <span className={styles.logoutText}>
+                                {isLoggingOut ? 'Выход...' : 'Выйти'}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </header>

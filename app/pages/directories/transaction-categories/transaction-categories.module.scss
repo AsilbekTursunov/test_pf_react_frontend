@@ -238,6 +238,7 @@
   background-color: white;
   border-right: 1px solid #e5e7eb;
   overflow-y: auto;
+  position: relative;
 }
 
 .sidebarContent {
@@ -280,11 +281,9 @@
     background-color: #f9fafb;
   }
 
-  // Ensure menu container is clickable and above other elements
+  // Ensure menu container is clickable
   [data-menu-container] {
     pointer-events: auto;
-    position: relative;
-    z-index: 1000;
   }
 }
 

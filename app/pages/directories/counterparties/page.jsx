@@ -404,27 +404,8 @@ export default function CounterpartiesPage() {
             <table className={styles.table}>
               <thead className={styles.tableHead}>
                 <tr className={styles.tableHeaderRow}>
-                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}>
-                    <div className={styles.checkboxWrapper}>
-                      <div className={styles.checkboxContainer}>
-                        <input
-                          type="checkbox"
-                          checked={allSelected()}
-                          onChange={toggleSelectAll}
-                          className={styles.checkboxInput}
-                        />
-                        <div className={cn(
-                        styles.checkbox,
-                          allSelected() ? styles.checked : styles.unchecked
-                        )}>
-                      {allSelected() && (
-                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                        </div>
-                      </div>
-                    </div>
+                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellIndex)}>
+                    №
                   </th>
                   <th className={styles.tableHeaderCell}>
                     <button className={styles.tableHeaderButton}>
@@ -530,7 +511,7 @@ export default function CounterpartiesPage() {
                       </svg>
                     </button>
                   </th>
-                  <th className={styles.tableHeaderCell} style={{ width: '3rem' }}></th>
+                  <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellActions)}></th>
                 </tr>
               </thead>
               <tbody>
@@ -547,14 +528,14 @@ export default function CounterpartiesPage() {
                     </td>
                   </tr>
                 ) : (
-                  groupedCounterparties.map((item) => {
+                  groupedCounterparties.map((item, itemIndex) => {
                     if (item.isGroup) {
                       const isExpanded = expandedGroups.has(item.guid)
                       const isLastChild = (index) => index === item.items.length - 1
                       return (
                         <React.Fragment key={item.id}>
                           <tr className={cn(styles.tableRow, styles.groupRow)}>
-                            <td className={cn(styles.tableCell, styles.tableCellCheckbox)}>
+                            <td className={cn(styles.tableCell, styles.tableCellIndex)}>
                               <button
                                 className={styles.expandButton}
                                 onClick={() => toggleGroup(item.guid)}
@@ -583,7 +564,7 @@ export default function CounterpartiesPage() {
                             <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>–</td>
                             <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
                             <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
-                            <td className={cn(styles.tableCell)} onClick={(e) => e.stopPropagation()}>
+                            <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                               <GroupMenu
                                 group={item}
                                 onEdit={(group) => setEditingGroup(group)}
@@ -601,40 +582,13 @@ export default function CounterpartiesPage() {
                               className={cn(
                                 styles.tableRow,
                                 styles.childRow,
-                                isRowSelected(counterparty.id) && styles.selected,
-                                isLastChild(childIndex) && styles.lastChild
+                                isRowSelected(counterparty.id) && styles.selected
                               )}
                               onClick={() => router.push(`/pages/directories/counterparties/${counterparty.guid}`)}
                               style={{ cursor: 'pointer' }}
                             >
-                              <td className={cn(styles.tableCell, styles.tableCellCheckbox, styles.childCell)} onClick={(e) => e.stopPropagation()}>
-                                <div className={styles.childLineContainer}>
-                                  <div className={cn(
-                                    styles.childVerticalLine,
-                                    isLastChild(childIndex) && styles.lastChildVerticalLine
-                                  )}></div>
-                                  <div className={styles.childHorizontalLine}></div>
-                                </div>
-                                <div className={styles.checkboxWrapper}>
-                                  <div className={styles.checkboxContainer}>
-                                    <input
-                                      type="checkbox"
-                                      checked={isRowSelected(counterparty.id)}
-                                      onChange={() => toggleRowSelection(counterparty.id)}
-                                      className={styles.checkboxInput}
-                                    />
-                                    <div className={cn(
-                                      styles.checkbox,
-                                      isRowSelected(counterparty.id) ? styles.checked : styles.unchecked
-                                    )}>
-                                      {isRowSelected(counterparty.id) && (
-                                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
+                              <td className={cn(styles.tableCell, styles.tableCellIndex)} onClick={(e) => e.stopPropagation()}>
+                                {childIndex + 1}
                               </td>
                               <td className={cn(styles.tableCell, styles.text)}>{counterparty.nazvanie}</td>
                               <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.polnoe_imya || '–'}</td>
@@ -649,7 +603,7 @@ export default function CounterpartiesPage() {
                               <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>{counterparty.komentariy || '–'}</td>
                               <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.data_sozdaniya || '–'}</td>
                               <td className={cn(styles.tableCell, styles.textMuted)}>{counterparty.primenyat_stat_i_po_umolchaniyu || '–'}</td>
-                              <td className={cn(styles.tableCell)} onClick={(e) => e.stopPropagation()}>
+                              <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                                 <CounterpartyMenu
                                   counterparty={counterparty}
                                   onEdit={(cp) => setEditingCounterparty(cp)}
@@ -671,27 +625,8 @@ export default function CounterpartiesPage() {
                           onClick={() => router.push(`/pages/directories/counterparties/${item.guid}`)}
                           style={{ cursor: 'pointer' }}
                         >
-                          <td className={cn(styles.tableCell, styles.tableCellCheckbox)} onClick={(e) => e.stopPropagation()}>
-                            <div className={styles.checkboxWrapper}>
-                              <div className={styles.checkboxContainer}>
-                                <input
-                                  type="checkbox"
-                                  checked={isRowSelected(item.id)}
-                                  onChange={() => toggleRowSelection(item.id)}
-                                  className={styles.checkboxInput}
-                                />
-                                <div className={cn(
-                                  styles.checkbox,
-                                  isRowSelected(item.id) ? styles.checked : styles.unchecked
-                                )}>
-                                  {isRowSelected(item.id) && (
-                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                              </div>
-                            </div>
+                          <td className={cn(styles.tableCell, styles.tableCellIndex)} onClick={(e) => e.stopPropagation()}>
+                            {itemIndex + 1}
                           </td>
                           <td className={cn(styles.tableCell, styles.text)}>{item.nazvanie}</td>
                           <td className={cn(styles.tableCell, styles.textMuted)}>{item.polnoe_imya || '–'}</td>
@@ -706,7 +641,7 @@ export default function CounterpartiesPage() {
                           <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>{item.komentariy || '–'}</td>
                           <td className={cn(styles.tableCell, styles.textMuted)}>{item.data_sozdaniya || '–'}</td>
                           <td className={cn(styles.tableCell, styles.textMuted)}>{item.primenyat_stat_i_po_umolchaniyu || '–'}</td>
-                          <td className={cn(styles.tableCell)} onClick={(e) => e.stopPropagation()}>
+                          <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                             <CounterpartyMenu
                               counterparty={item}
                               onEdit={(cp) => setEditingCounterparty(cp)}

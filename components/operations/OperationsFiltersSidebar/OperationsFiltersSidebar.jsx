@@ -900,18 +900,27 @@ export function OperationsFiltersSidebar({
                           return (
                             <div key={guid} className={styles.parameterDropdownChip}>
                               <span className={styles.parameterDropdownChipLabel}>{account.label}</span>
-                              <button
+                              <div
                                 className={styles.parameterDropdownChipRemove}
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   onAccountToggle(guid)
                                 }}
                                 onMouseDown={(e) => e.stopPropagation()}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    onAccountToggle(guid)
+                                  }
+                                }}
                               >
                                 <svg className={styles.parameterDropdownChipRemoveIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                              </button>
+                              </div>
                             </div>
                           )
                         })}
@@ -1061,18 +1070,27 @@ export function OperationsFiltersSidebar({
                           return (
                             <div key={guid} className={styles.parameterDropdownChip}>
                               <span className={styles.parameterDropdownChipLabel}>{agent.label}</span>
-                              <button
+                              <div
                                 className={styles.parameterDropdownChipRemove}
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   onCounterAgentToggle(guid)
                                 }}
                                 onMouseDown={(e) => e.stopPropagation()}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    onCounterAgentToggle(guid)
+                                  }
+                                }}
                               >
                                 <svg className={styles.parameterDropdownChipRemoveIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                              </button>
+                              </div>
                             </div>
                           )
                         })}

@@ -121,23 +121,10 @@ export default function LegalEntitiesPage() {
         <div className={styles.tableWrapper}>
           <div className={styles.tableOuter}>
             <table className={styles.table}>
-              {!selectedRows.length && (
-                <thead className={styles.theadDefault}>
+              <thead className={styles.theadDefault}>
                 <tr>
-                  <th className={styles.thCheckbox}>
-                    <div 
-                      onClick={toggleSelectAll}
-                      className={cn(
-                        styles.checkbox,
-                        allSelected && styles.checkboxSelected
-                      )}
-                    >
-                      {allSelected && (
-                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
+                  <th className={cn(styles.th, styles.thIndex)}>
+                    №
                   </th>
                   <th className={styles.th}>
                     <button className={styles.headerButton}>
@@ -150,38 +137,9 @@ export default function LegalEntitiesPage() {
                   <th className={styles.th}>Полное название</th>
                   <th className={styles.th}>ИНН</th>
                   <th className={styles.th}>КПП</th>
-                  <th className={styles.th}></th>
+                  <th className={cn(styles.th, styles.thActions)}></th>
                 </tr>
               </thead>
-              )}
-              
-              {selectedRows.length > 0 && (
-                <thead className={styles.theadSelected}>
-                  <tr>
-                    <th colSpan={5} className={styles.th}>
-                      <div className={styles.selectedHeaderContent}>
-                        <div className={styles.selectedHeaderLeft}>
-                          <div 
-                            onClick={toggleSelectAll}
-                            className={cn(styles.checkbox, styles.checkboxSelected)}
-                          >
-                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <span className={styles.selectedHeaderText}>Выбран: {selectedRows.length}</span>
-                        </div>
-                        <button 
-                          onClick={() => setSelectedRows([])}
-                          className={styles.selectedHeaderClose}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-              )}
 
               <tbody>
                 {isLoadingLegalEntities ? (
@@ -197,28 +155,16 @@ export default function LegalEntitiesPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredData.map((entity) => (
+                  filteredData.map((entity, index) => (
                     <tr key={entity.id} className={styles.row}>
-                      <td className={styles.td}>
-                        <div 
-                          onClick={() => toggleRowSelection(entity.id)}
-                          className={cn(
-                            styles.checkbox,
-                            isRowSelected(entity.id) && styles.checkboxSelected
-                          )}
-                        >
-                          {isRowSelected(entity.id) && (
-                            <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
+                      <td className={cn(styles.td, styles.tdIndex)}>
+                        {index + 1}
                       </td>
                       <td className={styles.td}>{entity.shortName}</td>
                       <td className={styles.tdMuted}>{entity.fullName}</td>
                       <td className={styles.tdMuted}>{entity.inn}</td>
                       <td className={styles.tdMuted}>{entity.kpp}</td>
-                      <td className={styles.td} onClick={(e) => e.stopPropagation()}>
+                      <td className={cn(styles.td, styles.tdActions)} onClick={(e) => e.stopPropagation()}>
                         <LegalEntityMenu
                           legalEntity={entity}
                           onEdit={handleEdit}

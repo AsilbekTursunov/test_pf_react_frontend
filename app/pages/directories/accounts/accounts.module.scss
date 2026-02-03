@@ -131,11 +131,7 @@
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #138496;
-  }
+  transition: none;
 }
 
 .headerActionsRight {
@@ -231,8 +227,13 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 13px;
+  color: #0f172a;
   border: 1px solid #d1d5db; // slate-300
   border-radius: 0.25rem;
+
+  &::placeholder {
+    color: #9ca3af; // slate-400
+  }
 
   &:focus {
     outline: none;
@@ -259,6 +260,7 @@
 
 .tableWrapper {
   overflow-x: auto;
+  overflow-y: visible;
   background-color: white;
   border-radius: 0.25rem;
   border: 1px solid #e5e7eb;
@@ -269,10 +271,11 @@
   table-layout: auto;
   min-width: max-content;
   background-color: white;
+  overflow: visible;
 }
 
 .tableHead {
-  background-color: white;
+  background: linear-gradient(180deg, #fafbfc 0%, #f8f9fa 100%);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -283,22 +286,34 @@
 }
 
 .tableHeaderCell {
-  padding: 0.625rem 0.75rem;
+  padding: 0.5rem 0.625rem;
   text-align: left;
   white-space: nowrap;
   min-width: fit-content;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #334155;
-  background-color: white;
+  background: transparent;
   position: sticky;
   top: 0;
   z-index: 10;
 
-  &.tableHeaderCellCheckbox {
-    width: 48px;
-    padding: 0.625rem 0.5rem;
+  &.tableHeaderCellIndex {
+    width: 2.5rem;
     text-align: center;
+  }
+
+  &.tableHeaderCellActions {
+    position: sticky;
+    right: 0;
+    background: linear-gradient(180deg, #fafbfc 0%, #f8f9fa 100%);
+    border-left: none;
+    box-shadow: none;
+    z-index: 21;
+    min-width: 32px;
+    width: 32px;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
   }
 
   &.right {
@@ -310,7 +325,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #334155;
   background: none;
@@ -427,35 +442,74 @@
   transition: background-color 0.2s;
   cursor: pointer;
 
+  &:nth-child(odd) {
+    background-color: white;
+  }
+
+  &:nth-child(even) {
+    background-color: #fafbfc;
+  }
+
   &:hover {
-    background-color: #f9fafb;
+    background-color: #f0f4f8 !important;
   }
 
   &.selected {
-    background-color: #e3f2fd;
+    background-color: #e3f2fd !important;
   }
 }
 
 .tableCell {
-  padding: 0.75rem;
-  font-size: 13px;
+  padding: 0.5rem 0.625rem;
+  font-size: 12px;
   color: #0f172a;
   white-space: nowrap;
+  background: transparent;
 
-  &.tableCellCheckbox {
-    width: 48px;
-    padding: 0.75rem 0.5rem;
+  &.tableCellIndex {
+    width: 2.5rem;
     text-align: center;
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 11px;
+    vertical-align: middle;
+  }
+
+  &.tableCellActions {
+    position: sticky;
+    right: 0;
+    background-color: inherit;
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    z-index: 20;
+    min-width: 32px;
+    width: 32px;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    isolation: isolate;
+    overflow: visible;
+    
+    .tableRow:nth-child(odd) & {
+      background-color: white;
+    }
+    
+    .tableRow:nth-child(even) & {
+      background-color: #fafbfc;
+    }
+    
+    .tableRow:hover & {
+      background-color: #f0f4f8 !important;
+    }
   }
 
   &.text {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
     color: #0f172a;
   }
 
   &.textMuted {
-    font-size: 13px;
+    font-size: 12px;
     color: #6b7280;
   }
 
@@ -525,11 +579,19 @@
 
 .childRow {
   border-bottom: 1px solid #f3f4f6; // slate-100;
-  background-color: white;
+  background-color: transparent;
   transition: background-color 0.2s;
 
+  &:nth-child(odd) {
+    background-color: white;
+  }
+
+  &:nth-child(even) {
+    background-color: #fafbfc;
+  }
+
   &:hover {
-    background-color: rgba(248, 250, 252, 0.5); // slate-50/50
+    background-color: #f0f4f8 !important;
   }
 }
 

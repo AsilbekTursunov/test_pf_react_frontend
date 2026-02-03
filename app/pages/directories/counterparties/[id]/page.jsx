@@ -7,6 +7,7 @@ import { useCounterpartiesV2, useOperationsList } from '@/hooks/useDashboard'
 import { OperationModal } from '@/components/operations/OperationModal/OperationModal'
 import { OperationMenu } from '@/components/operations/OperationsTable/OperationMenu'
 import { DeleteConfirmModal } from '@/components/operations/OperationsTable/DeleteConfirmModal'
+import { DateRangePicker } from '@/components/directories/DateRangePicker/DateRangePicker'
 import { useDeleteOperation } from '@/hooks/useDashboard'
 import { cn } from '@/app/lib/utils'
 import styles from './counterparty-detail.module.scss'
@@ -15,7 +16,7 @@ export default function KontragentDetailPage() {
   const params = useParams()
   const counterpartyGuid = params?.id
   
-  const [accountingMethod, setAccountingMethod] = useState('cash')
+  const [dateRange, setDateRange] = useState(null)
   const [isCreateOperationModalOpen, setIsCreateOperationModalOpen] = useState(false)
   const [isCreateModalClosing, setIsCreateModalClosing] = useState(false)
   const [isCreateModalOpening, setIsCreateModalOpening] = useState(false)
@@ -137,7 +138,7 @@ export default function KontragentDetailPage() {
   }, [operations])
 
   // Format date range (if needed)
-  const dateRange = useMemo(() => {
+  const dateRangeDisplay = useMemo(() => {
     if (operations.length === 0) return 'Нет операций'
     const dates = operationsItems.map(op => new Date(op.data_operatsii || op.data_oplaty)).filter(Boolean).sort((a, b) => a - b)
     if (dates.length === 0) return 'Нет операций'
@@ -256,23 +257,11 @@ export default function KontragentDetailPage() {
         <div className={styles.header}>
           <div className={styles.headerTop}>
             <h1 className={styles.title}>{counterpartyInfo?.name || 'Контрагент'}</h1>
-            <div className={styles.dateInfo}>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              <span className={styles.dateText}>{dateRange}</span>
-            </div>
-            <select
-              value={accountingMethod}
-              onChange={(e) => setAccountingMethod(e.target.value)}
-              className={styles.methodSelect}
-            >
-              <option value="cash">Учет по денежному потоку</option>
-              <option value="accrual">Учет по начислению</option>
-            </select>
+            <DateRangePicker
+              selectedRange={dateRange}
+              onChange={setDateRange}
+              placeholder="Выберите период"
+            />
           </div>
 
           {/* Stats Grid */}
@@ -423,7 +412,7 @@ export default function KontragentDetailPage() {
                 <table className={styles.operationsTable}>
                   <thead className={styles.tableHeader}>
                     <tr>
-                      <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}></th>
+                      <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellIndex)}>№</th>
                       <th className={styles.tableHeaderCell}>Дата</th>
                       <th className={styles.tableHeaderCell}>Счет</th>
                       <th className={styles.tableHeaderCell}>Тип</th>
@@ -432,34 +421,17 @@ export default function KontragentDetailPage() {
                       <th className={styles.tableHeaderCell}>Проект</th>
                       <th className={styles.tableHeaderCell}>Сделка</th>
                       <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellRight)}>Сумма</th>
-                      <th className={styles.tableHeaderCell} style={{ width: '3rem' }}></th>
+                      <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellActions)}></th>
                     </tr>
                   </thead>
                   <tbody className={styles.tableBody}>
-                    {operations.map((op) => (
+                    {operations.map((op, index) => (
                       <tr
                         key={op.id}
-                        className={cn(
-                          styles.tableRow,
-                          selectedOperations.includes(op.id) && styles.selected
-                        )}
+                        className={styles.tableRow}
                       >
-                        <td className={cn(styles.tableCell, styles.tableCellCheckbox)} onClick={(e) => e.stopPropagation()}>
-                          <div className={styles.checkboxWrapper}>
-                            <div 
-                              className={cn(
-                                styles.checkbox,
-                                selectedOperations.includes(op.id) ? styles.checked : styles.unchecked
-                              )}
-                              onClick={() => toggleOperation(op.id)}
-                            >
-                              {selectedOperations.includes(op.id) && (
-                                <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </div>
-                          </div>
+                        <td className={cn(styles.tableCell, styles.tableCellIndex)}>
+                          {index + 1}
                         </td>
                         <td className={styles.tableCell}>{op.date}</td>
                         <td className={styles.tableCell}>{op.account}</td>
@@ -486,7 +458,7 @@ export default function KontragentDetailPage() {
                         )}>
                           {op.amount}
                         </td>
-                        <td className={styles.tableCell} onClick={(e) => e.stopPropagation()}>
+                        <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                           <OperationMenu
                             operation={op}
                             onEdit={handleEditOperation}

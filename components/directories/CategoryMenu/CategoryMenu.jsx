@@ -9,16 +9,16 @@ export function CategoryMenu({ category, onEdit, onDelete }) {
   const menuRef = useRef(null)
 
   useEffect(() => {
+    if (!isOpen) return
+
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsOpen(false)
       }
     }
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
   const handleEdit = (e) => {
@@ -58,7 +58,10 @@ export function CategoryMenu({ category, onEdit, onDelete }) {
       </button>
       
       {isOpen && (
-        <div className={styles.menuDropdown}>
+        <div 
+          className={styles.menuDropdown}
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             className={styles.menuItem}
             onClick={handleEdit}

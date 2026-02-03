@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import styles from './GroupMenu.module.scss'
 
 export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [position, setPosition] = useState({ top: 0, left: 0 })
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
   const dropdownRef = useRef(null)
@@ -14,6 +16,24 @@ export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
 
   useEffect(() => {
     if (!isOpen) return
+
+    // Calculate position for dropdown
+    const calculatePosition = () => {
+      if (buttonRef.current) {
+        const buttonRect = buttonRef.current.getBoundingClientRect()
+        setPosition({
+          top: buttonRect.bottom + 4,
+          left: buttonRect.right
+        })
+      }
+    }
+
+    // Calculate position with double RAF to ensure button is rendered
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        calculatePosition()
+      })
+    })
 
     function handleClickOutside(event) {
       const target = event.target
@@ -84,6 +104,16 @@ export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
     if (onCreateCounterparty) onCreateCounterparty(group)
   }
 
+  const handleButtonClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    buttonClickedRef.current = true
+    setIsOpen(prev => !prev)
+    setTimeout(() => {
+      buttonClickedRef.current = false
+    }, 100)
+  }
+
   return (
     <div 
       ref={menuRef}
@@ -93,24 +123,7 @@ export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
       <button
         ref={buttonRef}
         className={styles.menuButton}
-        onClick={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          buttonClickedRef.current = true
-          
-          setIsOpen(prev => {
-            const newValue = !prev
-            setTimeout(() => {
-              buttonClickedRef.current = false
-            }, 500)
-            return newValue
-          })
-        }}
-        onMouseDown={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          buttonClickedRef.current = true
-        }}
+        onClick={handleButtonClick}
         type="button"
       >
         <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -118,10 +131,17 @@ export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
         </svg>
       </button>
       
-      {isOpen && (
+      {isOpen && typeof window !== 'undefined' && createPortal(
         <div 
           ref={dropdownRef}
           className={styles.menuDropdown}
+          style={{
+            position: 'fixed',
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            transform: 'translateX(-100%)',
+            zIndex: 99999
+          }}
           onClick={(e) => {
             e.stopPropagation()
             e.preventDefault()
@@ -158,7 +178,8 @@ export function GroupMenu({ group, onEdit, onDelete, onCreateCounterparty }) {
             </svg>
             <span>Удалить</span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

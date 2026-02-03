@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import styles from './LegalEntityMenu.module.scss'
 
@@ -38,7 +39,6 @@ export default function LegalEntityMenu({ legalEntity, onEdit, onDelete }) {
       const target = event.target
       
       if (buttonClickedRef.current) {
-        buttonClickedRef.current = false
         return
       }
       
@@ -86,6 +86,16 @@ export default function LegalEntityMenu({ legalEntity, onEdit, onDelete }) {
     }
   }, [isOpen])
 
+  const handleButtonClick = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    buttonClickedRef.current = true
+    setIsOpen(prev => !prev)
+    setTimeout(() => {
+      buttonClickedRef.current = false
+    }, 100)
+  }
+
   const handleEdit = (e) => {
     e.stopPropagation()
     setIsOpen(false)
@@ -108,18 +118,14 @@ export default function LegalEntityMenu({ legalEntity, onEdit, onDelete }) {
         ref={buttonRef}
         className={styles.menuButton} 
         type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          buttonClickedRef.current = true
-          setIsOpen(prev => !prev)
-        }}
+        onClick={handleButtonClick}
       >
         <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
         </svg>
       </button>
       
-      {isOpen && (
+      {isOpen && typeof window !== 'undefined' && createPortal(
         <div 
           ref={dropdownRef}
           className={styles.menuDropdown}
@@ -157,7 +163,8 @@ export default function LegalEntityMenu({ legalEntity, onEdit, onDelete }) {
             </svg>
             <span>Удалить</span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

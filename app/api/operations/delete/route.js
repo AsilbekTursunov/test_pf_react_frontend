@@ -70,7 +70,27 @@ export async function DELETE(request) {
       )
     }
 
-    const responseData = await response.json()
+    // Check if response has content
+    const contentType = response.headers.get('content-type')
+    const hasContent = response.headers.get('content-length') !== '0'
+    
+    let responseData
+    if (contentType?.includes('application/json') && hasContent) {
+      const text = await response.text()
+      if (text) {
+        try {
+          responseData = JSON.parse(text)
+        } catch (e) {
+          console.warn('Failed to parse response as JSON:', text)
+          responseData = { status: 'SUCCESS', description: 'Operation deleted successfully' }
+        }
+      } else {
+        responseData = { status: 'SUCCESS', description: 'Operation deleted successfully' }
+      }
+    } else {
+      // No content or not JSON - treat as success
+      responseData = { status: 'SUCCESS', description: 'Operation deleted successfully' }
+    }
 
     return NextResponse.json(responseData, { status: 200 })
   } catch (error) {

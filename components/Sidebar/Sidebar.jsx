@@ -20,7 +20,7 @@ import { cn } from '@/app/lib/utils'
 import styles from './Sidebar.module.scss'
 
 const navItems = [
-    { icon: LineChart, label: 'Показатели', href: '/pages/dashboard', hasPage: true },
+    // { icon: LineChart, label: 'Показатели', href: '/pages/dashboard', hasPage: false }, // Закомментировано
     { icon: RefreshCw, label: 'Операции', href: '/pages/operations', hasPage: true },
     { 
         icon: ClipboardList, 

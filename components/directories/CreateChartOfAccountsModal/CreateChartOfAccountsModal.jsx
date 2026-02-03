@@ -22,6 +22,19 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
   const [isClosing, setIsClosing] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   // Get all chart of accounts for parent selection
   const { data: allAccountsData } = useChartOfAccountsV2({ data: {} })
   const allAccounts = allAccountsData?.data?.data?.response || []

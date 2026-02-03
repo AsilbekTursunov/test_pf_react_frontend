@@ -60,39 +60,6 @@
   color: #0f172a; // slate-900
 }
 
-.dateInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 12px;
-  color: #6b7280; // slate-500
-}
-
-.dateText {
-  color: #475569; // slate-600
-}
-
-.methodSelect {
-  padding: 0.375rem 0.75rem;
-  font-size: 12px;
-  color: #334155; // slate-700
-  background-color: white;
-  border: 1px solid #d1d5db; // slate-300
-  border-radius: 0.25rem;
-  transition: border-color 0.2s;
-  cursor: pointer;
-
-  &:hover {
-    border-color: #9ca3af; // slate-400
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 1px #6366f1;
-  }
-}
-
 .statsGrid {
   display: flex;
   gap: 1rem;
@@ -303,6 +270,7 @@
 
 .tableWrapper {
   overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid #e5e7eb;
   border-radius: 0.25rem;
 }
@@ -311,10 +279,11 @@
   width: 100%;
   border-collapse: collapse;
   background-color: white;
+  overflow: visible;
 }
 
 .tableHeader {
-  background-color: white;
+  background: linear-gradient(180deg, #fafbfc 0%, #f8f9fa 100%);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -325,21 +294,34 @@
 }
 
 .tableHeaderCell {
-  padding: 0.625rem 0.75rem;
+  padding: 0.5rem 0.625rem;
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #334155;
-  background-color: white;
+  background: transparent;
   white-space: nowrap;
 
-  &.tableHeaderCellCheckbox {
-    width: 48px;
-    padding: 0.625rem;
+  &.tableHeaderCellIndex {
+    width: 2.5rem;
+    text-align: center;
   }
 
   &.tableHeaderCellRight {
     text-align: right;
+  }
+
+  &.tableHeaderCellActions {
+    position: sticky;
+    right: 0;
+    background: linear-gradient(180deg, #fafbfc 0%, #f8f9fa 100%);
+    border-left: none;
+    box-shadow: none;
+    z-index: 21;
+    min-width: 32px;
+    width: 32px;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
   }
 }
 
@@ -348,28 +330,64 @@
 }
 
 .tableRow {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #f3f4f6;
   transition: background-color 0.2s;
   cursor: pointer;
 
-  &:hover {
-    background-color: #f9fafb;
+  &:nth-child(odd) {
+    background-color: white;
   }
 
-  &.selected {
-    background-color: #e0f2fe;
+  &:nth-child(even) {
+    background-color: #fafbfc;
+  }
+
+  &:hover {
+    background-color: #f0f4f8 !important;
   }
 }
 
 .tableCell {
-  padding: 0.625rem 0.75rem;
-  font-size: 13px;
+  padding: 0.5rem 0.625rem;
+  font-size: 12px;
   color: #0f172a;
   white-space: nowrap;
+  background: transparent;
 
-  &.tableCellCheckbox {
-    width: 48px;
-    padding: 0.625rem;
+  &.tableCellIndex {
+    width: 2.5rem;
+    text-align: center;
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 11px;
+    vertical-align: middle;
+  }
+
+  &.tableCellActions {
+    position: sticky;
+    right: 0;
+    background-color: inherit;
+    border-left: 1px solid #e5e7eb;
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    z-index: 20;
+    min-width: 32px;
+    width: 32px;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    isolation: isolate;
+    overflow: visible;
+    
+    .tableRow:nth-child(odd) & {
+      background-color: white;
+    }
+    
+    .tableRow:nth-child(even) & {
+      background-color: #fafbfc;
+    }
+    
+    .tableRow:hover & {
+      background-color: #f0f4f8 !important;
+    }
   }
 }
 
@@ -413,9 +431,9 @@
 
 .typeBadge {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 
   &.typeBadgeIn {

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import styles from './AccountMenu.module.scss'
 
@@ -124,7 +125,7 @@ export function AccountMenu({ account, onEdit, onDelete }) {
         </svg>
       </button>
       
-      {isOpen && (
+      {isOpen && typeof window !== 'undefined' && createPortal(
         <div 
           ref={dropdownRef}
           className={styles.menuDropdown}
@@ -162,7 +163,8 @@ export function AccountMenu({ account, onEdit, onDelete }) {
             </svg>
             <span>Удалить</span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

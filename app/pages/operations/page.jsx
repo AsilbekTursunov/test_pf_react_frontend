@@ -519,36 +519,8 @@ export default function OperationsPage() {
             <table className={styles.table}>
             <thead className={styles.tableHeader}>
               <tr className={styles.tableHeaderRow}>
-                <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellCheckbox)}>
-                  <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-                    <input 
-                      type="checkbox" 
-                      checked={isAllSelected}
-                      onChange={toggleSelectAll}
-                      className={styles.checkboxInput}
-                    />
-                    <div 
-                      className={cn(
-                        styles.checkbox,
-                        isAllSelected && styles.checkboxChecked
-                      )}
-                      style={{
-                        '--checkbox-bg': isAllSelected ? '#6366f1' : 'white',
-                        '--checkbox-border': isAllSelected ? '#6366f1' : '#d1d5db',
-                        '--checkbox-hover-border': '#9ca3af',
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '0.125rem'
-                      }}
-                      onClick={toggleSelectAll}
-                    >
-                      {isAllSelected && (
-                        <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" style={{ width: '0.75rem', height: '0.75rem' }}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                  </div>
+                <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellIndex)}>
+                  №
                 </th>
                 <th className={styles.tableHeaderCell}>Тип</th>
                 <th className={styles.tableHeaderCell}>Дата начисления</th>
@@ -560,15 +532,16 @@ export default function OperationsPage() {
                     </svg>
                   </button>
                 </th>
-                <th className={styles.tableHeaderCell}>Оплата подтверждена</th>
+                <th className={styles.tableHeaderCell}>Оплата</th>
                 <th className={styles.tableHeaderCell}>Сумма</th>
-                <th className={styles.tableHeaderCell}>Валюты</th>
+                <th className={styles.tableHeaderCell}>Валюта</th>
                 <th className={styles.tableHeaderCell}>Описание</th>
-                <th className={styles.tableHeaderCell}>Учетные статьи</th>
-                <th className={styles.tableHeaderCell}>Банковские счета</th>
-                <th className={styles.tableHeaderCell}>Контрагенты</th>
+                <th className={styles.tableHeaderCell}>Статья</th>
+                <th className={styles.tableHeaderCell}>Счет</th>
+                <th className={styles.tableHeaderCell}>Контрагент</th>
                 <th className={styles.tableHeaderCell}>Дата создания</th>
                 <th className={styles.tableHeaderCell}>Дата обновления</th>
+                <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellActions)}></th>
               </tr>
             </thead>
             <tbody style={{ backgroundColor: 'white' }}>
@@ -596,89 +569,83 @@ export default function OperationsPage() {
               )}
 
               {/* Today Operations */}
-                  {operations.filter(op => op.section === 'today').map((op) => (
+                  {operations.filter(op => op.section === 'today').map((op, index) => (
                     <tr key={op.id} className={styles.tableRow} onClick={(e) => {
                       if (!e.target.closest('input') && !e.target.closest('button')) {
                         openOperationModal(op)
                       }
                     }}>
-                      <td className={cn(styles.tableCell, styles.tableCellCheckbox)} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ position: 'relative' }}>
-                          <input 
-                            type="checkbox" 
-                            checked={selectedOperations.includes(op.id)}
-                            onChange={() => toggleOperation(op.id)}
-                            className={styles.checkboxInput}
-                          />
-                          <div 
-                            className={cn(
-                              styles.checkbox,
-                              selectedOperations.includes(op.id) && styles.checkboxChecked
-                            )}
-                            style={{
-                              '--checkbox-bg': selectedOperations.includes(op.id) ? '#6366f1' : 'white',
-                              '--checkbox-border': selectedOperations.includes(op.id) ? '#6366f1' : '#d1d5db',
-                              '--checkbox-hover-border': '#9ca3af',
-                              width: '18px',
-                              height: '18px',
-                              borderRadius: '0.125rem'
-                            }}
-                            onClick={() => toggleOperation(op.id)}
-                          >
-                            {selectedOperations.includes(op.id) && (
-                              <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" style={{ width: '0.75rem', height: '0.75rem' }}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      <td className={cn(styles.tableCell, styles.tableCellIndex)}>
+                        {index + 1}
+                      </td>
+                      <td className={styles.tableCell}>
+                        {op.typeLabel ? (
+                          <div className={cn(
+                            styles.typeIcon,
+                            op.typeCategory === 'in' && styles.typeIconIn,
+                            op.typeCategory === 'out' && styles.typeIconOut,
+                            op.typeCategory === 'transfer' && styles.typeIconTransfer
+                          )}>
+                            {op.typeCategory === 'in' ? (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 5v14M19 12l-7 7-7-7" />
+                              </svg>
+                            ) : op.typeCategory === 'out' ? (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 19V5M5 12l7-7 7 7" />
+                              </svg>
+                            ) : (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M8 12h8M12 8l4 4-4 4" />
                               </svg>
                             )}
                           </div>
-                        </div>
+                        ) : null}
                       </td>
+                      <td className={styles.tableCell}>{op.accrualDate || '-'}</td>
                       <td className={styles.tableCell}>
                         <div className={styles.dateCell}>
                           <span className={styles.datePrimary}>{op.date}</span>
-                      {op.dateSecondary && (
-                        <span className={styles.dateSecondary}>{op.dateSecondary}</span>
-                      )}
-                      </div>
-                    </td>
-                    <td className={cn(styles.tableCell, styles.accountCell)}>{op.account}</td>
-                    <td className={styles.tableCell}>
-                      {op.typeLabel ? (
-                        <div className={cn(
-                          styles.typeIcon,
-                          op.typeCategory === 'in' && styles.typeIconIn,
-                          op.typeCategory === 'out' && styles.typeIconOut,
-                          op.typeCategory === 'transfer' && styles.typeIconTransfer
-                        )}>
-                          {op.typeCategory === 'in' ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 5v14M19 12l-7 7-7-7" />
-                            </svg>
-                          ) : op.typeCategory === 'out' ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 19V5M5 12l7-7 7 7" />
-                            </svg>
-                          ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M8 12h8M12 8l4 4-4 4" />
-                            </svg>
+                          {op.dateSecondary && (
+                            <span className={styles.dateSecondary}>{op.dateSecondary}</span>
                           )}
                         </div>
-                      ) : null}
-                    </td>
-                  <td className={cn(styles.tableCell, styles.counterpartyCell)}>{op.counterparty}</td>
-                  <td className={cn(styles.tableCell, styles.statusCell)}>{op.status}</td>
-                    <td className={cn(styles.tableCell, styles.projectCell)}>{op.project}</td>
-                    <td className={cn(styles.tableCell, styles.projectCell)}></td>
-                    <td className={cn(
-                      styles.tableCell,
-                      styles.amountCell,
-                      op.typeCategory === 'in' && styles.positive,
-                      op.typeCategory === 'out' && styles.negative,
-                      op.typeCategory === 'transfer' && styles.neutral
-                    )}>
-                    {op.amount}
                       </td>
+                      <td className={styles.tableCell}>
+                        <div className={cn(
+                          styles.paymentStatus,
+                          op.oplata_podtverzhdena ? styles.paymentStatusConfirmed : styles.paymentStatusNotConfirmed
+                        )}>
+                          <span className={styles.paymentStatusDot}></span>
+                          {op.oplata_podtverzhdena ? 'Да' : 'Нет'}
+                        </div>
+                      </td>
+                      <td className={cn(
+                        styles.tableCell,
+                        styles.amountCell,
+                        op.typeCategory === 'in' && styles.positive,
+                        op.typeCategory === 'out' && styles.negative,
+                        op.typeCategory === 'transfer' && styles.neutral
+                      )}>
+                        {op.amount}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.currencyCell)}>
+                        {op.currency || 'RUB'}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.descriptionCell)}>
+                        {op.description || '-'}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.statusCell)}>
+                        {op.status}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.accountCell)}>
+                        {op.account}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.counterpartyCell)}>
+                        {op.counterparty}
+                      </td>
+                      <td className={styles.tableCell}>{op.createdAt || '-'}</td>
+                      <td className={styles.tableCell}>{op.updatedAt || '-'}</td>
                       <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                         <OperationMenu
                           operation={op}
@@ -699,42 +666,14 @@ export default function OperationsPage() {
               )}
 
               {/* Yesterday Operations */}
-              {operations.filter(op => op.section === 'yesterday').map((op) => (
+              {operations.filter(op => op.section === 'yesterday').map((op, index) => (
                 <tr key={op.id} className={styles.tableRow} onClick={(e) => {
                   if (!e.target.closest('input') && !e.target.closest('button')) {
                     openOperationModal(op)
                   }
                 }}>
-                  <td className={cn(styles.tableCell, styles.tableCellCheckbox)} onClick={(e) => e.stopPropagation()}>
-                    <div style={{ position: 'relative' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedOperations.includes(op.id)}
-                        onChange={() => toggleOperation(op.id)}
-                        className={styles.checkboxInput}
-                      />
-                      <div 
-                        className={cn(
-                          styles.checkbox,
-                          selectedOperations.includes(op.id) && styles.checkboxChecked
-                        )}
-                        style={{
-                          '--checkbox-bg': selectedOperations.includes(op.id) ? '#6366f1' : 'white',
-                          '--checkbox-border': selectedOperations.includes(op.id) ? '#6366f1' : '#d1d5db',
-                          '--checkbox-hover-border': '#9ca3af',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '0.125rem'
-                        }}
-                        onClick={() => toggleOperation(op.id)}
-                      >
-                        {selectedOperations.includes(op.id) && (
-                          <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" style={{ width: '0.75rem', height: '0.75rem' }}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
+                  <td className={cn(styles.tableCell, styles.tableCellIndex)}>
+                    {operations.filter(o => o.section === 'today').length + index + 1}
                   </td>
                   <td className={styles.tableCell}>
                     {op.typeLabel ? (
