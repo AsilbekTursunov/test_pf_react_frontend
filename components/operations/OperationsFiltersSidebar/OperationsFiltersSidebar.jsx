@@ -1225,23 +1225,6 @@ export function OperationsFiltersSidebar({
           </div>
         </div>
 
-        {/* Сумма */}
-        <div className={styles.filterSection}>
-          <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.75rem' }}>Сумма от</h3>
-          <div className={styles.amountInputs}>
-            <input
-              type="text"
-              placeholder=""
-              className={styles.amountInput}
-            />
-            <span className={styles.amountInputSeparator}>до</span>
-            <input
-              type="text"
-              placeholder=""
-              className={styles.amountInput}
-            />
-          </div>
-        </div>
       </div>
     </div>
   )

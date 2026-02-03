@@ -71,6 +71,7 @@
   height: 100vh;
   background-color: #f9fafb;
   position: relative;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -82,6 +83,7 @@
   height: 100vh;
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .sidebarContent {
@@ -262,35 +264,35 @@
   border: 1px solid #e5e7eb;
   z-index: 1000;
   animation: var(--modal-animation, fadeSlideIn 0.25s ease-out);
-  width: var(--modal-width, 440px);
+  width: var(--modal-width, 380px);
 }
 
 .datePickerModalContent {
-  padding: 1rem;
+  padding: 0.75rem;
 }
 
 .datePickerModalTitle {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
   color: #6b7280;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .datePickerModalBody {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .quickRanges {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
 
 .quickRangeButton {
-  padding: 0.375rem 0.75rem;
-  font-size: 13px;
+  padding: 0.25rem 0.5rem;
+  font-size: 12px;
   color: #6366f1;
   background-color: #f9fafb;
   transition: background-color 0.2s;
@@ -304,10 +306,10 @@
 }
 
 .calendar {
-  width: 240px;
+  width: 220px;
   background-color: #f9fafb;
   border-radius: 0.25rem;
-  padding: 0.625rem;
+  padding: 0.5rem;
   animation: fadeSlideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -315,14 +317,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.375rem;
 }
 
 .calendarNavButton {
   color: #475569;
-  font-size: 14px;
-  width: 1.25rem;
-  height: 1.25rem;
+  font-size: 12px;
+  width: 1rem;
+  height: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,7 +336,7 @@
 }
 
 .calendarMonth {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: #0f172a;
 }
@@ -342,16 +344,16 @@
 .calendarWeekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.25rem;
-  margin-bottom: 0.5rem;
+  gap: 0.125rem;
+  margin-bottom: 0.375rem;
 }
 
 .calendarWeekday {
   text-align: center;
-  font-size: 10px;
+  font-size: 9px;
   color: #6b7280;
   font-weight: 500;
-  padding: 0.25rem 0;
+  padding: 0.125rem 0;
 }
 
 .calendarDays {
@@ -365,7 +367,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10px;
   border-radius: 0.25rem;
   transition: all 0.2s;
 
@@ -405,16 +407,16 @@
 .dateInputs {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
 }
 
 .dateInput {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
   border: 1px solid;
   border-radius: 0.25rem;
   transition: all 0.2s;
@@ -434,34 +436,34 @@
 }
 
 .dateInputIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
   color: #9ca3af;
 }
 
 .dateInputText {
-  font-size: 13px;
+  font-size: 11px;
   color: #334155;
 }
 
 .dateInputSeparator {
   color: #9ca3af;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .datePickerActions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid #e5e7eb;
 }
 
 .datePickerActionButton {
-  padding: 0.375rem 1rem;
-  font-size: 14px;
+  padding: 0.25rem 0.75rem;
+  font-size: 12px;
   font-weight: 400;
   transition: color 0.2s;
 
@@ -474,7 +476,7 @@
   }
 
   &.apply {
-    padding: 0.375rem 1.25rem;
+    padding: 0.25rem 1rem;
     background-color: #6366f1;
     color: white;
     border-radius: 0.25rem;
@@ -661,12 +663,15 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  min-width: 0;
+  padding-bottom: 60px; // Высота футера
 }
 
 .header {
   background-color: white;
   border-bottom: 1px solid #e5e7eb;
   padding: 0.875rem 1.5rem;
+  flex-shrink: 0;
 }
 
 .headerInner {
@@ -767,7 +772,7 @@
 
 .tableArea {
   flex: 1;
-  overflow: hidden; // Убираем overflow отсюда
+  overflow: hidden;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   display: flex;
   flex-direction: column;
@@ -792,7 +797,7 @@
   overflow-x: auto;
   position: relative;
   border-radius: 0.75rem;
-  // Создаем новый контекст для sticky
+  min-height: 0;
 }
 
 .selectionBar {
@@ -880,7 +885,6 @@
   background: white;
   position: sticky;
   top: 0;
-  z-index: 10;
 }
 
 .tableHeaderRow {

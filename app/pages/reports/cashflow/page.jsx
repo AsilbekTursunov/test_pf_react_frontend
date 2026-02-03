@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,16 +8,9 @@ import {
   flexRender,
   createColumnHelper,
 } from '@tanstack/react-table'
-import { DropdownFilter } from '@/components/directories/DropdownFilter/DropdownFilter'
 import { cn } from '@/app/lib/utils'
 import { generateMockOperations } from './mockData'
 import styles from './cashflow.module.scss'
-
-const REPORT_TYPES = [
-  { value: 'cashflow', label: 'Отчет о движении денежных средств' },
-  { value: 'profit', label: 'Отчет о прибылях и убытках' },
-  { value: 'balance', label: 'Баланс' }
-]
 
 // Структура данных с вложенностью
 const createReportData = (operations) => {
@@ -196,33 +189,15 @@ const createReportData = (operations) => {
 }
 
 export default function CashFlowReportPage() {
-  const [selectedReportType, setSelectedReportType] = useState('cashflow')
-  const [isReportTypeDropdownOpen, setIsReportTypeDropdownOpen] = useState(false)
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true)
   const [dateRange, setDateRange] = useState({
     start: new Date(2025, 9, 1), // октябрь 2025
     end: new Date(2026, 1, 28) // февраль 2026
   })
-  const [selectedAccounts, setSelectedAccounts] = useState([])
-  const [selectedCounterparties, setSelectedCounterparties] = useState([])
-  const [selectedLegalEntities, setSelectedLegalEntities] = useState([])
   const [expanded, setExpanded] = useState({
     operational: true, // По умолчанию развернут операционный поток
     receipts: true,
   })
   const [useMockData, setUseMockData] = useState(true) // Используем мок-данные
-  const dropdownRef = useRef(null)
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsReportTypeDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   // Генерируем мок-данные
   const mockOperations = useMemo(() => {
@@ -243,16 +218,8 @@ export default function CashFlowReportPage() {
       filters.data_operatsii = { ...filters.data_operatsii, $lte: dateRange.end.toISOString() }
     }
     
-    if (selectedAccounts.length > 0) {
-      filters.bank_accounts_id = selectedAccounts
-    }
-    
-    if (selectedCounterparties.length > 0) {
-      filters.counterparties_id = selectedCounterparties
-    }
-    
     return filters
-  }, [dateRange, selectedAccounts, selectedCounterparties])
+  }, [dateRange])
 
   // Используем мок-данные или реальные данные
   const operations = useMockData ? mockOperations : []
@@ -382,44 +349,6 @@ export default function CashFlowReportPage() {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.headerTitle}>Отчёты</h1>
-          <div className={styles.reportTypeDropdown} ref={dropdownRef}>
-            <button
-              className={styles.dropdownButton}
-              onClick={() => setIsReportTypeDropdownOpen(!isReportTypeDropdownOpen)}
-            >
-              {REPORT_TYPES.find(r => r.value === selectedReportType)?.label || 'Выберите отчет'}
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            {isReportTypeDropdownOpen && (
-              <div className={styles.dropdownMenu}>
-                {REPORT_TYPES.map((type) => (
-                  <button
-                    key={type.value}
-                    className={cn(
-                      styles.dropdownItem,
-                      selectedReportType === type.value && styles.dropdownItemActive
-                    )}
-                    onClick={() => {
-                      setSelectedReportType(type.value)
-                      setIsReportTypeDropdownOpen(false)
-                    }}
-                  >
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className={styles.headerRight}>
-          <div className={styles.currencySelector}>
-            <span>RUB</span>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: '0.5rem' }}>
-              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
       </div>
 
@@ -443,50 +372,11 @@ export default function CashFlowReportPage() {
               />
             </div>
           </div>
-          <div className={styles.filterSection}>
-            <div className={styles.filterSectionLabel}>Параметры</div>
-            <div className={styles.parameterFilters}>
-              <DropdownFilter
-                label="Юрлица и счета"
-                options={[]}
-                selectedValues={selectedAccounts}
-                onChange={setSelectedAccounts}
-                placeholder="Выберите счета..."
-                grouped={true}
-              />
-              <DropdownFilter
-                label="Контрагенты"
-                options={[]}
-                selectedValues={selectedCounterparties}
-                onChange={setSelectedCounterparties}
-                placeholder="Выберите контрагентов..."
-                grouped={false}
-              />
-              <DropdownFilter
-                label="Проекты"
-                options={[]}
-                selectedValues={[]}
-                onChange={() => {}}
-                placeholder="Выберите проекты..."
-                grouped={false}
-                disabled={true}
-              />
-              <DropdownFilter
-                label="Сделки"
-                options={[]}
-                selectedValues={[]}
-                onChange={() => {}}
-                placeholder="Выберите сделки..."
-                grouped={false}
-                disabled={true}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
       <div className={styles.contentWrapper}>
-        <div className={cn(styles.gridContainer, isRightSidebarOpen && styles.gridContainerWithSidebar)}>
+        <div className={styles.gridContainer}>
           <div className={styles.reportHeader}>
             <h2 className={styles.reportTitle}>
               Отчет о движении денежных средств
@@ -541,42 +431,6 @@ export default function CashFlowReportPage() {
             </table>
           </div>
         </div>
-
-        {/* Right Sidebar */}
-        <div className={cn(styles.rightSidebar, isRightSidebarOpen && styles.rightSidebarOpen)}>
-          <button
-            className={styles.sidebarToggle}
-            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-            aria-label={isRightSidebarOpen ? 'Свернуть сайдбар' : 'Развернуть сайдбар'}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className={cn(styles.toggleIcon, !isRightSidebarOpen && styles.toggleIconRotated)}
-            >
-              <path
-                d="M10 12L6 8L10 4"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {isRightSidebarOpen && (
-            <div className={styles.sidebarContent}>
-              <h3 className={styles.sidebarTitle}>Дополнительные параметры</h3>
-              <div className={styles.sidebarSection}>
-                <p className={styles.sidebarText}>
-                  Здесь можно разместить дополнительные настройки и параметры отчета.
-                </p>
-              </div>
-            </div>
-          )}
-          </div>
       </div>
     </div>
   )

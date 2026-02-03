@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/app/lib/utils'
 import { GroupedSelect } from '@/components/common/GroupedSelect/GroupedSelect'
 import { TreeSelect } from '@/components/common/TreeSelect/TreeSelect'
+import { DatePicker } from '@/components/common/DatePicker/DatePicker'
 import { useCounterpartiesV2, useCounterpartiesGroupsV2, useChartOfAccountsV2, useMyAccountsV2, useLegalEntitiesV2, useCurrencies } from '@/hooks/useDashboard'
 import { showSuccessNotification, showErrorNotification } from '@/lib/utils/notifications'
 import styles from './OperationModal.module.scss'
@@ -15,6 +16,30 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
   // Current active tab
   const [activeTab, setActiveTab] = useState(modalType || 'income')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Block body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+  
+  // Format number with spaces (1000000 -> 1 000 000)
+  const formatAmount = (value) => {
+    if (!value) return ''
+    // Remove all non-digit characters
+    const digitsOnly = value.toString().replace(/\D/g, '')
+    if (!digitsOnly) return ''
+    // Add spaces every 3 digits from the right
+    return digitsOnly.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  }
+  
+  // Parse formatted amount back to number (1 000 000 -> 1000000)
+  const parseAmount = (value) => {
+    if (!value) return ''
+    return value.toString().replace(/\s/g, '')
+  }
   
   // Initialize form data from operation or defaults
   const getInitialFormData = () => {
@@ -385,6 +410,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
           styles.modal,
           isOpening ? styles.opening : isClosing ? styles.closing : styles.open
         )}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.modalContent}>
           {/* Header */}
@@ -407,19 +433,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
               </button>
             </div>
             {/* Tabs */}
-            {activeTab === 'accrual' ? (
-              <div className={styles.tabs}>
-                <button 
-                  className={cn(
-                    styles.tab,
-                    styles.tabAccrual,
-                    styles.active
-                  )}
-                >
-                  Начисление
-                </button>
-              </div>
-            ) : (
             <div className={styles.tabs}>
                 <button 
                   className={cn(
@@ -448,8 +461,16 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                 >
                 Перемещение
               </button>
+                <button 
+                  className={cn(
+                styles.tab,
+                    activeTab === 'accrual' ? cn(styles.tabAccrual, styles.active) : styles.inactive
+                  )}
+                  onClick={() => setActiveTab('accrual')}
+                >
+                Начисление
+              </button>
             </div>
-            )}
 
             </div>
 
@@ -462,28 +483,15 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
               {/* Дата оплаты */}
               <div className={styles.formRow}>
                 <label className={styles.label}>Дата оплаты</label>
-                <div className={styles.inputGroup}>
-                  <input 
-                        type="date" 
-                        value={formData.paymentDate}
-                        onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                        className={styles.input}
-                      />
-                      <button className={styles.calendarButton}>
-                        <svg className={styles.calendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                  </button>
-                      <label className={styles.checkboxLabel}>
-                        <input 
-                          type="checkbox" 
-                          className={styles.checkbox}
-                          checked={formData.confirmPayment}
-                          onChange={(e) => setFormData({ ...formData, confirmPayment: e.target.checked })}
-                        />
-                        <span>Подтвердить оплату</span>
-                      </label>
-                </div>
+                <DatePicker
+                  value={formData.paymentDate}
+                  onChange={(value) => setFormData({ ...formData, paymentDate: value })}
+                  placeholder="Выберите дату"
+                  showCheckbox={true}
+                  checkboxLabel="Подтвердить оплату"
+                  checkboxValue={formData.confirmPayment}
+                  onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
+                />
               </div>
 
               {/* Счет и юрлицо */}
@@ -508,9 +516,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                 <label className={styles.label}>Сумма</label>
                 <div className={styles.inputGroup}>
                   <input 
-                        type="number" 
-                        value={formData.amount}
-                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                        type="text" 
+                        value={formatAmount(formData.amount)}
+                        onChange={(e) => setFormData({ ...formData, amount: parseAmount(e.target.value) })}
                         placeholder="0"
                         className={styles.input}
                       />
@@ -527,15 +535,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                         style={{ minWidth: '180px', maxWidth: '250px' }}
                       />
                 </div>
-              </div>
-
-                  {/* Разбить сумму / Добавить начисление */}
-              <div className={styles.formRow}>
-                <div className={styles.labelSpacer}></div>
-                    <div className={styles.buttonGroup}>
-                <button className={styles.button}>Разбить сумму</button>
-                <button className={styles.button}>Добавить начисление</button>
-                    </div>
               </div>
 
               {/* Контрагент */}
@@ -567,43 +566,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                 />
               </div>
 
-              {/* Проект */}
-              <div className={styles.formRow}>
-                <label className={styles.label}>Проект</label>
-                <GroupedSelect
-                      data={[]}
-                      value={formData.project}
-                      onChange={(value) => setFormData({ ...formData, project: value })}
-                      placeholder="Выберите проект..."
-                      groupBy={false}
-                      labelKey="label"
-                      valueKey="guid"
-                      className="flex-1"
-                      disabled={true}
-                    />
-                  </div>
-
-                  {/* Сделка продажи */}
-                  <div className={styles.formRow}>
-                    <label className={cn(styles.label, styles.labelWithIcon)}>
-                      Сделка продажи
-                      <svg className={styles.labelIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </label>
-                    <GroupedSelect
-                      data={[]}
-                      value={formData.salesDeal}
-                      onChange={(value) => setFormData({ ...formData, salesDeal: value })}
-                  placeholder="Не выбран"
-                  disabled={true}
-                  groupBy={false}
-                  labelKey="label"
-                  valueKey="guid"
-                      className="flex-1"
-                    />
-                  </div>
-
                   {/* Назначение платежа */}
                   <div className={styles.formRowStart}>
                     <label className={styles.label} style={{ paddingTop: '0.5rem' }}>Назначение платежа</label>
@@ -624,28 +586,15 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                   {/* Дата оплаты */}
                   <div className={styles.formRow}>
                     <label className={styles.label}>Дата оплаты</label>
-                    <div className={styles.inputGroup}>
-                      <input 
-                        type="date" 
-                        value={formData.paymentDate}
-                        onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                        className={styles.input}
-                      />
-                      <button className={styles.calendarButton}>
-                        <svg className={styles.calendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                      <label className={styles.checkboxLabel}>
-                        <input 
-                          type="checkbox" 
-                          className={styles.checkbox}
-                          checked={formData.confirmPayment}
-                          onChange={(e) => setFormData({ ...formData, confirmPayment: e.target.checked })}
-                        />
-                        <span>Подтвердить оплату</span>
-                      </label>
-                    </div>
+                    <DatePicker
+                      value={formData.paymentDate}
+                      onChange={(value) => setFormData({ ...formData, paymentDate: value })}
+                      placeholder="Выберите дату"
+                      showCheckbox={true}
+                      checkboxLabel="Подтвердить оплату"
+                      checkboxValue={formData.confirmPayment}
+                      onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
+                    />
                   </div>
 
                   {/* Счет и юрлицо */}
@@ -670,22 +619,13 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     <label className={styles.label}>Сумма</label>
                     <div className={styles.inputGroup}>
                       <input 
-                        type="number" 
-                        value={formData.amount}
-                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                        type="text" 
+                        value={formatAmount(formData.amount)}
+                        onChange={(e) => setFormData({ ...formData, amount: parseAmount(e.target.value) })}
                         placeholder="0"
                         className={styles.input}
                       />
                       <span className={styles.inputText}>{operation.currency || 'RUB (Российский рубль)'}</span>
-                    </div>
-                  </div>
-
-                  {/* Разбить сумму / Добавить начисление */}
-                  <div className={styles.formRow}>
-                    <div className={styles.labelSpacer}></div>
-                    <div className={styles.buttonGroup}>
-                      <button className={styles.button}>Разбить сумму</button>
-                      <button className={styles.button}>Добавить начисление</button>
                     </div>
                   </div>
 
@@ -718,64 +658,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                 />
               </div>
 
-                  {/* Проект */}
-                  <div className={styles.formRow}>
-                    <label className={styles.label}>Проект</label>
-                    <GroupedSelect
-                      data={[]}
-                      value={formData.project}
-                      onChange={(value) => setFormData({ ...formData, project: value })}
-                      placeholder="Выберите проект..."
-                      groupBy={false}
-                      labelKey="label"
-                      valueKey="guid"
-                  className="flex-1"
-                  disabled={true}
-                />
-              </div>
-
-              {/* Сделка закупки */}
-              <div className={styles.formRow}>
-                <label className={cn(styles.label, styles.labelWithIcon)}>
-                  Сделка закупки
-                  <svg className={styles.labelIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </label>
-                <GroupedSelect
-                  data={[]}
-                  value={formData.purchaseDeal}
-                  onChange={(value) => setFormData({ ...formData, purchaseDeal: value })}
-                  placeholder="Не выбран"
-                  disabled={true}
-                  groupBy={false}
-                  labelKey="label"
-                  valueKey="guid"
-                  className="flex-1"
-                />
-              </div>
-
-                  {/* Сделка продажи */}
-                  <div className={styles.formRow}>
-                    <label className={cn(styles.label, styles.labelWithIcon)}>
-                      Сделка продажи
-                      <svg className={styles.labelIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </label>
-                    <GroupedSelect
-                      data={[]}
-                      value={formData.salesDeal}
-                      onChange={(value) => setFormData({ ...formData, salesDeal: value })}
-                      placeholder="Не выбран"
-                      disabled={true}
-                      groupBy={false}
-                      labelKey="label"
-                      valueKey="guid"
-                      className="flex-1"
-                    />
-              </div>
-
               {/* Назначение платежа */}
               <div className={styles.formRowStart}>
                 <label className={styles.label} style={{ paddingTop: '0.5rem' }}>Назначение платежа</label>
@@ -804,28 +686,15 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     {/* Дата оплаты */}
                     <div className={styles.formRow}>
                       <label className={styles.label}>Дата оплаты</label>
-                      <div className={styles.inputGroup}>
-                        <input 
-                          type="date" 
-                          value={formData.fromDate}
-                          onChange={(e) => setFormData({ ...formData, fromDate: e.target.value })}
-                          className={styles.input}
-                        />
-                        <button className={styles.calendarButton}>
-                          <svg className={styles.calendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                        <label className={styles.checkboxLabel}>
-                          <input 
-                            type="checkbox" 
-                            className={styles.checkbox}
-                            checked={formData.confirmPayment}
-                            onChange={(e) => setFormData({ ...formData, confirmPayment: e.target.checked })}
-                          />
-                          <span>Подтвердить оплату</span>
-                        </label>
-                      </div>
+                      <DatePicker
+                        value={formData.fromDate}
+                        onChange={(value) => setFormData({ ...formData, fromDate: value })}
+                        placeholder="Выберите дату"
+                        showCheckbox={true}
+                        checkboxLabel="Подтвердить оплату"
+                        checkboxValue={formData.confirmPayment}
+                        onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
+                      />
                     </div>
 
                     {/* Счет и юрлицо */}
@@ -850,9 +719,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                       <label className={styles.label}>Сумма списания</label>
                       <div className={styles.inputGroup}>
                         <input 
-                          type="number" 
-                          value={formData.fromAmount}
-                          onChange={(e) => setFormData({ ...formData, fromAmount: e.target.value })}
+                          type="text" 
+                          value={formatAmount(formData.fromAmount)}
+                          onChange={(e) => setFormData({ ...formData, fromAmount: parseAmount(e.target.value) })}
                           placeholder="0"
                           className={styles.input}
                         />
@@ -870,28 +739,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                         />
                       </div>
                     </div>
-
-                    {/* Привязать к проекту */}
-                    <div className={styles.formRow}>
-                      <div className={styles.labelSpacer}></div>
-                      <button className={styles.button}>Привязать к проекту</button>
-                    </div>
-
-                    {/* Проект */}
-                    <div className={styles.formRow}>
-                      <label className={styles.label}>Проект</label>
-                      <GroupedSelect
-                        data={[]}
-                        value={formData.project}
-                        onChange={(value) => setFormData({ ...formData, project: value })}
-                        placeholder="Выберите проект..."
-                        groupBy={false}
-                        labelKey="label"
-                        valueKey="guid"
-                        className="flex-1"
-                        disabled={true}
-                      />
-                    </div>
                   </div>
 
                   {/* Секция КУДА */}
@@ -905,19 +752,11 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     {/* Дата */}
                     <div className={styles.formRow}>
                       <label className={styles.label}>Дата</label>
-                      <div className={styles.inputGroup}>
-                        <input 
-                          type="date" 
-                          value={formData.toDate}
-                          onChange={(e) => setFormData({ ...formData, toDate: e.target.value })}
-                          className={styles.input}
-                        />
-                        <button className={styles.calendarButton}>
-                          <svg className={styles.calendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                      </div>
+                      <DatePicker
+                        value={formData.toDate}
+                        onChange={(value) => setFormData({ ...formData, toDate: value })}
+                        placeholder="Выберите дату"
+                      />
                     </div>
 
                     {/* Счет и юрлицо */}
@@ -942,9 +781,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                       <label className={styles.label}>Сумма зачисления</label>
                       <div className={styles.inputGroup}>
                         <input 
-                          type="number" 
-                          value={formData.toAmount}
-                          onChange={(e) => setFormData({ ...formData, toAmount: e.target.value })}
+                          type="text" 
+                          value={formatAmount(formData.toAmount)}
+                          onChange={(e) => setFormData({ ...formData, toAmount: parseAmount(e.target.value) })}
                           placeholder="0"
                           className={styles.input}
                         />
@@ -992,19 +831,11 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     {/* Дата начисления */}
                     <div className={styles.formRow}>
                       <label className={styles.label}>Дата начисления</label>
-                      <div className={styles.inputGroup}>
-                        <input 
-                          type="date" 
-                          value={formData.accrualDate}
-                          onChange={(e) => setFormData({ ...formData, accrualDate: e.target.value })}
-                          className={styles.input}
-                        />
-                        <button className={styles.calendarButton}>
-                          <svg className={styles.calendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                      </div>
+                      <DatePicker
+                        value={formData.accrualDate}
+                        onChange={(value) => setFormData({ ...formData, accrualDate: value })}
+                        placeholder="Выберите дату"
+                      />
                     </div>
 
                     {/* Подтвердить начисление */}
@@ -1059,9 +890,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                       <label className={styles.label}>Сумма</label>
                       <div className={styles.inputGroup}>
                         <input 
-                          type="number" 
-                          value={formData.amount}
-                          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                          type="text" 
+                          value={formatAmount(formData.amount)}
+                          onChange={(e) => setFormData({ ...formData, amount: parseAmount(e.target.value) })}
                           placeholder="0"
                           className={styles.input}
                         />
@@ -1128,43 +959,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                         value={formData.counterparty}
                         onChange={(value) => setFormData({ ...formData, counterparty: value })}
                         placeholder="Не выбран"
-                        className="flex-1"
-                      />
-                    </div>
-
-                    {/* Проект */}
-                    <div className={styles.formRow}>
-                      <label className={styles.label}>Проект</label>
-                      <GroupedSelect
-                        data={[]}
-                        value={formData.project}
-                        onChange={(value) => setFormData({ ...formData, project: value })}
-                        placeholder="Не выбран"
-                        groupBy={false}
-                        labelKey="label"
-                        valueKey="guid"
-                        className="flex-1"
-                        disabled={true}
-                      />
-                    </div>
-
-                    {/* Сделка продажи */}
-                    <div className={styles.formRow}>
-                      <label className={cn(styles.label, styles.labelWithIcon)}>
-                        Сделка продажи
-                        <svg className={styles.labelIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </label>
-                      <GroupedSelect
-                        data={[]}
-                        value={formData.salesDeal}
-                        onChange={(value) => setFormData({ ...formData, salesDeal: value })}
-                        placeholder="Не выбран"
-                        disabled={true}
-                        groupBy={false}
-                        labelKey="label"
-                        valueKey="guid"
                         className="flex-1"
                       />
                     </div>

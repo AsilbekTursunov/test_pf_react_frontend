@@ -134,7 +134,7 @@ export default function LoginPage() {
       })
       
         // Redirect immediately after successful login
-      router.push('/pages/dashboard')
+      router.push('/pages/operations')
     } catch (error) {
       console.error('Login error:', error)
       const errorMessage = error.message || 'Ошибка при входе'

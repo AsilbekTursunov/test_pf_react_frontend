@@ -315,6 +315,22 @@ export default function OperationsPage() {
   const [operationToDelete, setOperationToDelete] = useState(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   
+  // Close modal when clicking on header
+  useEffect(() => {
+    if (!openModal) return
+    
+    const handleHeaderClick = (e) => {
+      // Check if click is on header element
+      const header = document.querySelector('header')
+      if (header && header.contains(e.target)) {
+        closeOperationModal()
+      }
+    }
+    
+    document.addEventListener('click', handleHeaderClick)
+    return () => document.removeEventListener('click', handleHeaderClick)
+  }, [openModal])
+  
   // Delete operation mutation
   const deleteOperationMutation = useDeleteOperation()
   

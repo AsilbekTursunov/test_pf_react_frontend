@@ -219,6 +219,24 @@ export default function KontragentDetailPage() {
     }
   }
 
+  // Close modals when clicking on page header
+  useEffect(() => {
+    const handleHeaderClick = (e) => {
+      const header = document.querySelector('header')
+      if (header && header.contains(e.target)) {
+        if (isCreateOperationModalOpen) {
+          handleCloseCreateModal()
+        }
+        if (editingOperation) {
+          handleCloseEditModal()
+        }
+      }
+    }
+
+    document.addEventListener('click', handleHeaderClick)
+    return () => document.removeEventListener('click', handleHeaderClick)
+  }, [isCreateOperationModalOpen, editingOperation])
+
   if (isLoadingCounterparty) {
     return (
       <div className={styles.container}>

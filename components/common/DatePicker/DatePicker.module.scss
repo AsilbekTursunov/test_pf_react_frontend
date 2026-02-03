@@ -1,0 +1,100 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  position: relative;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  position: relative;
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  color: #0f172a;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+}
+
+.calendarButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  
+  &:hover {
+    background-color: #f9fafb;
+    border-color: #6366f1;
+  }
+  
+  &:active {
+    background-color: #f3f4f6;
+  }
+}
+
+.calendarIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #6b7280;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  
+  &:hover {
+    color: #0f172a;
+  }
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: #6366f1;
+}
+
+.pickerWrapper {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
