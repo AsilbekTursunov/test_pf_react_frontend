@@ -11,7 +11,7 @@ import styles from './DatePicker.module.scss'
 export function DatePicker({ value, onChange, placeholder = 'Выберите дату', showCheckbox = false, checkboxLabel = '', checkboxValue = false, onCheckboxChange }) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState('')
-  const [pickerPosition, setPickerPosition] = useState({ top: 0, left: 0, width: 0 })
+  const [pickerPosition, setPickerPosition] = useState({ top: 0, left: 0, width: 0, ready: false })
   const datePickerRef = useRef(null)
   const containerRef = useRef(null)
   
@@ -38,11 +38,21 @@ export function DatePicker({ value, onChange, placeholder = 'Выберите д
   useEffect(() => {
     if (isOpen && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const pickerHeight = 350 // Approximate height of the calendar
+      
+      // Check if there's enough space below
+      const spaceBelow = viewportHeight - rect.bottom
+      const shouldOpenAbove = spaceBelow < pickerHeight && rect.top > spaceBelow
+      
       setPickerPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
-        width: rect.width
+        top: shouldOpenAbove ? rect.top - pickerHeight - 8 : rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+        ready: true
       })
+    } else {
+      setPickerPosition(prev => ({ ...prev, ready: false }))
     }
   }, [isOpen])
 
@@ -150,14 +160,14 @@ export function DatePicker({ value, onChange, placeholder = 'Выберите д
         </label>
       )}
       
-      {isOpen && typeof document !== 'undefined' && createPortal(
+      {isOpen && pickerPosition.ready && typeof document !== 'undefined' && createPortal(
         <div 
           className={styles.pickerWrapper}
           style={{
             position: 'fixed',
             top: `${pickerPosition.top}px`,
             left: `${pickerPosition.left}px`,
-            minWidth: `${pickerPosition.width}px`
+            zIndex: 9999
           }}
         >
           <ReactDatePicker

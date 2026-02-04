@@ -100,14 +100,23 @@ export function TreeSelect({
   className = "",
   disabled = false,
   loading = false,
-  allowRoot = false
+  allowRoot = false,
+  // Pagination props
+  onLoadMore = null,
+  hasMore = false,
+  isLoadingMore = false,
+  onSearch = null,
+  searchDebounceMs = 500
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const [expandedNodes, setExpandedNodes] = useState(new Set())
   const [isRoot, setIsRoot] = useState(!value)
   const dropdownRef = useRef(null)
   const buttonRef = useRef(null)
+  const listRef = useRef(null)
+  const searchTimeoutRef = useRef(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -123,6 +132,11 @@ export function TreeSelect({
 
       // Check if click is inside the dropdown
       if (dropdownRef.current && dropdownRef.current.contains(target)) {
+        return
+      }
+
+      // Don't close if there's search text (user might want to clear it)
+      if (search) {
         return
       }
 
@@ -149,7 +163,45 @@ export function TreeSelect({
       clearTimeout(timeoutId)
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isOpen])
+  }, [isOpen, search])
+
+  // Handle search with debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    if (onSearch && search) {
+      setIsSearching(true)
+      searchTimeoutRef.current = setTimeout(() => {
+        onSearch(search)
+        setIsSearching(false)
+      }, searchDebounceMs)
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [search, onSearch, searchDebounceMs])
+
+  // Handle scroll for infinite loading
+  useEffect(() => {
+    const listElement = listRef.current
+    if (!listElement || !onLoadMore || !hasMore || isLoadingMore) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = listElement
+      // Load more when scrolled to 80% of the list
+      if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+        onLoadMore()
+      }
+    }
+
+    listElement.addEventListener('scroll', handleScroll)
+    return () => listElement.removeEventListener('scroll', handleScroll)
+  }, [onLoadMore, hasMore, isLoadingMore])
 
   // Find selected item in tree
   const findNodeByValue = (nodes, targetValue) => {
@@ -188,7 +240,7 @@ export function TreeSelect({
     : selectedNode 
       ? selectedNode.title 
       : placeholder
-  const filteredData = filterTree(data, search)
+  const filteredData = onSearch ? data : filterTree(data, search)
 
   // Auto-expand nodes when searching
   useEffect(() => {
@@ -299,6 +351,29 @@ export function TreeSelect({
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             />
+            {search && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSearch('')
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                className={styles.searchClearButton}
+              >
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Root checkbox option */}
@@ -319,23 +394,33 @@ export function TreeSelect({
           )}
 
           {/* Tree list */}
-          <div className={styles.treeList}>
+          <div className={styles.treeList} ref={listRef}>
             {filteredData.length === 0 ? (
               <div className={styles.emptyState}>
-                Ничего не найдено
+                {isSearching ? 'Поиск...' : 'Ничего не найдено'}
               </div>
             ) : (
-              filteredData.map((node) => (
-                <TreeNode
-                  key={node.value}
-                  node={node}
-                  level={0}
-                  selectedValue={value}
-                  onSelect={handleSelect}
-                  expandedNodes={expandedNodes}
-                  toggleNode={toggleNode}
-                />
-              ))
+              <>
+                {filteredData.map((node) => (
+                  <TreeNode
+                    key={node.value}
+                    node={node}
+                    level={0}
+                    selectedValue={value}
+                    onSelect={handleSelect}
+                    expandedNodes={expandedNodes}
+                    toggleNode={toggleNode}
+                  />
+                ))}
+                
+                {/* Loading more indicator */}
+                {isLoadingMore && (
+                  <div className={styles.loadingMore}>
+                    <div className={styles.loadingSpinner}></div>
+                    <span>Загрузка...</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

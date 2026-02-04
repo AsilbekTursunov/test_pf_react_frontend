@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   transition: opacity 0.25s ease-in-out;
   background-color: lab(34.66 -0.95 -5.29 / 0.78);
 
@@ -18,7 +18,7 @@
   position: fixed;
   left: 50%;
   top: 50%;
-  z-index: 60;
+  z-index: 1001;
   width: 600px;
   max-height: 90vh;
   background-color: white;

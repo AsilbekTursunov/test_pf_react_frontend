@@ -76,17 +76,23 @@
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   max-height: 300px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .searchContainer {
   padding: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
+  position: relative;
+  flex-shrink: 0;
+  background-color: white;
 }
 
 .searchInput {
   width: 100%;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 2rem 0.375rem 0.75rem;
   font-size: 13px;
   border: 1px solid #d1d5db;
   border-radius: 0.25rem;
@@ -104,9 +110,31 @@
   }
 }
 
+.searchClearButton {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: #6b7280;
+  }
+}
+
 .optionsList {
   overflow-y: auto;
   max-height: 240px;
+  flex: 1;
+  min-height: 0;
 }
 
 .emptyState {
@@ -114,6 +142,10 @@
   font-size: 13px;
   color: #9ca3af;
   text-align: center;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .group {
@@ -263,4 +295,29 @@
 .createButtonIcon {
   width: 1rem;
   height: 1rem;
+}
+
+.loadingMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.loadingSpinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

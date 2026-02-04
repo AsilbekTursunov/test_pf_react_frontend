@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreateMyAccount, useUpdateMyAccount, useCurrencies, useLegalEntitiesV2 } from '@/hooks/useDashboard'
@@ -166,7 +167,7 @@ export default function CreateMyAccountModal({ isOpen, onClose, account = null }
 
   if (!isVisible && !isOpen) return null
 
-  return (
+  const modalContent = (
     <>
       <div 
         className={cn(styles.overlay, isClosing && styles.closing, !isClosing && isVisible && styles.opening)}
@@ -342,4 +343,6 @@ export default function CreateMyAccountModal({ isOpen, onClose, account = null }
       />
     </>
   )
+  
+  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null
 }

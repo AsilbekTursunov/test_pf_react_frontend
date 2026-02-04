@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { cn } from '@/app/lib/utils'
 import { useLegalEntitiesV2, useDeleteLegalEntities } from '@/hooks/useDashboard'
 import CreateLegalEntityModal from '@/components/directories/CreateLegalEntityModal/CreateLegalEntityModal'
@@ -83,6 +83,14 @@ export default function LegalEntitiesPage() {
       }
     }
   }
+
+  // Block body scroll when page is mounted
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
 
   return (
     <div className={styles.container}>

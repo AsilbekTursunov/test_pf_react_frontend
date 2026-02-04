@@ -68,9 +68,13 @@
 
 .container {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 64px);
   background-color: #f9fafb;
-  position: relative;
+  position: fixed;
+  top: 64px;
+  left: 90px;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
 }
 
@@ -80,7 +84,7 @@
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   position: relative;
   z-index: 10;
   flex-shrink: 0;
@@ -90,6 +94,34 @@
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
+  
+  /* Стилизация скроллбара для Webkit (Chrome, Safari, Edge) */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+    transition: background 0.2s;
+    
+    &:hover {
+      background: #9ca3af;
+    }
+    
+    &:active {
+      background: #6b7280;
+    }
+  }
+  
+  /* Стилизация скроллбара для Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f9fafb;
 }
 
 .sidebarHeader {
@@ -661,10 +693,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   min-width: 0;
-  padding-bottom: 60px; // Высота футера
 }
 
 .header {
@@ -778,6 +809,7 @@
   flex-direction: column;
   min-height: 0;
   padding: 1.5rem;
+  padding-bottom: 80px;
   position: relative;
   
   &::before {
@@ -798,6 +830,40 @@
   position: relative;
   border-radius: 0.75rem;
   min-height: 0;
+  
+  /* Стилизация скроллбара для Webkit (Chrome, Safari, Edge) */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    transition: background 0.2s;
+    
+    &:hover {
+      background: #94a3b8;
+    }
+    
+    &:active {
+      background: #64748b;
+    }
+  }
+  
+  &::-webkit-scrollbar-corner {
+    background: #f1f5f9;
+  }
+  
+  /* Стилизация скроллбара для Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 .selectionBar {
@@ -899,10 +965,10 @@
   border-left: none;
   box-shadow: none;
   z-index: 21;
-  min-width: 36px;
-  width: 36px;
-  text-align: center;
-  padding: 0.625rem 0.25rem;
+  min-width: 48px;
+  width: 48px;
+  text-align: right;
+  padding: 0.625rem 0.5rem;
 }
 
 .tableHeaderRow {
@@ -1040,10 +1106,11 @@
   border-left: 1px solid #e5e7eb;
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
   z-index: 20;
-  min-width: 36px;
-  width: 36px;
-  text-align: center;
-  padding: 0.625rem 0.25rem;
+  min-width: 48px;
+  width: 48px;
+  text-align: right;
+  padding: 0.625rem 0.5rem;
+  vertical-align: middle;
   
   // Важно: не создаем stacking context для ячейки, чтобы выпадающее меню могло выйти за его пределы
   isolation: auto;

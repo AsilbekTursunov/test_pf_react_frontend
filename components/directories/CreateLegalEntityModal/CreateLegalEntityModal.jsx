@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreateLegalEntity, useUpdateLegalEntity } from '@/hooks/useDashboard'
@@ -129,7 +130,7 @@ export default function CreateLegalEntityModal({ isOpen, onClose, legalEntity = 
 
   if (!isVisible) return null
 
-  return (
+  const modalContent = (
     <>
       <div 
         ref={overlayRef}
@@ -252,4 +253,6 @@ export default function CreateLegalEntityModal({ isOpen, onClose, legalEntity = 
       </div>
     </>
   )
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null
 }

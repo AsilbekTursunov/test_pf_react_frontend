@@ -20,16 +20,26 @@ export function GroupedSelect({
   createButtonText = "Создать",
   onEditGroup = null,
   onDeleteGroup = null,
-  showGroupActions = false
+  showGroupActions = false,
+  // Pagination props
+  onLoadMore = null,
+  hasMore = false,
+  isLoadingMore = false,
+  onSearch = null,
+  searchDebounceMs = 500
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const dropdownRef = useRef(null)
+  const listRef = useRef(null)
+  const searchTimeoutRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false)
+        setSearch('')
       }
     }
 
@@ -37,8 +47,46 @@ export function GroupedSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Filter data by search
-  const filteredData = data.filter(item => 
+  // Handle search with debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    if (onSearch && search) {
+      setIsSearching(true)
+      searchTimeoutRef.current = setTimeout(() => {
+        onSearch(search)
+        setIsSearching(false)
+      }, searchDebounceMs)
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [search, onSearch, searchDebounceMs])
+
+  // Handle scroll for infinite loading
+  useEffect(() => {
+    const listElement = listRef.current
+    if (!listElement || !onLoadMore || !hasMore || isLoadingMore) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = listElement
+      // Load more when scrolled to 80% of the list
+      if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+        onLoadMore()
+      }
+    }
+
+    listElement.addEventListener('scroll', handleScroll)
+    return () => listElement.removeEventListener('scroll', handleScroll)
+  }, [onLoadMore, hasMore, isLoadingMore])
+
+  // Filter data by search (only if no server-side search)
+  const filteredData = onSearch ? data : data.filter(item => 
     item[labelKey]?.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -92,29 +140,50 @@ export function GroupedSelect({
 
       {isOpen && (
         <div className={styles.dropdown}>
-          {/* Search input - only show if there's data */}
-          {!isEmpty && (
-            <div className={styles.searchContainer}>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Поиск..."
-                className={styles.searchInput}
-                autoFocus
-              />
-            </div>
-          )}
+          {/* Search input - always visible */}
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Поиск..."
+              className={styles.searchInput}
+              autoFocus
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSearch('')
+                }}
+                className={styles.searchClearButton}
+              >
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
+          </div>
 
           {/* Options list */}
-          <div className={styles.optionsList}>
+          <div className={styles.optionsList} ref={listRef}>
             {isEmpty ? (
               <div className={styles.emptyState}>
-                Ничего не найдено
+                {isSearching ? 'Поиск...' : 'Ничего не найдено'}
               </div>
             ) : (
-              Object.entries(groupedData).map(([groupName, items]) => (
-                <div key={groupName} className={styles.group}>
+              <>
+                {Object.entries(groupedData).map(([groupName, items]) => (
+                  <div key={groupName} className={styles.group}>
                   {groupBy && (
                     <div className={styles.groupHeader}>
                       <span>{groupName}</span>
@@ -209,7 +278,16 @@ export function GroupedSelect({
                     </div>
                   ))}
                 </div>
-              ))
+              ))}
+              
+              {/* Loading more indicator */}
+              {isLoadingMore && (
+                <div className={styles.loadingMore}>
+                  <div className={styles.loadingSpinner}></div>
+                  <span>Загрузка...</span>
+                </div>
+              )}
+            </>
             )}
           </div>
 

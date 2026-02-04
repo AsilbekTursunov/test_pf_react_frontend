@@ -110,6 +110,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
   // Form state
   const [formData, setFormData] = useState(getInitialFormData())
+  
   // Fetch data from API - using V2 endpoints
   const { data: counterpartiesData, isLoading: loadingCounterparties } = useCounterpartiesV2({ data: {} })
   const { data: counterpartiesGroupsData } = useCounterpartiesGroupsV2({ data: {} })
@@ -215,9 +216,38 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     return items.map(item => ({
       guid: item.guid,
       label: item.nazvanie || '',
-      group: (Array.isArray(item.tip) && item.tip.length > 0) ? item.tip[0] : 'Без группы'
+      group: (Array.isArray(item.tip) && item.tip.length > 0) ? item.tip[0] : 'Без группы',
+      rawTip: item.tip // Store raw tip for debugging
     }))
   }, [chartOfAccountsData])
+
+  // Filter chart of accounts based on active tab
+  const filteredChartOfAccounts = useMemo(() => {
+    // First, filter out items without a group
+    let filtered = chartOfAccounts.filter(item => {
+      return item.group && item.group !== 'Без группы'
+    })
+    
+    if (activeTab === 'income') {
+      // For income, show all EXCEPT "Расход" group
+      return filtered.filter(item => {
+        if (Array.isArray(item.rawTip)) {
+          return !item.rawTip.some(tip => tip && tip.includes('Расход'))
+        }
+        return !item.group.includes('Расход')
+      })
+    } else if (activeTab === 'payment') {
+      // For payment, show all EXCEPT "Доход" group
+      return filtered.filter(item => {
+        if (Array.isArray(item.rawTip)) {
+          return !item.rawTip.some(tip => tip && tip.includes('Доход'))
+        }
+        return !item.group.includes('Доход')
+      })
+    }
+    // For other tabs (transfer, accrual), show all (except "Без группы")
+    return filtered
+  }, [chartOfAccounts, activeTab])
 
   const bankAccounts = useMemo(() => {
     const items = bankAccountsData?.data?.data?.response || []
@@ -571,7 +601,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
               <div className={styles.formRow}>
                 <label className={styles.label}>Статья</label>
                     <GroupedSelect
-                      data={chartOfAccounts}
+                      data={filteredChartOfAccounts}
                       value={formData.chartOfAccount}
                       onChange={(value) => setFormData({ ...formData, chartOfAccount: value })}
                   placeholder="Выберите статью..."
@@ -673,7 +703,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                   <div className={styles.formRow}>
                     <label className={styles.label}>Статья</label>
                     <GroupedSelect
-                      data={chartOfAccounts}
+                      data={filteredChartOfAccounts}
                       value={formData.chartOfAccount}
                       onChange={(value) => setFormData({ ...formData, chartOfAccount: value })}
                       placeholder="Выберите статью..."
@@ -882,7 +912,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     <div className={styles.formRow}>
                       <label className={styles.label}>Статья списания</label>
                       <GroupedSelect
-                        data={chartOfAccounts}
+                        data={filteredChartOfAccounts}
                         value={formData.expenseItem}
                         onChange={(value) => setFormData({ ...formData, expenseItem: value })}
                         placeholder="Выберите статью списания..."
@@ -939,7 +969,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     <div className={styles.formRow}>
                       <label className={styles.label}>Статья зачисления</label>
                       <GroupedSelect
-                        data={chartOfAccounts}
+                        data={filteredChartOfAccounts}
                         value={formData.creditItem}
                         onChange={(value) => setFormData({ ...formData, creditItem: value })}
                         placeholder="Выберите статью зачисления..."

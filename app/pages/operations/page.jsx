@@ -12,6 +12,17 @@ import { DeleteConfirmModal } from '@/components/operations/OperationsTable/Dele
 import styles from './operations.module.scss'
 
 export default function OperationsPage() {
+  // Block body scroll for this page only
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+    }
+  }, [])
+  
   // Filter states
   const [isFilterOpen, setIsFilterOpen] = useState(true)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -67,21 +78,18 @@ export default function OperationsPage() {
     }
     // If both are checked, don't add filter (show all)
     
-    // Date ranges - using correct API keys
-    if (selectedDatePaymentRange?.start) {
+    // Date ranges - API doesn't support date range filtering
+    // We'll filter on frontend after receiving data
+    // Commenting out date filters for now
+    /*
+    if (selectedDatePaymentRange?.start && selectedDatePaymentRange.start !== '') {
       filters.data_operatsii = selectedDatePaymentRange.start
-      // If end date is provided, API might need it in a different format
-      if (selectedDatePaymentRange?.end) {
-        filters.data_operatsii_end = selectedDatePaymentRange.end
-      }
     }
     
-    if (selectedDateStartRange?.start) {
+    if (selectedDateStartRange?.start && selectedDateStartRange.start !== '') {
       filters.data_nachisleniya = selectedDateStartRange.start
-      if (selectedDateStartRange?.end) {
-        filters.data_nachisleniya_end = selectedDateStartRange.end
-      }
     }
+    */
     
     // Bank accounts - bank_accounts_id (array of IDs)
     const selectedAccountGuids = Object.keys(selectedAccounts).filter(guid => selectedAccounts[guid])
@@ -102,7 +110,12 @@ export default function OperationsPage() {
     }
     
     return filters
-  }, [selectedFilters, dateFilters, dateStartFilters, selectedDatePaymentRange, selectedDateStartRange, selectedAccounts, selectedCounterAgents, selectedFinancialAccounts])
+  }, [selectedFilters, dateFilters, selectedDatePaymentRange, selectedDateStartRange, selectedAccounts, selectedCounterAgents, selectedFinancialAccounts])
+
+  // Log filters for debugging
+  useEffect(() => {
+    console.log('Filters for API:', filtersForAPI)
+  }, [filtersForAPI])
 
   // Fetch data from API - using V2 endpoints
   const { data: counterAgentsData } = useCounterpartiesV2({ data: {} })
@@ -157,14 +170,55 @@ export default function OperationsPage() {
   // Extract operations list from API response (v2/items/operations format)
   const operationsItems = operationsListData?.data?.data?.response || operationsListData?.data?.response || []
   
+  // Filter operations by date ranges on frontend (since API doesn't support it)
+  const filteredOperationsItems = useMemo(() => {
+    if (!operationsItems || operationsItems.length === 0) return []
+    
+    return operationsItems.filter(item => {
+      // Filter by data_operatsii range
+      if (selectedDatePaymentRange?.start || selectedDatePaymentRange?.end) {
+        const operationDate = item.data_operatsii ? new Date(item.data_operatsii) : null
+        if (!operationDate) return false
+        
+        if (selectedDatePaymentRange.start) {
+          const startDate = new Date(selectedDatePaymentRange.start)
+          if (operationDate < startDate) return false
+        }
+        
+        if (selectedDatePaymentRange.end) {
+          const endDate = new Date(selectedDatePaymentRange.end)
+          if (operationDate > endDate) return false
+        }
+      }
+      
+      // Filter by data_nachisleniya range
+      if (selectedDateStartRange?.start || selectedDateStartRange?.end) {
+        const accrualDate = item.data_nachisleniya ? new Date(item.data_nachisleniya) : null
+        if (!accrualDate) return false
+        
+        if (selectedDateStartRange.start) {
+          const startDate = new Date(selectedDateStartRange.start)
+          if (accrualDate < startDate) return false
+        }
+        
+        if (selectedDateStartRange.end) {
+          const endDate = new Date(selectedDateStartRange.end)
+          if (accrualDate > endDate) return false
+        }
+      }
+      
+      return true
+    })
+  }, [operationsItems, selectedDatePaymentRange, selectedDateStartRange])
+  
   // Transform operations data for display
   const operations = useMemo(() => {
-    if (!operationsItems || operationsItems.length === 0) return []
+    if (!filteredOperationsItems || filteredOperationsItems.length === 0) return []
     
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    return operationsItems.map((item, index) => {
+    return filteredOperationsItems.map((item, index) => {
       const operationDate = item.data_operatsii ? new Date(item.data_operatsii) : null
       const accrualDate = item.data_nachisleniya ? new Date(item.data_nachisleniya) : null
       
@@ -301,9 +355,19 @@ export default function OperationsPage() {
   }
 
   const selectAllAccounts = () => {
-    const allSelected = {}
-    bankAccounts.forEach(account => allSelected[account.guid] = true)
-    setSelectedAccounts(allSelected)
+    // Check if all accounts are already selected
+    const allAccountGuids = bankAccounts.map(account => account.guid)
+    const allSelected = allAccountGuids.every(guid => selectedAccounts[guid])
+    
+    if (allSelected) {
+      // If all are selected, deselect all
+      setSelectedAccounts({})
+    } else {
+      // If not all are selected, select all
+      const newSelected = {}
+      bankAccounts.forEach(account => newSelected[account.guid] = true)
+      setSelectedAccounts(newSelected)
+    }
   }
 
   const [selectedOperations, setSelectedOperations] = useState([])
@@ -450,9 +514,19 @@ export default function OperationsPage() {
   }
 
   const handleSelectAllCounterAgents = () => {
-    const allSelected = {}
-    counterAgents.forEach(ca => allSelected[ca.guid] = true)
-    setSelectedCounterAgents(allSelected)
+    // Check if all counter agents are already selected
+    const allCounterAgentGuids = counterAgents.map(ca => ca.guid)
+    const allSelected = allCounterAgentGuids.every(guid => selectedCounterAgents[guid])
+    
+    if (allSelected) {
+      // If all are selected, deselect all
+      setSelectedCounterAgents({})
+    } else {
+      // If not all are selected, select all
+      const newSelected = {}
+      counterAgents.forEach(ca => newSelected[ca.guid] = true)
+      setSelectedCounterAgents(newSelected)
+    }
   }
 
   const handleCounterAgentToggle = (guid) => {

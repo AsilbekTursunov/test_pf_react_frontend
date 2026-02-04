@@ -11,6 +11,17 @@ import { cn } from '@/app/lib/utils'
 import styles from './accounts.module.scss'
 
 export default function AccountsPage() {
+  // Block body scroll for this page only
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+    }
+  }, [])
+  
   const [isFilterOpen, setIsFilterOpen] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)

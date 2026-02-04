@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChartOfAccountsV2, useCreateCounterparty, useCreateCounterpartiesGroup, useCounterpartiesGroupsV2, useUpdateCounterpartiesGroup, useDeleteCounterpartiesGroups } from '@/hooks/useDashboard'
@@ -217,7 +218,7 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
 
   if (!isOpen && !isVisible) return null
 
-  return (
+  const modalContent = (
     <>
       <div 
         className={cn(styles.overlay, isClosing ? styles.closing : styles.opening)}
@@ -538,4 +539,6 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
       />
     </>
   )
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null
 }

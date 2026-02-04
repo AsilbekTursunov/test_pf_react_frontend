@@ -207,11 +207,14 @@ export function Sidebar() {
                             {/* Submenu */}
                             {hasSubmenu && isSubmenuOpen && (
                                 <div 
-                                    ref={el => submenuRefs.current[index] = el}
-                                    className={styles.submenu}
-                                    style={{ 
-                                        top: `${64 + index * 56}px`
+                                    ref={el => {
+                                        submenuRefs.current[index] = el
+                                        if (el && navItemRefs.current[index]) {
+                                            const rect = navItemRefs.current[index].getBoundingClientRect()
+                                            el.style.top = `${rect.top}px`
+                                        }
                                     }}
+                                    className={styles.submenu}
                                     onMouseEnter={() => setHoveredItem(index)}
                                     onMouseLeave={() => setHoveredItem(null)}
                                 >

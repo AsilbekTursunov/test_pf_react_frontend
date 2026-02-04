@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 1000;
   transition: opacity 0.25s;
   background-color: lab(34.66 -0.95 -5.29 / 0.78);
 
@@ -18,8 +18,8 @@
   position: fixed;
   left: 50%;
   top: 50%;
-  z-index: 50;
-  width: 600px;
+  z-index: 1001;
+  width: 550px;
   max-height: 90vh;
   background-color: white;
   border-radius: 0.5rem;
@@ -43,13 +43,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #0f172a;
 }
@@ -73,19 +73,19 @@
 }
 
 .content {
-  padding: 1.5rem 2rem 2rem 2rem;
+  padding: 1rem 1.5rem;
   overflow-y: auto;
   flex: 1;
 }
 
 .tabsContainer {
   display: flex;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .tab {
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1.25rem;
   font-size: 14px;
   font-weight: 500;
   background: none;
@@ -122,20 +122,20 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .formRow {
   display: flex;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .label {
-  width: 180px;
-  padding-top: 0.75rem;
-  font-size: 15px;
+  width: 160px;
+  padding-top: 0.625rem;
+  font-size: 14px;
   color: #0f172a;
   flex-shrink: 0;
 }
@@ -152,8 +152,8 @@
 
 .input {
   flex: 1;
-  padding: 0.75rem 1rem;
-  font-size: 15px;
+  padding: 0.625rem 0.875rem;
+  font-size: 14px;
   border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   transition: all 0.2s;

@@ -164,8 +164,9 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   z-index: 1; // Создаем stacking context для контейнера
+  width: 100%;
 }
 
 .menuButton {

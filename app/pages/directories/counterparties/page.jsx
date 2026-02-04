@@ -19,6 +19,17 @@ import { cn } from '@/app/lib/utils'
 import styles from './counterparties.module.scss'
 
 export default function CounterpartiesPage() {
+  // Block body scroll for this page only
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+    }
+  }, [])
+  
   const router = useRouter()
   const queryClient = useQueryClient()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
