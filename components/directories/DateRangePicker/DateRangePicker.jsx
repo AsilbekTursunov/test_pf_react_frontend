@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import styles from './DateRangePicker.module.scss'
 
@@ -13,10 +14,12 @@ export function DateRangePicker({ selectedRange, onChange, placeholder = "Выб
   const [isClosing, setIsClosing] = useState(false)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, openUpward: false })
   const pickerRef = useRef(null)
+  const modalRef = useRef(null)
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+      if (pickerRef.current && !pickerRef.current.contains(event.target) &&
+          modalRef.current && !modalRef.current.contains(event.target)) {
         closeModal()
       }
     }
@@ -27,13 +30,30 @@ export function DateRangePicker({ selectedRange, onChange, placeholder = "Выб
   useEffect(() => {
     if (isOpen && pickerRef.current) {
       const rect = pickerRef.current.getBoundingClientRect()
-      const dropdownHeight = 400
-      const spaceBelow = window.innerHeight - rect.bottom
-      const spaceAbove = rect.top
-      const openUpward = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
+      const modalWidth = activeInput ? 600 : 440
+      const modalHeight = 400
+      
+      // Позиционируем справа от кнопки
+      let left = rect.right + 8
+      let top = rect.top
+      
+      // Проверяем, не выходит ли модалка за правый край экрана
+      if (left + modalWidth > window.innerWidth) {
+        // Если не помещается справа, открываем слева
+        left = rect.left - modalWidth - 8
+      }
+      
+      // Проверяем, не выходит ли модалка за нижний край экрана
+      const spaceBelow = window.innerHeight - rect.top
+      const openUpward = spaceBelow < modalHeight && rect.top > spaceBelow
+      
+      if (openUpward) {
+        top = rect.bottom - modalHeight
+      }
 
       setDropdownPosition({
-        top: openUpward ? rect.top - dropdownHeight - 8 : rect.bottom + 8,
+        top,
+        left,
         openUpward
       })
     }
@@ -108,11 +128,13 @@ export function DateRangePicker({ selectedRange, onChange, placeholder = "Выб
         </button>
       )}
 
-      {isOpen && (
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <div 
+          ref={modalRef}
           className={styles.modal}
           style={{ 
             top: dropdownPosition.top + 'px',
+            left: dropdownPosition.left + 'px',
             width: activeInput ? '600px' : '440px',
             animation: isClosing 
               ? 'fadeSlideOut 0.2s ease-in' 
@@ -272,7 +294,8 @@ export function DateRangePicker({ selectedRange, onChange, placeholder = "Выб
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

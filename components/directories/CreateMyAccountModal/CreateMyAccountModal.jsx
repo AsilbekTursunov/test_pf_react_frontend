@@ -5,6 +5,7 @@ import { cn } from '@/app/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreateMyAccount, useUpdateMyAccount, useCurrencies, useLegalEntitiesV2 } from '@/hooks/useDashboard'
 import { GroupedSelect } from '@/components/common/GroupedSelect/GroupedSelect'
+import { DatePicker } from '@/components/common/DatePicker/DatePicker'
 import CreateLegalEntityModal from '@/components/directories/CreateLegalEntityModal/CreateLegalEntityModal'
 import styles from './CreateMyAccountModal.module.scss'
 
@@ -258,12 +259,12 @@ export default function CreateMyAccountModal({ isOpen, onClose, account = null }
                   onChange={(e) => setFormData({ ...formData, nachalьnyy_ostatok: e.target.value })}
                   placeholder="0"
                   className={styles.input}
+                  onWheel={(e) => e.target.blur()}
                 />
-                <input
-                  type="date"
+                <DatePicker
                   value={formData.data_sozdaniya}
-                  onChange={(e) => setFormData({ ...formData, data_sozdaniya: e.target.value })}
-                  className={styles.dateInput}
+                  onChange={(value) => setFormData({ ...formData, data_sozdaniya: value })}
+                  placeholder="Выберите дату"
                 />
               </div>
             </div>
@@ -312,15 +313,15 @@ export default function CreateMyAccountModal({ isOpen, onClose, account = null }
         </div>
 
         <div className={styles.footer}>
+          <button className={styles.cancelButton} onClick={handleClose}>
+            Отменить
+          </button>
           <button 
             className={styles.saveButton}
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
             {isSubmitting ? (isEdit ? 'Сохранение...' : 'Создание...') : (isEdit ? 'Сохранить' : 'Создать')}
-          </button>
-          <button className={styles.cancelButton} onClick={handleClose}>
-            Отменить
           </button>
         </div>
       </div>

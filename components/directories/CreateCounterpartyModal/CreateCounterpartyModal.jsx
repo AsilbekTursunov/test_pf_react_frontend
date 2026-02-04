@@ -3,14 +3,17 @@
 import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/app/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
-import { useChartOfAccountsV2, useCreateCounterparty, useCreateCounterpartiesGroup, useCounterpartiesGroupsV2 } from '@/hooks/useDashboard'
+import { useChartOfAccountsV2, useCreateCounterparty, useCreateCounterpartiesGroup, useCounterpartiesGroupsV2, useUpdateCounterpartiesGroup, useDeleteCounterpartiesGroups } from '@/hooks/useDashboard'
 import { GroupedSelect } from '@/components/common/GroupedSelect/GroupedSelect'
+import EditCounterpartyGroupModal from '@/components/directories/EditCounterpartyGroupModal/EditCounterpartyGroupModal'
+import { DeleteGroupConfirmModal } from '@/components/directories/DeleteGroupConfirmModal/DeleteGroupConfirmModal'
 import styles from './CreateCounterpartyModal.module.scss'
 
 export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGroupId = null }) {
   const queryClient = useQueryClient()
   const createMutation = useCreateCounterparty()
   const createGroupMutation = useCreateCounterpartiesGroup()
+  const deleteGroupMutation = useDeleteCounterpartiesGroups()
   
   const [activeTab, setActiveTab] = useState('counterparty') // 'counterparty' or 'group'
   
@@ -36,6 +39,8 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+  const [editingGroup, setEditingGroup] = useState(null)
+  const [deletingGroup, setDeletingGroup] = useState(null)
 
   // Get chart of accounts for articles dropdowns
   const { data: chartOfAccountsData } = useChartOfAccountsV2({ data: {} })
@@ -59,6 +64,7 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
     return counterpartiesGroups.map(item => ({
       guid: item.guid,
       label: item.nazvanie_gruppy || '',
+      rawData: item // Add full group data for edit/delete
     }))
   }, [counterpartiesGroups])
 
@@ -321,6 +327,9 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
                   labelKey="label"
                   valueKey="guid"
                   className="flex-1"
+                  showGroupActions={true}
+                  onEditGroup={(item) => setEditingGroup(item.rawData)}
+                  onDeleteGroup={(item) => setDeletingGroup(item.rawData)}
                 />
               </div>
             </div>
@@ -332,11 +341,12 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
               </label>
               <div className={styles.inputContainer}>
                 <input
-                  type="text"
+                  type="number"
                   value={formData.inn}
                   onChange={(e) => setFormData({ ...formData, inn: e.target.value })}
                   placeholder="Укажите ИНН"
                   className={styles.input}
+                  onWheel={(e) => e.target.blur()}
                 />
               </div>
             </div>
@@ -345,11 +355,12 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
               <label className={styles.label}>КПП</label>
               <div className={styles.inputContainer}>
                 <input
-                  type="text"
+                  type="number"
                   value={formData.kpp}
                   onChange={(e) => setFormData({ ...formData, kpp: e.target.value })}
                   placeholder="Укажите КПП"
                   className={styles.input}
+                  onWheel={(e) => e.target.blur()}
                 />
               </div>
             </div>
@@ -495,6 +506,36 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
           </div>
         </div>
       </div>
+
+      {/* Edit Group Modal */}
+      {editingGroup && (
+        <EditCounterpartyGroupModal
+          isOpen={!!editingGroup}
+          onClose={() => setEditingGroup(null)}
+          group={editingGroup}
+        />
+      )}
+
+      {/* Delete Group Confirmation Modal */}
+      <DeleteGroupConfirmModal
+        isOpen={!!deletingGroup}
+        group={deletingGroup}
+        onConfirm={async () => {
+          if (deletingGroup?.guid) {
+            try {
+              await deleteGroupMutation.mutateAsync([deletingGroup.guid])
+              setDeletingGroup(null)
+              // Invalidate queries to refresh data
+              queryClient.invalidateQueries({ queryKey: ['counterpartiesGroupsV2'] })
+              queryClient.invalidateQueries({ queryKey: ['counterpartiesV2'] })
+            } catch (error) {
+              console.error('Error deleting group:', error)
+            }
+          }
+        }}
+        onCancel={() => setDeletingGroup(null)}
+        isDeleting={deleteGroupMutation.isPending}
+      />
     </>
   )
 }

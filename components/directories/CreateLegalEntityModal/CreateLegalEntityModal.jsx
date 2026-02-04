@@ -197,24 +197,23 @@ export default function CreateLegalEntityModal({ isOpen, onClose, legalEntity = 
               <div className={styles.inputContainer}>
                 <div className={styles.innKppContainer}>
                   <input 
-                    type="text" 
+                    type="number" 
                     value={formData.inn}
                     onChange={(e) => setFormData({ ...formData, inn: e.target.value })}
                     placeholder=""
                     className={styles.input}
+                    onWheel={(e) => e.target.blur()}
                   />
                   <span className={styles.slash}>/</span>
                   <input 
-                    type="text" 
+                    type="number" 
                     value={formData.kpp}
                     onChange={(e) => setFormData({ ...formData, kpp: e.target.value })}
                     placeholder=""
                     className={styles.input}
+                    onWheel={(e) => e.target.blur()}
                   />
                 </div>
-                <a href="#" className={styles.link} onClick={(e) => e.preventDefault()}>
-                  Параметры для выставления счета
-                </a>
               </div>
             </div>
 
@@ -239,15 +238,15 @@ export default function CreateLegalEntityModal({ isOpen, onClose, legalEntity = 
         </div>
 
         <div className={styles.footer}>
+          <button className={styles.cancelButton} onClick={handleClose}>
+            Отменить
+          </button>
           <button 
             className={styles.saveButton}
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
             {isSubmitting ? (isEdit ? 'Сохранение...' : 'Создание...') : (isEdit ? 'Сохранить' : 'Создать')}
-          </button>
-          <button className={styles.cancelButton} onClick={handleClose}>
-            Отменить
           </button>
         </div>
       </div>

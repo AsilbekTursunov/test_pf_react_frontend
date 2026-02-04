@@ -334,11 +334,12 @@ export default function EditCounterpartyModal({ isOpen, onClose, counterparty })
               </label>
               <div className={styles.inputContainer}>
                 <input
-                  type="text"
+                  type="number"
                   value={formData.inn}
                   onChange={(e) => setFormData({ ...formData, inn: e.target.value })}
                   placeholder="Укажите ИНН"
                   className={styles.input}
+                  onWheel={(e) => e.target.blur()}
                 />
               </div>
             </div>
@@ -347,11 +348,12 @@ export default function EditCounterpartyModal({ isOpen, onClose, counterparty })
               <label className={styles.label}>КПП</label>
               <div className={styles.inputContainer}>
                 <input
-                  type="text"
+                  type="number"
                   value={formData.kpp}
                   onChange={(e) => setFormData({ ...formData, kpp: e.target.value })}
                   placeholder="Укажите КПП"
                   className={styles.input}
+                  onWheel={(e) => e.target.blur()}
                 />
               </div>
             </div>
@@ -441,19 +443,19 @@ export default function EditCounterpartyModal({ isOpen, onClose, counterparty })
           <div className={styles.footer}>
             <div className={styles.footerRight}>
               <button 
+                type="submit"
+                className={styles.submitButton}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Сохранение...' : 'Сохранить'}
+              </button>
+              <button 
                 type="button"
                 onClick={handleClose} 
                 className={styles.cancelButton}
                 disabled={isSubmitting}
               >
                 Отменить
-              </button>
-              <button 
-                type="submit"
-                className={styles.submitButton}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Сохранение...' : 'Сохранить'}
               </button>
             </div>
           </div>

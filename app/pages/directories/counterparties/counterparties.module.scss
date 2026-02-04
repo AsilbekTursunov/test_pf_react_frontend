@@ -515,3 +515,95 @@
   color: #6b7280;
   font-size: 11px;
 }
+
+// Date modal styles
+.dateModalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+.dateModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 400px;
+  max-width: 90vw;
+}
+
+.dateModalContent {
+  padding: 1.5rem;
+}
+
+.dateModalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 1.5rem 0;
+}
+
+.dateModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dateModalRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dateModalLabel {
+  width: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.dateModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.dateModalButtonCancel {
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  color: #6b7280;
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #0f172a;
+  }
+}
+
+.dateModalButtonApply {
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  color: white;
+  background-color: #6366f1;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #4f46e5;
+  }
+}

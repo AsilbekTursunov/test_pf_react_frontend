@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { FilterSidebar, FilterSection, FilterCheckbox } from '@/components/directories/FilterSidebar/FilterSidebar'
 import { DropdownFilter } from '@/components/directories/DropdownFilter/DropdownFilter'
 import { SearchBar } from '@/components/directories/SearchBar/SearchBar'
+import { DateRangePicker } from '@/components/directories/DateRangePicker/DateRangePicker'
 import { useCounterpartiesV2, useCounterpartiesGroupsV2, useDeleteCounterparties, useDeleteCounterpartiesGroups, useChartOfAccountsV2 } from '@/hooks/useDashboard'
 import CreateCounterpartyModal from '@/components/directories/CreateCounterpartyModal/CreateCounterpartyModal'
 import EditCounterpartyModal from '@/components/directories/EditCounterpartyModal/EditCounterpartyModal'
@@ -38,9 +39,8 @@ export default function CounterpartiesPage() {
     selectedCounterparties: [],
     // Selected chart of accounts for filter
     selectedChartOfAccounts: [],
-    // Archive filters
-    active: true,
-    archived: true
+    // Date range filter
+    dateRange: null
   })
 
   // Build filters object for API request
@@ -75,16 +75,6 @@ export default function CounterpartiesPage() {
     
     // Type filter (Плательщик, Получатель, Смешанный) - фильтруем на фронтенде
     // Не добавляем в API фильтр, так как тип определяется на основе статей
-    
-    // Archive filter - if both checked, don't filter; if only one, filter by deleted_at
-    if (filters.active && !filters.archived) {
-      // Show only active (not deleted)
-      apiFilters.deleted_at = null
-    } else if (!filters.active && filters.archived) {
-      // Show only archived (deleted)
-      apiFilters.deleted_at = { $ne: null }
-    }
-    // If both checked, don't add filter (show all)
     
     return apiFilters
   }, [filters])
@@ -208,10 +198,13 @@ export default function CounterpartiesPage() {
     filteredItems.forEach(item => {
         if (item.counterparties_group_id) {
           if (!groupsMap.has(item.counterparties_group_id)) {
+            // Find the group data from counterpartiesGroups
+            const groupData = counterpartiesGroups.find(g => g.guid === item.counterparties_group_id)
             groupsMap.set(item.counterparties_group_id, {
               id: `group-${item.counterparties_group_id}`,
               guid: item.counterparties_group_id,
               nazvanie: item.counterparties_group || 'Без названия группы',
+              data_sozdaniya: groupData?.data_sozdaniya ? new Date(groupData.data_sozdaniya).toLocaleDateString('ru-RU') : null,
               isGroup: true,
               items: []
             })
@@ -228,7 +221,7 @@ export default function CounterpartiesPage() {
         groupedCounterparties: [...grouped, ...ungrouped],
         flatCounterparties: filteredItems
       }
-    }, [counterpartiesItems, filters.selectedTypes])
+    }, [counterpartiesItems, filters.selectedTypes, counterpartiesGroups])
 
   const totalCounterparties = flatCounterparties.length
   const [expandedGroups, setExpandedGroups] = useState(new Set())
@@ -276,22 +269,6 @@ export default function CounterpartiesPage() {
               placeholder="Выберите контрагентов"
             />
             <DropdownFilter
-              label="Юрлица"
-              options={[]}
-              selectedValues={[]}
-              onChange={() => {}}
-              placeholder="Выберите юрлица"
-              disabled={true}
-            />
-            <DropdownFilter
-              label="Проекты"
-              options={[]}
-              selectedValues={[]}
-              onChange={() => {}}
-              placeholder="Выберите проекты"
-              disabled={true}
-            />
-            <DropdownFilter
               label="Статьи учета"
               options={chartOfAccountsOptions || []}
               selectedValues={filters.selectedChartOfAccounts}
@@ -303,12 +280,11 @@ export default function CounterpartiesPage() {
         </FilterSection>
 
         <FilterSection title="Период аналитики">
-          <div className={styles.filterDropdown}>
-            <svg className={styles.filterCalendarIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className={styles.filterPlaceholder}>Выберите период</span>
-          </div>
+          <DateRangePicker
+            selectedRange={filters.dateRange}
+            onChange={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
+            placeholder="Выберите период"
+          />
         </FilterSection>
 
         <FilterSection title="Группа">
@@ -348,21 +324,6 @@ export default function CounterpartiesPage() {
                 label={group.nazvanie_gruppy || 'Без названия'}
               />
             ))}
-          </div>
-        </FilterSection>
-
-        <FilterSection title="Архив">
-          <div className="space-y-2.5">
-            <FilterCheckbox 
-              checked={filters.active} 
-              onChange={() => toggleFilter('active')} 
-              label="Показать активные" 
-            />
-            <FilterCheckbox 
-              checked={filters.archived} 
-              onChange={() => toggleFilter('archived')} 
-              label="Показать архивные" 
-            />
           </div>
         </FilterSection>
       </FilterSidebar>
@@ -562,7 +523,7 @@ export default function CounterpartiesPage() {
                             <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
                             <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
                             <td className={cn(styles.tableCell, styles.textMuted, styles.commentCell)}>–</td>
-                            <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
+                            <td className={cn(styles.tableCell, styles.textMuted)}>{item.data_sozdaniya || '–'}</td>
                             <td className={cn(styles.tableCell, styles.textMuted)}>–</td>
                             <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                               <GroupMenu

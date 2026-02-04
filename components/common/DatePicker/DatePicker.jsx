@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import ReactDatePicker from 'react-datepicker'
 import { ru } from 'date-fns/locale'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -10,7 +11,9 @@ import styles from './DatePicker.module.scss'
 export function DatePicker({ value, onChange, placeholder = 'Выберите дату', showCheckbox = false, checkboxLabel = '', checkboxValue = false, onCheckboxChange }) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState('')
+  const [pickerPosition, setPickerPosition] = useState({ top: 0, left: 0, width: 0 })
   const datePickerRef = useRef(null)
+  const containerRef = useRef(null)
   
   // Convert string date to Date object
   const dateValue = value ? (typeof value === 'string' ? new Date(value) : value) : null
@@ -30,6 +33,18 @@ export function DatePicker({ value, onChange, placeholder = 'Выберите д
   useEffect(() => {
     setInputValue(formatDate(dateValue))
   }, [value])
+
+  // Update picker position when opened
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      setPickerPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      })
+    }
+  }, [isOpen])
 
   const handleDateChange = (date) => {
     if (date) {
@@ -102,7 +117,7 @@ export function DatePicker({ value, onChange, placeholder = 'Выберите д
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       <div className={styles.inputWrapper}>
         <input 
           type="text"
@@ -135,8 +150,16 @@ export function DatePicker({ value, onChange, placeholder = 'Выберите д
         </label>
       )}
       
-      {isOpen && (
-        <div className={styles.pickerWrapper}>
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          className={styles.pickerWrapper}
+          style={{
+            position: 'fixed',
+            top: `${pickerPosition.top}px`,
+            left: `${pickerPosition.left}px`,
+            minWidth: `${pickerPosition.width}px`
+          }}
+        >
           <ReactDatePicker
             ref={datePickerRef}
             selected={dateValue}
@@ -147,7 +170,8 @@ export function DatePicker({ value, onChange, placeholder = 'Выберите д
             dateFormat="dd.MM.yyyy"
             calendarClassName={styles.calendar}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

@@ -238,6 +238,23 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     nazvanie: item.nazvanie || ''
   }))
 
+  // Get currency from selected account
+  const getAccountCurrency = (accountGuid) => {
+    if (!accountGuid) return null
+    const account = bankAccounts.find(acc => acc.guid === accountGuid)
+    if (!account || !account.currenies_id_data) return null
+    return `${account.currenies_id_data.kod || ''} (${account.currenies_id_data.nazvanie || ''})`.trim()
+  }
+
+  // Get currency from selected legal entity (through its accounts)
+  const getLegalEntityCurrency = (legalEntityGuid) => {
+    if (!legalEntityGuid) return null
+    // Find first account of this legal entity to get currency
+    const legalEntityAccounts = bankAccounts.filter(acc => acc.group === legalEntities.find(le => le.guid === legalEntityGuid)?.label)
+    if (legalEntityAccounts.length === 0 || !legalEntityAccounts[0].currenies_id_data) return null
+    return `${legalEntityAccounts[0].currenies_id_data.kod || ''} (${legalEntityAccounts[0].currenies_id_data.nazvanie || ''})`.trim()
+  }
+
   // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true)
@@ -522,19 +539,20 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                         placeholder="0"
                         className={styles.input}
                       />
-                      <GroupedSelect
-                        data={currencies}
-                        value={formData.currenies_id}
-                        onChange={(value) => setFormData({ ...formData, currenies_id: value })}
-                        placeholder="Выберите валюту..."
-                        groupBy={false}
-                        labelKey="label"
-                        valueKey="guid"
-                        loading={loadingCurrencies}
-                        className="flex-1"
-                        style={{ minWidth: '180px', maxWidth: '250px' }}
-                      />
+                      <div className={styles.currencyDisplay}>
+                        {getAccountCurrency(formData.accountAndLegalEntity) || 'Выберите счет'}
+                      </div>
                 </div>
+              </div>
+
+              {/* Дата начисления */}
+              <div className={styles.formRow}>
+                <label className={styles.label}>Дата начисления</label>
+                <DatePicker
+                  value={formData.accrualDate}
+                  onChange={(value) => setFormData({ ...formData, accrualDate: value })}
+                  placeholder="Выберите дату"
+                />
               </div>
 
               {/* Контрагент */}
@@ -627,6 +645,16 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                       />
                       <span className={styles.inputText}>{operation.currency || 'RUB (Российский рубль)'}</span>
                     </div>
+                  </div>
+
+                  {/* Дата начисления */}
+                  <div className={styles.formRow}>
+                    <label className={styles.label}>Дата начисления</label>
+                    <DatePicker
+                      value={formData.accrualDate}
+                      onChange={(value) => setFormData({ ...formData, accrualDate: value })}
+                      placeholder="Выберите дату"
+                    />
                   </div>
 
                   {/* Контрагент */}
@@ -725,18 +753,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                           placeholder="0"
                           className={styles.input}
                         />
-                        <GroupedSelect
-                          data={currencies}
-                          value={formData.currenies_id}
-                          onChange={(value) => setFormData({ ...formData, currenies_id: value })}
-                          placeholder="Выберите валюту..."
-                          groupBy={false}
-                          labelKey="label"
-                          valueKey="guid"
-                          loading={loadingCurrencies}
-                          className="flex-1"
-                          style={{ minWidth: '180px', maxWidth: '250px' }}
-                        />
+                        <div className={styles.currencyDisplay}>
+                          {getAccountCurrency(formData.fromAccount) || 'Выберите счет'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -787,18 +806,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                           placeholder="0"
                           className={styles.input}
                         />
-                        <GroupedSelect
-                          data={currencies}
-                          value={formData.currenies_id}
-                          onChange={(value) => setFormData({ ...formData, currenies_id: value })}
-                          placeholder="Выберите валюту..."
-                          groupBy={false}
-                          labelKey="label"
-                          valueKey="guid"
-                          loading={loadingCurrencies}
-                          className="flex-1"
-                          style={{ minWidth: '180px', maxWidth: '250px' }}
-                        />
+                        <div className={styles.currencyDisplay}>
+                          {getAccountCurrency(formData.toAccount) || 'Выберите счет'}
+                        </div>
                       </div>
                     </div>
 
@@ -896,18 +906,9 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                           placeholder="0"
                           className={styles.input}
                         />
-                        <GroupedSelect
-                          data={currencies}
-                          value={formData.currenies_id}
-                          onChange={(value) => setFormData({ ...formData, currenies_id: value })}
-                          placeholder="Выберите валюту..."
-                          groupBy={false}
-                          labelKey="label"
-                          valueKey="guid"
-                          loading={loadingCurrencies}
-                          className="flex-1"
-                          style={{ minWidth: '180px', maxWidth: '250px' }}
-                        />
+                        <div className={styles.currencyDisplay}>
+                          {getLegalEntityCurrency(formData.legalEntity) || 'Выберите юрлицо'}
+                        </div>
                       </div>
                     </div>
 
@@ -982,15 +983,15 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
           {/* Footer */}
           <div className={styles.footer}>
+            <button className={styles.cancelButton} onClick={onClose}>
+              Отмена
+            </button>
             <button 
               className={styles.saveButton}
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Создание...' : isNew ? 'Создать' : 'Сохранить'}
-            </button>
-            <button className={styles.cancelButton} onClick={onClose}>
-              Отмена
             </button>
           </div>
         </div>

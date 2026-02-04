@@ -11,8 +11,9 @@ export function DeleteGroupConfirmModal({ isOpen, group, onConfirm, onCancel, is
       <div 
         className={styles.deleteModalOverlay}
         onClick={onCancel}
+        style={{ zIndex: 60 }}
       />
-      <div className={styles.deleteModal}>
+      <div className={styles.deleteModal} style={{ zIndex: 70 }}>
         <div className={styles.deleteModalHeader}>
           <h3 className={styles.deleteModalTitle}>Подтверждение удаления</h3>
           <button 
