@@ -533,3 +533,30 @@
     color: #1e293b;
   }
 }
+
+.required {
+  color: #dc3545;
+  margin-left: 2px;
+}
+
+.fieldWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.errorText {
+  font-size: 12px;
+  color: #dc3545;
+  margin-top: 0.25rem;
+}
+
+.error {
+  border-color: #dc3545 !important;
+  
+  &:focus {
+    box-shadow: 0 0 0 1px #dc3545 !important;
+    border-color: #dc3545 !important;
+  }
+}

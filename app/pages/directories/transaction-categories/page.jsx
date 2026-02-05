@@ -257,24 +257,24 @@ export default function TransactionCategoriesPage() {
     if (!tabToTipMap[activeTab]) return chartOfAccountsItems
     const tipValue = tabToTipMap[activeTab]
     
-    // Helper to check if item or any of its descendants match the filter
-    const hasMatchingDescendants = (item, allItems) => {
-      // Build child map
-      const childMap = new Map()
-      allItems.forEach(i => {
-        if (i.chart_of_accounts_id_2) {
-          if (!childMap.has(i.chart_of_accounts_id_2)) {
-            childMap.set(i.chart_of_accounts_id_2, [])
-          }
-          childMap.get(i.chart_of_accounts_id_2).push(i)
+    // Build child map once for all items
+    const childMap = new Map()
+    chartOfAccountsItems.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        if (!childMap.has(item.chart_of_accounts_id_2)) {
+          childMap.set(item.chart_of_accounts_id_2, [])
         }
-      })
-      
+        childMap.get(item.chart_of_accounts_id_2).push(item)
+      }
+    })
+    
+    // Helper to check if item or any of its descendants match the filter
+    const hasMatchingDescendants = (item) => {
       const children = childMap.get(item.guid) || []
       
       // If item has children, check if any child matches (groups should be included if they have matching children)
       if (children.length > 0) {
-        return children.some(child => hasMatchingDescendants(child, allItems))
+        return children.some(child => hasMatchingDescendants(child))
       }
       
       // If no children (leaf node), check if item itself matches the filter
@@ -285,9 +285,14 @@ export default function TransactionCategoriesPage() {
       return false
     }
     
-    const filtered = chartOfAccountsItems.filter(item => hasMatchingDescendants(item, chartOfAccountsItems))
+    const filtered = chartOfAccountsItems.filter(item => hasMatchingDescendants(item))
     
     console.log('Filtered items for tab', activeTab, ':', filtered)
+    console.log('Filtered items count:', filtered.length)
+    console.log('Child map:', Array.from(childMap.entries()).map(([guid, children]) => ({
+      parent: chartOfAccountsItems.find(i => i.guid === guid)?.nazvanie,
+      children: children.map(c => c.nazvanie)
+    })))
     return filtered
   }, [chartOfAccountsItems, activeTab])
   
@@ -371,17 +376,17 @@ export default function TransactionCategoriesPage() {
     
     // Build category tree recursively
     // This function builds the tree and includes all children, even nested ones
-    const buildCategory = (item) => {
+    const buildCategory = (item, level = 0) => {
       const directChildren = childItemsMap.get(item.guid) || []
       
       // Recursively build children, which will include their own children
-      const children = directChildren.map(child => buildCategory(child))
+      const children = directChildren.map(child => buildCategory(child, level + 1))
       
       const category = {
       id: item.guid,
         guid: item.guid, // Ensure guid is correctly set from API response
       name: item.nazvanie,
-        hasMenu: true, // All items should have menu, including children
+        hasMenu: level >= 2, // Only show menu for 3rd generation and below (level 0 = 1st gen, level 1 = 2nd gen, level 2+ = 3rd gen+)
       hasLock: false,
         children: children.length > 0 ? children : undefined,
         // Additional data from API response
@@ -389,7 +394,8 @@ export default function TransactionCategoriesPage() {
         komentariy: item.komentariy,
         tip: item.tip,
         tip_operatsii: item.tip_operatsii,
-        chart_of_accounts_id_2: item.chart_of_accounts_id_2
+        chart_of_accounts_id_2: item.chart_of_accounts_id_2,
+        level: level // Store level for debugging
       }
       
       // Debug: log category structure
@@ -397,16 +403,17 @@ export default function TransactionCategoriesPage() {
         console.log('Built category with children:', {
           name: category.name,
           guid: category.guid,
+          level: category.level,
           hasMenu: category.hasMenu,
           childrenCount: children.length,
-          children: children.map(c => ({ name: c.name, guid: c.guid, hasMenu: c.hasMenu }))
+          children: children.map(c => ({ name: c.name, guid: c.guid, level: c.level, hasMenu: c.hasMenu }))
         })
       }
       
       return category
     }
     
-    const categories = rootItems.map(buildCategory)
+    const categories = rootItems.map(item => buildCategory(item, 0))
     
     // Debug: check if all items are included
     const allProcessedGuids = new Set()

@@ -56,11 +56,15 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
     { key: 'capital', label: 'Капитал' }
   ]
 
-  // Build tree structure for TreeSelect - filter by active tab and show only items from that category
-  // Returns empty array if no items found (allows creating root items)
+  // Build tree structure for TreeSelect - filter by active tab
+  // For 'income' and 'expense' tabs: allow selecting 1st generation (root items)
+  // For other tabs: only allow selecting 2nd generation and below
   const treeData = useMemo(() => {
     const currentTip = tabToTipMap[activeTab]
-    if (!currentTip || allAccounts.length === 0) return [] // Empty array allows creating root items
+    if (!currentTip || allAccounts.length === 0) return []
+
+    // Check if this is income or expense tab (allow root selection)
+    const allowRootSelection = activeTab === 'income' || activeTab === 'expense'
 
     // Filter accounts by current tab tip
     const filteredAccounts = allAccounts.filter(item => {
@@ -71,22 +75,18 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
     if (filteredAccounts.length === 0) return []
 
     // Create a map of all filtered items by guid for quick lookup
-    // Use the last occurrence if there are duplicates (shouldn't happen, but just in case)
     const itemsMap = new Map()
     filteredAccounts.forEach(item => {
       itemsMap.set(item.guid, item)
     })
 
     // Build child items map: parentGuid -> [children]
-    // Include ALL children that have a parent in filtered accounts
     const childItemsMap = new Map()
     const allChildGuids = new Set()
 
-    // First pass: build child-parent relationships
     filteredAccounts.forEach(item => {
       if (item.chart_of_accounts_id_2) {
         const parentGuid = item.chart_of_accounts_id_2
-        // Check if parent exists in filtered accounts
         if (itemsMap.has(parentGuid)) {
           if (!childItemsMap.has(parentGuid)) {
             childItemsMap.set(parentGuid, [])
@@ -97,66 +97,46 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
       }
     })
 
-    // Find root items: items that are in filtered accounts AND either:
-    // 1. Have no parent (chart_of_accounts_id_2 is null)
-    // 2. Have a parent that is NOT in filtered accounts
-    // 3. Are not already added as children
+    // Find root items (1st generation)
     const rootItems = []
     filteredAccounts.forEach(item => {
-      // Skip if this item is already a child
       if (allChildGuids.has(item.guid)) {
         return
       }
 
       if (!item.chart_of_accounts_id_2) {
-        // No parent - definitely a root item
         rootItems.push(item)
       } else {
         const parentGuid = item.chart_of_accounts_id_2
         const parentInFiltered = itemsMap.has(parentGuid)
         
         if (!parentInFiltered) {
-          // Parent is not in filtered accounts, so this item is a root item
           rootItems.push(item)
         }
-        // If parent is in filtered accounts, this item should have been added as child above
-        // If it wasn't, it means there's a data inconsistency, but we'll treat it as root
       }
     })
 
-    // Build tree structure for TreeSelect recursively
-    const buildTree = (item) => {
+    // Build tree structure
+    // For income/expense: 1st generation (level 0) is selectable
+    // For others: only 2nd generation (level 1) and below are selectable
+    const buildTree = (item, level = 0) => {
       const children = childItemsMap.get(item.guid) || []
       const treeNode = {
         value: item.guid,
         title: item.nazvanie,
-        selectable: true,
-        children: children.length > 0 ? children.map(buildTree) : undefined
-      }
-      
-      // Debug: log each node being built
-      if (children.length > 0) {
-        console.log(`Building tree for ${item.nazvanie} (${item.guid}):`, {
-          childrenCount: children.length,
-          children: children.map(c => ({ guid: c.guid, name: c.nazvanie }))
-        })
+        selectable: allowRootSelection ? true : level >= 1, // Income/expense: all levels selectable, others: only level 1+
+        children: children.length > 0 ? children.map(child => buildTree(child, level + 1)) : undefined
       }
       
       return treeNode
     }
 
-    const result = rootItems.map(buildTree)
+    const result = rootItems.map(item => buildTree(item, 0))
     
-    // Debug logging
     console.log('TreeSelect data for tab', activeTab, ':', {
+      allowRootSelection,
       filteredCount: filteredAccounts.length,
       rootItemsCount: rootItems.length,
-      childItemsMapSize: childItemsMap.size,
-      allGuids: filteredAccounts.map(i => ({ guid: i.guid, name: i.nazvanie, parent: i.chart_of_accounts_id_2 })),
-      childItemsMapEntries: Array.from(childItemsMap.entries()).map(([guid, children]) => ({
-        parent: itemsMap.get(guid)?.nazvanie || guid,
-        children: children.map(c => ({ guid: c.guid, name: c.nazvanie }))
-      })),
       treeStructure: JSON.stringify(result, null, 2)
     })
     
@@ -191,6 +171,12 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
     
     if (!formData.nazvanie.trim()) {
       newErrors.nazvanie = 'Укажите название статьи'
+    }
+    
+    // For income and expense, parent is optional (can create root items)
+    // For other tabs, parent is required
+    if (activeTab !== 'income' && activeTab !== 'expense' && !formData.chart_of_accounts_id_2) {
+      newErrors.chart_of_accounts_id_2 = 'Выберите родительскую статью (2-е поколение или ниже)'
     }
     
     setErrors(newErrors)
@@ -289,21 +275,13 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
             <div className={styles.formRow}>
               <label className={styles.label}>Относится к</label>
               <div className={styles.inputContainer}>
-                {treeData.length > 0 ? (
-                  <TreeSelect
-                    data={treeData}
-                    value={formData.chart_of_accounts_id_2}
-                    onChange={(value) => setFormData({ ...formData, chart_of_accounts_id_2: value || '' })}
-                    placeholder="Выберите родительскую статью"
-                    allowRoot={true}
-                  />
-                ) : (
-                  <div className={styles.emptyState}>
-                    <p className={styles.emptyStateText}>
-                      В этом разделе пока нет элементов. Создаваемая статья будет корневой.
-                    </p>
-                  </div>
-                )}
+                <TreeSelect
+                  data={treeData}
+                  value={formData.chart_of_accounts_id_2}
+                  onChange={(value) => setFormData({ ...formData, chart_of_accounts_id_2: value || '' })}
+                  placeholder="Выберите родительскую статью"
+                  allowRoot={activeTab === 'income' || activeTab === 'expense'}
+                />
               </div>
             </div>
 

@@ -108,6 +108,7 @@ export function TreeSelect({
   loading = false,
   allowRoot = false,
   alwaysExpanded = false, // New prop to control if groups can be collapsed
+  hasError = false,
   // Pagination props
   onLoadMore = null,
   hasMore = false,
@@ -383,7 +384,8 @@ export function TreeSelect({
         className={cn(
           styles.button,
           disabled || loading ? styles.disabled : styles.enabled,
-          !value && styles.empty
+          !value && styles.empty,
+          hasError && styles.error
         )}
       >
         <div className={styles.buttonContent}>

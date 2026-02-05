@@ -111,6 +111,14 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
   // Form state
   const [formData, setFormData] = useState(getInitialFormData())
   
+  // Validation errors state
+  const [errors, setErrors] = useState({})
+  
+  // Clear errors when switching tabs
+  useEffect(() => {
+    setErrors({})
+  }, [activeTab])
+  
   // Fetch data from API - using V2 endpoints
   const { data: counterpartiesData, isLoading: loadingCounterparties } = useCounterpartiesV2({ data: {} })
   const { data: counterpartiesGroupsData } = useCounterpartiesGroupsV2({ data: {} })
@@ -237,22 +245,21 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     const hasMatchingDescendants = (item) => {
       const children = childItemsMap.get(item.guid) || []
       
-      // If item has children, check if any child matches (groups should be included if they have matching children)
+      // Check if item itself matches the filter first
+      const itemMatches = item.tip && Array.isArray(item.tip) && item.tip.length > 0 && (
+        (activeTab === 'income' && item.tip.some(t => t && t.includes('Доход'))) ||
+        (activeTab === 'payment' && item.tip.some(t => t && t.includes('Расход')))
+      )
+      
+      // If item has children, check if any child matches
       if (children.length > 0) {
-        return children.some(child => hasMatchingDescendants(child))
+        const hasMatchingChild = children.some(child => hasMatchingDescendants(child))
+        // Include item if it matches OR has matching children
+        return itemMatches || hasMatchingChild
       }
       
-      // If no children (leaf node), check if item itself matches the filter
-      if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
-        if (activeTab === 'income' && item.tip.some(t => t && t.includes('Доход'))) {
-          return true
-        }
-        if (activeTab === 'payment' && item.tip.some(t => t && t.includes('Расход'))) {
-          return true
-        }
-      }
-      
-      return false
+      // If no children (leaf node), return whether item itself matches
+      return itemMatches
     }
     
     // Build tree structure recursively
@@ -347,6 +354,120 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     setIsSubmitting(true)
 
     try {
+      // Validation for income tab
+      if (activeTab === 'income') {
+        const validationErrors = {}
+        
+        if (!formData.paymentDate) {
+          validationErrors.paymentDate = 'Обязательное поле'
+        }
+        if (!formData.accountAndLegalEntity) {
+          validationErrors.accountAndLegalEntity = 'Обязательное поле'
+        }
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+          validationErrors.amount = 'Обязательное поле'
+        }
+        if (!formData.purpose || formData.purpose.trim() === '') {
+          validationErrors.purpose = 'Обязательное поле'
+        }
+        
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors)
+          setIsSubmitting(false)
+          return
+        }
+      }
+      
+      // Validation for payment tab
+      if (activeTab === 'payment') {
+        const validationErrors = {}
+        
+        if (!formData.paymentDate) {
+          validationErrors.paymentDate = 'Обязательное поле'
+        }
+        if (!formData.accountAndLegalEntity) {
+          validationErrors.accountAndLegalEntity = 'Обязательное поле'
+        }
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+          validationErrors.amount = 'Обязательное поле'
+        }
+        if (!formData.purpose || formData.purpose.trim() === '') {
+          validationErrors.purpose = 'Обязательное поле'
+        }
+        
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors)
+          setIsSubmitting(false)
+          return
+        }
+      }
+      
+      // Validation for transfer tab
+      if (activeTab === 'transfer') {
+        const validationErrors = {}
+        
+        if (!formData.fromDate) {
+          validationErrors.fromDate = 'Обязательное поле'
+        }
+        if (!formData.fromAccount) {
+          validationErrors.fromAccount = 'Обязательное поле'
+        }
+        if (!formData.fromAmount || parseFloat(formData.fromAmount) <= 0) {
+          validationErrors.fromAmount = 'Обязательное поле'
+        }
+        if (!formData.toDate) {
+          validationErrors.toDate = 'Обязательное поле'
+        }
+        if (!formData.toAccount) {
+          validationErrors.toAccount = 'Обязательное поле'
+        }
+        if (!formData.toAmount || parseFloat(formData.toAmount) <= 0) {
+          validationErrors.toAmount = 'Обязательное поле'
+        }
+        if (!formData.purpose || formData.purpose.trim() === '') {
+          validationErrors.purpose = 'Обязательное поле'
+        }
+        
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors)
+          setIsSubmitting(false)
+          return
+        }
+      }
+      
+      // Validation for accrual tab
+      if (activeTab === 'accrual') {
+        const validationErrors = {}
+        
+        if (!formData.accrualDate) {
+          validationErrors.accrualDate = 'Обязательное поле'
+        }
+        if (!formData.legalEntity) {
+          validationErrors.legalEntity = 'Обязательное поле'
+        }
+        if (!formData.expenseItem) {
+          validationErrors.expenseItem = 'Обязательное поле'
+        }
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+          validationErrors.amount = 'Обязательное поле'
+        }
+        if (!formData.creditItem) {
+          validationErrors.creditItem = 'Обязательное поле'
+        }
+        if (!formData.purpose || formData.purpose.trim() === '') {
+          validationErrors.purpose = 'Обязательное поле'
+        }
+        
+        if (Object.keys(validationErrors).length > 0) {
+          setErrors(validationErrors)
+          setIsSubmitting(false)
+          return
+        }
+      }
+      
+      // Clear errors if validation passed
+      setErrors({})
+
       // Map form data to API format
       const tipMap = {
         'income': 'Поступление',
@@ -586,49 +707,86 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                 <>
               {/* Дата оплаты */}
               <div className={styles.formRow}>
-                <label className={styles.label}>Дата оплаты</label>
-                <DatePicker
-                  value={formData.paymentDate}
-                  onChange={(value) => setFormData({ ...formData, paymentDate: value })}
-                  placeholder="Выберите дату"
-                  showCheckbox={true}
-                  checkboxLabel="Подтвердить оплату"
-                  checkboxValue={formData.confirmPayment}
-                  onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
-                />
+                <label className={styles.label}>
+                  Дата оплаты <span className={styles.required}>*</span>
+                </label>
+                <div className={styles.fieldWrapper}>
+                  <DatePicker
+                    value={formData.paymentDate}
+                    onChange={(value) => {
+                      setFormData({ ...formData, paymentDate: value })
+                      if (errors.paymentDate) {
+                        setErrors({ ...errors, paymentDate: null })
+                      }
+                    }}
+                    placeholder="Выберите дату"
+                    showCheckbox={true}
+                    checkboxLabel="Подтвердить оплату"
+                    checkboxValue={formData.confirmPayment}
+                    onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
+                    className={errors.paymentDate ? styles.error : ''}
+                  />
+                  {errors.paymentDate && (
+                    <span className={styles.errorText}>{errors.paymentDate}</span>
+                  )}
+                </div>
               </div>
 
               {/* Счет и юрлицо */}
               <div className={styles.formRow}>
-                <label className={styles.label}>Счет и юрлицо</label>
-                <GroupedSelect
-                      data={bankAccounts}
-                      value={formData.accountAndLegalEntity}
-                      onChange={(value) => setFormData({ ...formData, accountAndLegalEntity: value })}
-                  placeholder="Выберите счет..."
-                  groupBy={true}
-                  labelKey="label"
-                  valueKey="guid"
-                  groupKey="group"
-                      loading={loadingBankAccounts}
-                  className="flex-1"
-                />
+                <label className={styles.label}>
+                  Счет и юрлицо <span className={styles.required}>*</span>
+                </label>
+                <div className={styles.fieldWrapper}>
+                  <GroupedSelect
+                    data={bankAccounts}
+                    value={formData.accountAndLegalEntity}
+                    onChange={(value) => {
+                      setFormData({ ...formData, accountAndLegalEntity: value })
+                      if (errors.accountAndLegalEntity) {
+                        setErrors({ ...errors, accountAndLegalEntity: null })
+                      }
+                    }}
+                    placeholder="Выберите счет..."
+                    groupBy={true}
+                    labelKey="label"
+                    valueKey="guid"
+                    groupKey="group"
+                    loading={loadingBankAccounts}
+                    hasError={!!errors.accountAndLegalEntity}
+                  />
+                  {errors.accountAndLegalEntity && (
+                    <span className={styles.errorText}>{errors.accountAndLegalEntity}</span>
+                  )}
+                </div>
               </div>
 
               {/* Сумма */}
               <div className={styles.formRow}>
-                <label className={styles.label}>Сумма</label>
-                <div className={styles.inputGroup}>
-                  <input 
-                        type="text" 
-                        value={formatAmount(formData.amount)}
-                        onChange={(e) => setFormData({ ...formData, amount: parseAmount(e.target.value) })}
-                        placeholder="0"
-                        className={styles.input}
-                      />
-                      <div className={styles.currencyDisplay}>
-                        {getAccountCurrency(formData.accountAndLegalEntity) || 'Выберите счет'}
-                      </div>
+                <label className={styles.label}>
+                  Сумма <span className={styles.required}>*</span>
+                </label>
+                <div className={styles.fieldWrapper}>
+                  <div className={styles.inputGroup}>
+                    <input 
+                      type="text" 
+                      value={formatAmount(formData.amount)}
+                      onChange={(e) => {
+                        setFormData({ ...formData, amount: parseAmount(e.target.value) })
+                        if (errors.amount) {
+                          setErrors({ ...errors, amount: null })
+                        }
+                      }}
+                      placeholder="0"
+                      className={cn(styles.input, errors.amount && styles.error)}
+                    />
+                    <div className={styles.currencyDisplay}>
+                      {getAccountCurrency(formData.accountAndLegalEntity) || 'Выберите счет'}
+                    </div>
+                  </div>
+                  {errors.amount && (
+                    <span className={styles.errorText}>{errors.amount}</span>
+                  )}
                 </div>
               </div>
 
@@ -670,14 +828,26 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                   {/* Назначение платежа */}
                   <div className={styles.formRowStart}>
-                    <label className={styles.label} style={{ paddingTop: '0.5rem' }}>Назначение платежа</label>
-                    <textarea 
-                      value={formData.purpose}
-                      onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                      placeholder="Назначение платежа"
-                      rows={3}
-                      className={styles.textarea}
-                    />
+                    <label className={styles.label} style={{ paddingTop: '0.5rem' }}>
+                      Назначение платежа <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.fieldWrapper}>
+                      <textarea 
+                        value={formData.purpose}
+                        onChange={(e) => {
+                          setFormData({ ...formData, purpose: e.target.value })
+                          if (errors.purpose) {
+                            setErrors({ ...errors, purpose: null })
+                          }
+                        }}
+                        placeholder="Назначение платежа"
+                        rows={3}
+                        className={cn(styles.textarea, errors.purpose && styles.error)}
+                      />
+                      {errors.purpose && (
+                        <span className={styles.errorText}>{errors.purpose}</span>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
@@ -687,47 +857,84 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                 <>
                   {/* Дата оплаты */}
                   <div className={styles.formRow}>
-                    <label className={styles.label}>Дата оплаты</label>
-                    <DatePicker
-                      value={formData.paymentDate}
-                      onChange={(value) => setFormData({ ...formData, paymentDate: value })}
-                      placeholder="Выберите дату"
-                      showCheckbox={true}
-                      checkboxLabel="Подтвердить оплату"
-                      checkboxValue={formData.confirmPayment}
-                      onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
-                    />
+                    <label className={styles.label}>
+                      Дата оплаты <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.fieldWrapper}>
+                      <DatePicker
+                        value={formData.paymentDate}
+                        onChange={(value) => {
+                          setFormData({ ...formData, paymentDate: value })
+                          if (errors.paymentDate) {
+                            setErrors({ ...errors, paymentDate: null })
+                          }
+                        }}
+                        placeholder="Выберите дату"
+                        showCheckbox={true}
+                        checkboxLabel="Подтвердить оплату"
+                        checkboxValue={formData.confirmPayment}
+                        onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
+                        className={errors.paymentDate ? styles.error : ''}
+                      />
+                      {errors.paymentDate && (
+                        <span className={styles.errorText}>{errors.paymentDate}</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Счет и юрлицо */}
                   <div className={styles.formRow}>
-                    <label className={styles.label}>Счет и юрлицо</label>
-                    <GroupedSelect
-                      data={bankAccounts}
-                      value={formData.accountAndLegalEntity}
-                      onChange={(value) => setFormData({ ...formData, accountAndLegalEntity: value })}
-                      placeholder="Выберите счет..."
-                      groupBy={true}
-                      labelKey="label"
-                      valueKey="guid"
-                      groupKey="group"
-                      loading={loadingBankAccounts}
-                      className="flex-1"
-                    />
+                    <label className={styles.label}>
+                      Счет и юрлицо <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.fieldWrapper}>
+                      <GroupedSelect
+                        data={bankAccounts}
+                        value={formData.accountAndLegalEntity}
+                        onChange={(value) => {
+                          setFormData({ ...formData, accountAndLegalEntity: value })
+                          if (errors.accountAndLegalEntity) {
+                            setErrors({ ...errors, accountAndLegalEntity: null })
+                          }
+                        }}
+                        placeholder="Выберите счет..."
+                        groupBy={true}
+                        labelKey="label"
+                        valueKey="guid"
+                        groupKey="group"
+                        loading={loadingBankAccounts}
+                        hasError={!!errors.accountAndLegalEntity}
+                      />
+                      {errors.accountAndLegalEntity && (
+                        <span className={styles.errorText}>{errors.accountAndLegalEntity}</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Сумма */}
                   <div className={styles.formRow}>
-                    <label className={styles.label}>Сумма</label>
-                    <div className={styles.inputGroup}>
-                      <input 
-                        type="text" 
-                        value={formatAmount(formData.amount)}
-                        onChange={(e) => setFormData({ ...formData, amount: parseAmount(e.target.value) })}
-                        placeholder="0"
-                        className={styles.input}
-                      />
-                      <span className={styles.inputText}>{operation.currency || 'RUB (Российский рубль)'}</span>
+                    <label className={styles.label}>
+                      Сумма <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.fieldWrapper}>
+                      <div className={styles.inputGroup}>
+                        <input 
+                          type="text" 
+                          value={formatAmount(formData.amount)}
+                          onChange={(e) => {
+                            setFormData({ ...formData, amount: parseAmount(e.target.value) })
+                            if (errors.amount) {
+                              setErrors({ ...errors, amount: null })
+                            }
+                          }}
+                          placeholder="0"
+                          className={cn(styles.input, errors.amount && styles.error)}
+                        />
+                        <span className={styles.inputText}>{operation.currency || 'RUB (Российский рубль)'}</span>
+                      </div>
+                      {errors.amount && (
+                        <span className={styles.errorText}>{errors.amount}</span>
+                      )}
                     </div>
                   </div>
 
@@ -769,14 +976,26 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
               {/* Назначение платежа */}
               <div className={styles.formRowStart}>
-                <label className={styles.label} style={{ paddingTop: '0.5rem' }}>Назначение платежа</label>
-                <textarea 
-                      value={formData.purpose}
-                      onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                      placeholder="Назначение платежа"
-                      rows={3}
-                      className={styles.textarea}
-                    />
+                <label className={styles.label} style={{ paddingTop: '0.5rem' }}>
+                  Назначение платежа <span className={styles.required}>*</span>
+                </label>
+                <div className={styles.fieldWrapper}>
+                  <textarea 
+                    value={formData.purpose}
+                    onChange={(e) => {
+                      setFormData({ ...formData, purpose: e.target.value })
+                      if (errors.purpose) {
+                        setErrors({ ...errors, purpose: null })
+                      }
+                    }}
+                    placeholder="Назначение платежа"
+                    rows={3}
+                    className={cn(styles.textarea, errors.purpose && styles.error)}
+                  />
+                  {errors.purpose && (
+                    <span className={styles.errorText}>{errors.purpose}</span>
+                  )}
+                </div>
                   </div>
                 </>
               )}
@@ -794,49 +1013,86 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                     {/* Дата оплаты */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Дата оплаты</label>
-                      <DatePicker
-                        value={formData.fromDate}
-                        onChange={(value) => setFormData({ ...formData, fromDate: value })}
-                        placeholder="Выберите дату"
-                        showCheckbox={true}
-                        checkboxLabel="Подтвердить оплату"
-                        checkboxValue={formData.confirmPayment}
-                        onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
-                      />
+                      <label className={styles.label}>
+                        Дата оплаты <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <DatePicker
+                          value={formData.fromDate}
+                          onChange={(value) => {
+                            setFormData({ ...formData, fromDate: value })
+                            if (errors.fromDate) {
+                              setErrors({ ...errors, fromDate: null })
+                            }
+                          }}
+                          placeholder="Выберите дату"
+                          showCheckbox={true}
+                          checkboxLabel="Подтвердить оплату"
+                          checkboxValue={formData.confirmPayment}
+                          onCheckboxChange={(checked) => setFormData({ ...formData, confirmPayment: checked })}
+                          className={errors.fromDate ? styles.error : ''}
+                        />
+                        {errors.fromDate && (
+                          <span className={styles.errorText}>{errors.fromDate}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Счет и юрлицо */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Счет и юрлицо</label>
-                      <GroupedSelect
-                        data={bankAccounts}
-                        value={formData.fromAccount}
-                        onChange={(value) => setFormData({ ...formData, fromAccount: value })}
-                        placeholder="Выберите счет..."
-                        groupBy={true}
-                        labelKey="label"
-                        valueKey="guid"
-                        groupKey="group"
-                        loading={loadingBankAccounts}
-                        className="flex-1"
-                      />
+                      <label className={styles.label}>
+                        Счет и юрлицо <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <GroupedSelect
+                          data={bankAccounts}
+                          value={formData.fromAccount}
+                          onChange={(value) => {
+                            setFormData({ ...formData, fromAccount: value })
+                            if (errors.fromAccount) {
+                              setErrors({ ...errors, fromAccount: null })
+                            }
+                          }}
+                          placeholder="Выберите счет..."
+                          groupBy={true}
+                          labelKey="label"
+                          valueKey="guid"
+                          groupKey="group"
+                          loading={loadingBankAccounts}
+                          hasError={!!errors.fromAccount}
+                        />
+                        {errors.fromAccount && (
+                          <span className={styles.errorText}>{errors.fromAccount}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Сумма списания */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Сумма списания</label>
-                      <div className={styles.inputGroup}>
-                        <input 
-                          type="text" 
-                          value={formatAmount(formData.fromAmount)}
-                          onChange={(e) => setFormData({ ...formData, fromAmount: parseAmount(e.target.value) })}
-                          placeholder="0"
-                          className={styles.input}
-                        />
-                        <div className={styles.currencyDisplay}>
-                          {getAccountCurrency(formData.fromAccount) || 'Выберите счет'}
+                      <label className={styles.label}>
+                        Сумма списания <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="text" 
+                            value={formatAmount(formData.fromAmount)}
+                            onChange={(e) => {
+                              setFormData({ ...formData, fromAmount: parseAmount(e.target.value) })
+                              if (errors.fromAmount) {
+                                setErrors({ ...errors, fromAmount: null })
+                              }
+                            }}
+                            placeholder="0"
+                            className={cn(styles.input, errors.fromAmount && styles.error)}
+                          />
+                          <div className={styles.currencyDisplay}>
+                            {getAccountCurrency(formData.fromAccount) || 'Выберите счет'}
+                          </div>
                         </div>
+                        {errors.fromAmount && (
+                          <span className={styles.errorText}>{errors.fromAmount}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -851,58 +1107,107 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                     {/* Дата */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Дата</label>
-                      <DatePicker
-                        value={formData.toDate}
-                        onChange={(value) => setFormData({ ...formData, toDate: value })}
-                        placeholder="Выберите дату"
-                      />
+                      <label className={styles.label}>
+                        Дата <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <DatePicker
+                          value={formData.toDate}
+                          onChange={(value) => {
+                            setFormData({ ...formData, toDate: value })
+                            if (errors.toDate) {
+                              setErrors({ ...errors, toDate: null })
+                            }
+                          }}
+                          placeholder="Выберите дату"
+                          className={errors.toDate ? styles.error : ''}
+                        />
+                        {errors.toDate && (
+                          <span className={styles.errorText}>{errors.toDate}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Счет и юрлицо */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Счет и юрлицо</label>
-                      <GroupedSelect
-                        data={bankAccounts}
-                        value={formData.toAccount}
-                        onChange={(value) => setFormData({ ...formData, toAccount: value })}
-                        placeholder="Выберите счет..."
-                        groupBy={true}
-                        labelKey="label"
-                        valueKey="guid"
-                        groupKey="group"
-                        loading={loadingBankAccounts}
-                        className="flex-1"
-                      />
+                      <label className={styles.label}>
+                        Счет и юрлицо <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <GroupedSelect
+                          data={bankAccounts}
+                          value={formData.toAccount}
+                          onChange={(value) => {
+                            setFormData({ ...formData, toAccount: value })
+                            if (errors.toAccount) {
+                              setErrors({ ...errors, toAccount: null })
+                            }
+                          }}
+                          placeholder="Выберите счет..."
+                          groupBy={true}
+                          labelKey="label"
+                          valueKey="guid"
+                          groupKey="group"
+                          loading={loadingBankAccounts}
+                          hasError={!!errors.toAccount}
+                        />
+                        {errors.toAccount && (
+                          <span className={styles.errorText}>{errors.toAccount}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Сумма зачисления */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Сумма зачисления</label>
-                      <div className={styles.inputGroup}>
-                        <input 
-                          type="text" 
-                          value={formatAmount(formData.toAmount)}
-                          onChange={(e) => setFormData({ ...formData, toAmount: parseAmount(e.target.value) })}
-                          placeholder="0"
-                          className={styles.input}
-                        />
-                        <div className={styles.currencyDisplay}>
-                          {getAccountCurrency(formData.toAccount) || 'Выберите счет'}
+                      <label className={styles.label}>
+                        Сумма зачисления <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="text" 
+                            value={formatAmount(formData.toAmount)}
+                            onChange={(e) => {
+                              setFormData({ ...formData, toAmount: parseAmount(e.target.value) })
+                              if (errors.toAmount) {
+                                setErrors({ ...errors, toAmount: null })
+                              }
+                            }}
+                            placeholder="0"
+                            className={cn(styles.input, errors.toAmount && styles.error)}
+                          />
+                          <div className={styles.currencyDisplay}>
+                            {getAccountCurrency(formData.toAccount) || 'Выберите счет'}
+                          </div>
                         </div>
+                        {errors.toAmount && (
+                          <span className={styles.errorText}>{errors.toAmount}</span>
+                        )}
                       </div>
                     </div>
 
                     {/* Назначение платежа */}
                     <div className={styles.formRowStart}>
-                      <label className={styles.label} style={{ paddingTop: '0.5rem' }}>Назначение платежа</label>
-                      <textarea 
-                        value={formData.purpose}
-                        onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                        placeholder="Назначение платежа"
-                        rows={3}
-                        className={styles.textarea}
-                      />
+                      <label className={styles.label} style={{ paddingTop: '0.5rem' }}>
+                        Назначение платежа <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <textarea 
+                          value={formData.purpose}
+                          onChange={(e) => {
+                            setFormData({ ...formData, purpose: e.target.value })
+                            if (errors.purpose) {
+                              setErrors({ ...errors, purpose: null })
+                            }
+                          }}
+                          placeholder="Назначение платежа"
+                          rows={3}
+                          className={cn(styles.textarea, errors.purpose && styles.error)}
+                        />
+                        {errors.purpose && (
+                          <span className={styles.errorText}>{errors.purpose}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
@@ -921,12 +1226,25 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                     {/* Дата начисления */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Дата начисления</label>
-                      <DatePicker
-                        value={formData.accrualDate}
-                        onChange={(value) => setFormData({ ...formData, accrualDate: value })}
-                        placeholder="Выберите дату"
-                      />
+                      <label className={styles.label}>
+                        Дата начисления <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <DatePicker
+                          value={formData.accrualDate}
+                          onChange={(value) => {
+                            setFormData({ ...formData, accrualDate: value })
+                            if (errors.accrualDate) {
+                              setErrors({ ...errors, accrualDate: null })
+                            }
+                          }}
+                          placeholder="Выберите дату"
+                          className={errors.accrualDate ? styles.error : ''}
+                        />
+                        {errors.accrualDate && (
+                          <span className={styles.errorText}>{errors.accrualDate}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Подтвердить начисление */}
@@ -945,47 +1263,83 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                     {/* Юрлицо */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Юрлицо</label>
-                      <GroupedSelect
-                        data={legalEntities}
-                        value={formData.legalEntity}
-                        onChange={(value) => setFormData({ ...formData, legalEntity: value })}
-                        placeholder="Выберите юрлицо..."
-                        groupBy={false}
-                        labelKey="label"
-                        valueKey="guid"
-                        loading={loadingLegalEntities}
-                        className="flex-1"
-                      />
+                      <label className={styles.label}>
+                        Юрлицо <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <GroupedSelect
+                          data={legalEntities}
+                          value={formData.legalEntity}
+                          onChange={(value) => {
+                            setFormData({ ...formData, legalEntity: value })
+                            if (errors.legalEntity) {
+                              setErrors({ ...errors, legalEntity: null })
+                            }
+                          }}
+                          placeholder="Выберите юрлицо..."
+                          groupBy={false}
+                          labelKey="label"
+                          valueKey="guid"
+                          loading={loadingLegalEntities}
+                          hasError={!!errors.legalEntity}
+                        />
+                        {errors.legalEntity && (
+                          <span className={styles.errorText}>{errors.legalEntity}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Статья списания */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Статья списания</label>
-                      <GroupedSelect
-                        data={filteredChartOfAccountsTree}
-                        value={formData.expenseItem}
-                        onChange={(value) => setFormData({ ...formData, expenseItem: value })}
-                        placeholder="Выберите статью списания..."
-                        loading={loadingChartOfAccounts}
-                        className="flex-1"
-                      />
+                      <label className={styles.label}>
+                        Статья списания <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <GroupedSelect
+                          data={filteredChartOfAccountsTree}
+                          value={formData.expenseItem}
+                          onChange={(value) => {
+                            setFormData({ ...formData, expenseItem: value })
+                            if (errors.expenseItem) {
+                              setErrors({ ...errors, expenseItem: null })
+                            }
+                          }}
+                          placeholder="Выберите статью списания..."
+                          loading={loadingChartOfAccounts}
+                          hasError={!!errors.expenseItem}
+                        />
+                        {errors.expenseItem && (
+                          <span className={styles.errorText}>{errors.expenseItem}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Сумма */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Сумма</label>
-                      <div className={styles.inputGroup}>
-                        <input 
-                          type="text" 
-                          value={formatAmount(formData.amount)}
-                          onChange={(e) => setFormData({ ...formData, amount: parseAmount(e.target.value) })}
-                          placeholder="0"
-                          className={styles.input}
-                        />
-                        <div className={styles.currencyDisplay}>
-                          {getLegalEntityCurrency(formData.legalEntity) || 'Выберите юрлицо'}
+                      <label className={styles.label}>
+                        Сумма <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <div className={styles.inputGroup}>
+                          <input 
+                            type="text" 
+                            value={formatAmount(formData.amount)}
+                            onChange={(e) => {
+                              setFormData({ ...formData, amount: parseAmount(e.target.value) })
+                              if (errors.amount) {
+                                setErrors({ ...errors, amount: null })
+                              }
+                            }}
+                            placeholder="0"
+                            className={cn(styles.input, errors.amount && styles.error)}
+                          />
+                          <div className={styles.currencyDisplay}>
+                            {getLegalEntityCurrency(formData.legalEntity) || 'Выберите юрлицо'}
+                          </div>
                         </div>
+                        {errors.amount && (
+                          <span className={styles.errorText}>{errors.amount}</span>
+                        )}
                       </div>
                     </div>
 
@@ -1014,16 +1368,28 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                     {/* Статья зачисления */}
                     <div className={styles.formRow}>
-                      <label className={styles.label}>Статья зачисления</label>
-                      <TreeSelect
-                        data={filteredChartOfAccountsTree}
-                        value={formData.creditItem}
-                        onChange={(value) => setFormData({ ...formData, creditItem: value })}
-                        placeholder="Выберите статью зачисления..."
-                        loading={loadingChartOfAccounts}
-                        className="flex-1"
-                        alwaysExpanded={true}
-                      />
+                      <label className={styles.label}>
+                        Статья зачисления <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <TreeSelect
+                          data={filteredChartOfAccountsTree}
+                          value={formData.creditItem}
+                          onChange={(value) => {
+                            setFormData({ ...formData, creditItem: value })
+                            if (errors.creditItem) {
+                              setErrors({ ...errors, creditItem: null })
+                            }
+                          }}
+                          placeholder="Выберите статью зачисления..."
+                          loading={loadingChartOfAccounts}
+                          alwaysExpanded={true}
+                          hasError={!!errors.creditItem}
+                        />
+                        {errors.creditItem && (
+                          <span className={styles.errorText}>{errors.creditItem}</span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Контрагент */}
@@ -1040,15 +1406,27 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
                     {/* Назначение */}
                     <div className={styles.formRowStart}>
-                      <label className={styles.label} style={{ paddingTop: '0.5rem' }}>Назначение</label>
-                      <textarea 
-                        value={formData.purpose}
-                        onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                  placeholder="Назначение платежа"
-                  rows={3}
-                  className={styles.textarea}
-                />
-              </div>
+                      <label className={styles.label} style={{ paddingTop: '0.5rem' }}>
+                        Назначение <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.fieldWrapper}>
+                        <textarea 
+                          value={formData.purpose}
+                          onChange={(e) => {
+                            setFormData({ ...formData, purpose: e.target.value })
+                            if (errors.purpose) {
+                              setErrors({ ...errors, purpose: null })
+                            }
+                          }}
+                          placeholder="Назначение платежа"
+                          rows={3}
+                          className={cn(styles.textarea, errors.purpose && styles.error)}
+                        />
+                        {errors.purpose && (
+                          <span className={styles.errorText}>{errors.purpose}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
