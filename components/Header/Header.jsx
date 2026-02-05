@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, MoreVertical, Maximize2, User, LogOut } from 'lucide-react'
 import { cn } from '@/app/lib/utils'
+import { useFinanceSummary } from '@/hooks/useDashboard'
 import styles from './Header.module.scss'
 
 export function Header() {
@@ -15,6 +16,15 @@ export function Header() {
     const [modalMode, setModalMode] = useState('full')
     const [isViewOpen, setIsViewOpen] = useState(false)
     const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+    // Fetch finance summary
+    const { data: financeSummaryData } = useFinanceSummary({ data: {} })
+    const financeResult = financeSummaryData?.data?.result || 0
+    
+    // Format number with spaces
+    const formatNumber = (num) => {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    }
 
     const balanceRef = useRef(null)
     const entityMenuRef = useRef(null)
@@ -84,10 +94,10 @@ export function Header() {
                             className={styles.balanceTrigger}
                         >
                             <div className={styles.balanceDot}></div>
-                            <span className={styles.balanceText}>На счетах 2 975 071 <span className={styles.balanceCurrency}>₽</span></span>
+                            <span className={styles.balanceText}>Начислено {formatNumber(financeResult)} <span className={styles.balanceCurrency}>₽</span></span>
                             <ChevronDown size={14} className={cn(styles.balanceChevron, isBalanceOpen && styles.open)} />
                         </div>
-                        <p className={styles.balanceSubtext}>Разрыв с 21.08.25 по 19.01.26</p>
+                        <p className={styles.balanceSubtext}>Финансовая сводка</p>
 
                         {/* Balance Modal */}
                         {isBalanceOpen && (

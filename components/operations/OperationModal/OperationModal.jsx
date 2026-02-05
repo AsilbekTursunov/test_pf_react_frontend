@@ -210,44 +210,101 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     }))
   }, [legalEntitiesData])
   
-  // Transform chart of accounts data
-  const chartOfAccounts = useMemo(() => {
+  // Transform chart of accounts data - show full tree filtered by type
+  const chartOfAccountsTree = useMemo(() => {
     const items = chartOfAccountsData?.data?.data?.response || []
-    return items.map(item => ({
-      guid: item.guid,
-      label: item.nazvanie || '',
-      group: (Array.isArray(item.tip) && item.tip.length > 0) ? item.tip[0] : 'Без группы',
-      rawTip: item.tip // Store raw tip for debugging
-    }))
-  }, [chartOfAccountsData])
-
-  // Filter chart of accounts based on active tab
-  const filteredChartOfAccounts = useMemo(() => {
-    // First, filter out items without a group
-    let filtered = chartOfAccounts.filter(item => {
-      return item.group && item.group !== 'Без группы'
+    if (items.length === 0) return []
+    
+    // Build a map for quick lookup
+    const itemsMap = new Map()
+    items.forEach(item => {
+      itemsMap.set(item.guid, item)
     })
     
-    if (activeTab === 'income') {
-      // For income, show all EXCEPT "Расход" group
-      return filtered.filter(item => {
-        if (Array.isArray(item.rawTip)) {
-          return !item.rawTip.some(tip => tip && tip.includes('Расход'))
+    // Build child items map: parentGuid -> [children]
+    const childItemsMap = new Map()
+    items.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        const parentGuid = item.chart_of_accounts_id_2
+        if (!childItemsMap.has(parentGuid)) {
+          childItemsMap.set(parentGuid, [])
         }
-        return !item.group.includes('Расход')
-      })
-    } else if (activeTab === 'payment') {
-      // For payment, show all EXCEPT "Доход" group
-      return filtered.filter(item => {
-        if (Array.isArray(item.rawTip)) {
-          return !item.rawTip.some(tip => tip && tip.includes('Доход'))
+        childItemsMap.get(parentGuid).push(item)
+      }
+    })
+    
+    // Helper to check if item or any of its descendants match the filter
+    const hasMatchingDescendants = (item) => {
+      const children = childItemsMap.get(item.guid) || []
+      
+      // If item has children, check if any child matches (groups should be included if they have matching children)
+      if (children.length > 0) {
+        return children.some(child => hasMatchingDescendants(child))
+      }
+      
+      // If no children (leaf node), check if item itself matches the filter
+      if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
+        if (activeTab === 'income' && item.tip.some(t => t && t.includes('Доход'))) {
+          return true
         }
-        return !item.group.includes('Доход')
-      })
+        if (activeTab === 'payment' && item.tip.some(t => t && t.includes('Расход'))) {
+          return true
+        }
+      }
+      
+      return false
     }
-    // For other tabs (transfer, accrual), show all (except "Без группы")
-    return filtered
-  }, [chartOfAccounts, activeTab])
+    
+    // Build tree structure recursively
+    const buildTree = (item) => {
+      const children = childItemsMap.get(item.guid) || []
+      
+      // Filter children - only include those that match or have matching descendants
+      const filteredChildren = children.filter(child => hasMatchingDescendants(child))
+      
+      const hasChildren = filteredChildren.length > 0
+      
+      // Determine if this item is selectable
+      // Only leaf nodes (items without children after filtering) are selectable
+      const isSelectable = !hasChildren
+      
+      const treeNode = {
+        value: item.guid,
+        title: item.nazvanie || 'Без названия',
+        selectable: isSelectable,
+        expanded: hasChildren, // Always expanded if has children
+        tip: item.tip,
+        children: hasChildren 
+          ? filteredChildren.map(child => buildTree(child))
+          : undefined
+      }
+      return treeNode
+    }
+    
+    // Find root items (level 1)
+    const rootItems = items.filter(item => !item.chart_of_accounts_id_2)
+    
+    // Filter root items - only include those that have matching descendants
+    const filteredRootItems = rootItems.filter(root => hasMatchingDescendants(root))
+    
+    // Debug: log tree structure
+    console.log('=== Chart of Accounts Tree ===')
+    console.log('Active Tab:', activeTab)
+    console.log('Filtered Root Items:', filteredRootItems.map(r => r.nazvanie))
+    
+    return filteredRootItems.map(buildTree)
+  }, [chartOfAccountsData, activeTab])
+  
+  // Debug: log the tree structure
+  useEffect(() => {
+    console.log('=== Chart of Accounts Tree ===')
+    console.log('Active Tab:', activeTab)
+    console.log('Tree:', JSON.stringify(chartOfAccountsTree, null, 2))
+    console.log('Tree length:', chartOfAccountsTree.length)
+  }, [chartOfAccountsTree, activeTab])
+
+  // Remove the old filteredChartOfAccountsTree since filtering is now done in chartOfAccountsTree
+  const filteredChartOfAccountsTree = chartOfAccountsTree
 
   const bankAccounts = useMemo(() => {
     const items = bankAccountsData?.data?.data?.response || []
@@ -300,7 +357,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
 
       const now = new Date()
       
-      // Parse dates correctly - if it's a date string (YYYY-MM-DD), set time to 19:00:00 UTC
+      // Parse dates correctly - if it's a date string (YYYY-MM-DD), set time to noon UTC to avoid timezone issues
       let paymentDate = now
       if (formData.paymentDate) {
         const dateStr = formData.paymentDate
@@ -309,8 +366,8 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
           if (dateStr.includes('T') || dateStr.includes('Z')) {
             paymentDate = new Date(dateStr)
           } else if (dateStr.includes('-')) {
-            // Date string format (YYYY-MM-DD): set to 19:00:00 UTC
-            paymentDate = new Date(dateStr + 'T19:00:00.000Z')
+            // Date string format (YYYY-MM-DD): set to noon UTC (12:00:00) to avoid timezone issues
+            paymentDate = new Date(dateStr + 'T12:00:00.000Z')
           } else {
             paymentDate = new Date(dateStr)
           }
@@ -326,7 +383,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
           if (dateStr.includes('T') || dateStr.includes('Z')) {
             accrualDate = new Date(dateStr)
           } else if (dateStr.includes('-')) {
-            accrualDate = new Date(dateStr + 'T19:00:00.000Z')
+            accrualDate = new Date(dateStr + 'T12:00:00.000Z')
           } else {
             accrualDate = new Date(dateStr)
           }
@@ -600,17 +657,14 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
               {/* Статья */}
               <div className={styles.formRow}>
                 <label className={styles.label}>Статья</label>
-                    <GroupedSelect
-                      data={filteredChartOfAccounts}
+                    <TreeSelect
+                      data={filteredChartOfAccountsTree}
                       value={formData.chartOfAccount}
                       onChange={(value) => setFormData({ ...formData, chartOfAccount: value })}
                   placeholder="Выберите статью..."
-                      groupBy={true}
-                      labelKey="label"
-                      valueKey="guid"
-                      groupKey="group"
                       loading={loadingChartOfAccounts}
                   className="flex-1"
+                      alwaysExpanded={true}
                 />
               </div>
 
@@ -702,17 +756,14 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                   {/* Статья */}
                   <div className={styles.formRow}>
                     <label className={styles.label}>Статья</label>
-                    <GroupedSelect
-                      data={filteredChartOfAccounts}
+                    <TreeSelect
+                      data={filteredChartOfAccountsTree}
                       value={formData.chartOfAccount}
                       onChange={(value) => setFormData({ ...formData, chartOfAccount: value })}
                       placeholder="Выберите статью..."
-                      groupBy={true}
-                      labelKey="label"
-                      valueKey="guid"
-                      groupKey="group"
                       loading={loadingChartOfAccounts}
                   className="flex-1"
+                      alwaysExpanded={true}
                 />
               </div>
 
@@ -912,14 +963,10 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     <div className={styles.formRow}>
                       <label className={styles.label}>Статья списания</label>
                       <GroupedSelect
-                        data={filteredChartOfAccounts}
+                        data={filteredChartOfAccountsTree}
                         value={formData.expenseItem}
                         onChange={(value) => setFormData({ ...formData, expenseItem: value })}
                         placeholder="Выберите статью списания..."
-                        groupBy={true}
-                        labelKey="label"
-                        valueKey="guid"
-                        groupKey="group"
                         loading={loadingChartOfAccounts}
                         className="flex-1"
                       />
@@ -968,17 +1015,14 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                     {/* Статья зачисления */}
                     <div className={styles.formRow}>
                       <label className={styles.label}>Статья зачисления</label>
-                      <GroupedSelect
-                        data={filteredChartOfAccounts}
+                      <TreeSelect
+                        data={filteredChartOfAccountsTree}
                         value={formData.creditItem}
                         onChange={(value) => setFormData({ ...formData, creditItem: value })}
                         placeholder="Выберите статью зачисления..."
-                        groupBy={true}
-                        labelKey="label"
-                        valueKey="guid"
-                        groupKey="group"
                         loading={loadingChartOfAccounts}
                         className="flex-1"
+                        alwaysExpanded={true}
                       />
                     </div>
 

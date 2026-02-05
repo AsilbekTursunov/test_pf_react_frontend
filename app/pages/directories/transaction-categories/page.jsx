@@ -256,10 +256,37 @@ export default function TransactionCategoriesPage() {
   const filteredItems = useMemo(() => {
     if (!tabToTipMap[activeTab]) return chartOfAccountsItems
     const tipValue = tabToTipMap[activeTab]
-    const filtered = chartOfAccountsItems.filter(item => {
-      if (!item.tip || !Array.isArray(item.tip)) return false
-      return item.tip.includes(tipValue)
-    })
+    
+    // Helper to check if item or any of its descendants match the filter
+    const hasMatchingDescendants = (item, allItems) => {
+      // Build child map
+      const childMap = new Map()
+      allItems.forEach(i => {
+        if (i.chart_of_accounts_id_2) {
+          if (!childMap.has(i.chart_of_accounts_id_2)) {
+            childMap.set(i.chart_of_accounts_id_2, [])
+          }
+          childMap.get(i.chart_of_accounts_id_2).push(i)
+        }
+      })
+      
+      const children = childMap.get(item.guid) || []
+      
+      // If item has children, check if any child matches (groups should be included if they have matching children)
+      if (children.length > 0) {
+        return children.some(child => hasMatchingDescendants(child, allItems))
+      }
+      
+      // If no children (leaf node), check if item itself matches the filter
+      if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
+        return item.tip.includes(tipValue)
+      }
+      
+      return false
+    }
+    
+    const filtered = chartOfAccountsItems.filter(item => hasMatchingDescendants(item, chartOfAccountsItems))
+    
     console.log('Filtered items for tab', activeTab, ':', filtered)
     return filtered
   }, [chartOfAccountsItems, activeTab])

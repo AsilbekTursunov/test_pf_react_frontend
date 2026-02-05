@@ -519,3 +519,13 @@ export const useDeleteLegalEntities = () => {
     },
   })
 }
+
+
+// Get finance summary
+export const useFinanceSummary = (params) => {
+  return useQuery({
+    queryKey: ['financeSummary', params],
+    queryFn: () => dashboardAPI.getFinanceSummary(params),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
+}

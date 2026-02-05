@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/app/lib/utils'
 import styles from './TreeSelect.module.scss'
 
-function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, toggleNode }) {
+function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, toggleNode, alwaysExpanded = false }) {
   const hasChildren = node.children && node.children.length > 0
   const isExpanded = expandedNodes.has(node.value)
   const isSelected = selectedValue === node.value
@@ -25,16 +25,21 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                toggleNode(node.value)
+                if (!alwaysExpanded) {
+                  toggleNode(node.value)
+                }
               }}
               onMouseDown={(e) => e.stopPropagation()}
               className={styles.treeNodeIconButton}
+              disabled={alwaysExpanded}
+              style={{ cursor: alwaysExpanded ? 'default' : 'pointer' }}
             >
               <svg 
                 className={cn(styles.treeNodeIcon, isExpanded && styles.expanded)} 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
+                style={{ opacity: alwaysExpanded ? 0.5 : 1 }}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -84,6 +89,7 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
               onSelect={onSelect}
               expandedNodes={expandedNodes}
               toggleNode={toggleNode}
+              alwaysExpanded={alwaysExpanded}
             />
           ))}
         </div>
@@ -101,6 +107,7 @@ export function TreeSelect({
   disabled = false,
   loading = false,
   allowRoot = false,
+  alwaysExpanded = false, // New prop to control if groups can be collapsed
   // Pagination props
   onLoadMore = null,
   hasMore = false,
@@ -242,6 +249,61 @@ export function TreeSelect({
       : placeholder
   const filteredData = onSearch ? data : filterTree(data, search)
 
+  // Auto-expand nodes marked as expanded
+  useEffect(() => {
+    if (filteredData.length === 0) return
+    
+    if (alwaysExpanded) {
+      // When alwaysExpanded is true, expand all nodes with children
+      const expandAll = (nodes) => {
+        const expanded = new Set()
+        const traverse = (items) => {
+          items.forEach(item => {
+            if (item.children && item.children.length > 0) {
+              expanded.add(item.value)
+              traverse(item.children)
+            }
+          })
+        }
+        traverse(nodes)
+        return expanded
+      }
+      const newExpanded = expandAll(filteredData)
+      
+      // Only update if different
+      const currentKeys = Array.from(expandedNodes).sort().join(',')
+      const newKeys = Array.from(newExpanded).sort().join(',')
+      if (currentKeys !== newKeys) {
+        setExpandedNodes(newExpanded)
+      }
+    } else {
+      // Only expand nodes marked with expanded: true
+      const expandMarkedNodes = (nodes) => {
+        const expanded = new Set()
+        const traverse = (items) => {
+          items.forEach(item => {
+            if (item.expanded || (item.children && item.children.length > 0)) {
+              expanded.add(item.value)
+              if (item.children) {
+                traverse(item.children)
+              }
+            }
+          })
+        }
+        traverse(nodes)
+        return expanded
+      }
+      const newExpanded = expandMarkedNodes(filteredData)
+      
+      // Only update if different
+      const currentKeys = Array.from(expandedNodes).sort().join(',')
+      const newKeys = Array.from(newExpanded).sort().join(',')
+      if (currentKeys !== newKeys) {
+        setExpandedNodes(newExpanded)
+      }
+    }
+  }, [data, alwaysExpanded]) // Use data instead of filteredData to avoid infinite loop
+
   // Auto-expand nodes when searching
   useEffect(() => {
     if (search) {
@@ -263,6 +325,10 @@ export function TreeSelect({
   }, [search, filteredData])
 
   const toggleNode = (nodeValue) => {
+    if (alwaysExpanded) {
+      // Don't allow toggling when alwaysExpanded is true
+      return
+    }
     setExpandedNodes(prev => {
       const newSet = new Set(prev)
       if (newSet.has(nodeValue)) {
@@ -410,6 +476,7 @@ export function TreeSelect({
                     onSelect={handleSelect}
                     expandedNodes={expandedNodes}
                     toggleNode={toggleNode}
+                    alwaysExpanded={alwaysExpanded}
                   />
                 ))}
                 

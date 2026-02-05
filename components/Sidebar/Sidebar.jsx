@@ -53,9 +53,33 @@ export function Sidebar() {
     const [hoveredItem, setHoveredItem] = useState(null)
     const [clickedItem, setClickedItem] = useState(null)
     const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({ top: 0, height: 0, opacity: 0 })
+    const [submenuPositions, setSubmenuPositions] = useState({})
     const sidebarRef = useRef(null)
     const submenuRefs = useRef({})
     const navItemRefs = useRef({})
+    
+    // Update submenu positions when they open
+    useEffect(() => {
+        const updateSubmenuPosition = (index) => {
+            if (navItemRefs.current[index]) {
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    const itemRect = navItemRefs.current[index].getBoundingClientRect()
+                    setSubmenuPositions(prev => ({
+                        ...prev,
+                        [index]: itemRect.top
+                    }))
+                })
+            }
+        }
+
+        if (hoveredItem !== null) {
+            updateSubmenuPosition(hoveredItem)
+        }
+        if (clickedItem !== null) {
+            updateSubmenuPosition(clickedItem)
+        }
+    }, [hoveredItem, clickedItem])
     
     // Update active indicator position
     useEffect(() => {
@@ -207,14 +231,9 @@ export function Sidebar() {
                             {/* Submenu */}
                             {hasSubmenu && isSubmenuOpen && (
                                 <div 
-                                    ref={el => {
-                                        submenuRefs.current[index] = el
-                                        if (el && navItemRefs.current[index]) {
-                                            const rect = navItemRefs.current[index].getBoundingClientRect()
-                                            el.style.top = `${rect.top}px`
-                                        }
-                                    }}
+                                    ref={el => submenuRefs.current[index] = el}
                                     className={styles.submenu}
+                                    style={{ top: `${submenuPositions[index] || 0}px` }}
                                     onMouseEnter={() => setHoveredItem(index)}
                                     onMouseLeave={() => setHoveredItem(null)}
                                 >

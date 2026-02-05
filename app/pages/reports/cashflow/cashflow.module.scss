@@ -34,8 +34,9 @@
 
 .iframe {
   width: 100%;
-  height: calc(100% + 60px);
+  height: 100vh;
   border: none;
+  background: red !important;
   margin-bottom: -60px;
 }
 
