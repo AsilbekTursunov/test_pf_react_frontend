@@ -26,12 +26,9 @@ export default function CashFlowReportPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Отчет о движении денежных средств</h1>
-      </div>
       <div className={styles.iframeContainer}>
         <iframe
-          src="https://metabase.u-code.io/public/dashboard/10c4201f-5133-42d0-9308-1ddb7af87d0d#bordered=false&titled=false"
+          src="https://metabase.u-code.io/public/dashboard/0573d3dd-7f67-4d12-8e2a-75e10467c38e"
           className={styles.iframe}
           title="Отчет о движении денежных средств"
           frameBorder="0"
