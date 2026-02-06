@@ -511,11 +511,9 @@ export function Header() {
                             }}
                             disabled={isLoggingOut}
                             className={styles.logoutButton}
+                            title={isLoggingOut ? 'Выход...' : 'Выйти'}
                         >
                             <LogOut size={18} className={styles.logoutIcon} />
-                            <span className={styles.logoutText}>
-                                {isLoggingOut ? 'Выход...' : 'Выйти'}
-                            </span>
                         </button>
                     </div>
                 </div>

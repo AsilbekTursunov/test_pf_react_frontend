@@ -3,7 +3,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 90px;
+  width: 80px;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #1a1f2e 0%, #1f2937 100%);
@@ -13,15 +13,10 @@
   overflow-x: hidden;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 0.75rem;
+  padding-top: 0;
 }
 
 .header {
-  display: none;
-}
-
-.footer {
-  margin-top: auto;
   height: 3.5rem;
   width: 100%;
   background: linear-gradient(135deg, #6366f1 0%, #8b7dff 100%);
@@ -29,8 +24,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -4px 12px rgba(99, 102, 241, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .logo {
@@ -51,14 +46,14 @@
   flex-direction: column;
   width: 100%;
   gap: 0.25rem;
-  padding: 0.25rem 0;
+  padding: 0.75rem 0 0.25rem 0;
   position: relative;
 }
 
 .activeIndicator {
   position: absolute;
-  left: 0.5rem;
-  right: 0.5rem;
+  left: 0.25rem;
+  right: 0.25rem;
   background: linear-gradient(135deg, #2d313a 0%, #252932 100%);
   border-radius: 0.5rem;
   box-shadow: 
@@ -92,8 +87,8 @@
   text-decoration: none;
   color: inherit;
   border-radius: 0.5rem;
-  margin: 0 0.5rem;
-  width: calc(100% - 1rem);
+  margin: 0 0.25rem;
+  width: calc(100% - 0.5rem);
 }
 
 .navButton {
@@ -179,7 +174,7 @@
 
 .submenu {
   position: fixed;
-  left: 90px;
+  left: 80px;
   background: linear-gradient(180deg, #1f2937 0%, #1a1f2e 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0 0.5rem 0.5rem 0;

@@ -161,6 +161,11 @@ export function Sidebar() {
     
     return (
         <aside className={styles.sidebar} ref={sidebarRef}>
+            {/* Header / Logo at top */}
+            <div className={styles.header}>
+                <span className={styles.logo}>??</span>
+            </div>
+            
             {/* Active indicator */}
             <div 
                 className={styles.activeIndicator}
@@ -261,11 +266,6 @@ export function Sidebar() {
                     )
                 })}
             </nav>
-            
-            {/* Header / Logo at bottom */}
-            <div className={styles.footer}>
-                <span className={styles.logo}>MAX</span>
-            </div>
         </aside>
     )
 }

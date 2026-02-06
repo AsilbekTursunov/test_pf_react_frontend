@@ -11,8 +11,8 @@
   position: fixed;
   top: 0;
   right: 0;
-  left: 90px;
-  height: 64px;
+  left: 80px;
+  height: 57px;
   background: linear-gradient(180deg, #1a1f2e 0%, #1f2937 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: grid;
@@ -24,8 +24,8 @@
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   gap: 1rem;
   overflow: visible;
-  width: calc(100vw - 90px);
-  max-width: calc(100vw - 90px);
+  width: calc(100vw - 80px);
+  max-width: calc(100vw - 80px);
   box-sizing: border-box;
 }
 
@@ -389,29 +389,22 @@
 .logoutButton {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  justify-content: center;
+  padding: 0.5rem;
   border-radius: 0.5rem;
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: transparent;
+  border: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.25) 100%);
-    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
+    background: rgba(255, 255, 255, 0.05);
   }
 
   &:disabled {
@@ -423,12 +416,7 @@
 .logoutIcon {
   width: 18px;
   height: 18px;
-  color: rgba(239, 68, 68, 0.9);
-}
-
-.logoutText {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
+  color: white;
 }
 
 .balanceTrigger {
