@@ -223,6 +223,129 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     const items = chartOfAccountsData?.data?.data?.response || []
     if (items.length === 0) return []
     
+    // For accrual tab, group by type
+    if (activeTab === 'accrual') {
+      // Build a map for quick lookup
+      const itemsMap = new Map()
+      items.forEach(item => {
+        itemsMap.set(item.guid, item)
+      })
+      
+      // Build child items map: parentGuid -> [children]
+      const childItemsMap = new Map()
+      items.forEach(item => {
+        if (item.chart_of_accounts_id_2) {
+          const parentGuid = item.chart_of_accounts_id_2
+          if (!childItemsMap.has(parentGuid)) {
+            childItemsMap.set(parentGuid, [])
+          }
+          childItemsMap.get(parentGuid).push(item)
+        }
+      })
+      
+      // Helper to get all descendants of an item
+      const getAllDescendants = (itemGuid, collected = new Set()) => {
+        const children = childItemsMap.get(itemGuid) || []
+        children.forEach(child => {
+          if (!collected.has(child.guid)) {
+            collected.add(child.guid)
+            getAllDescendants(child.guid, collected)
+          }
+        })
+        return collected
+      }
+      
+      // Group items by type (including all their descendants)
+      const groupedByType = {
+        'Актив': new Set(),
+        'Капитал': new Set(),
+        'Обязательства': new Set()
+      }
+      
+      items.forEach(item => {
+        if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
+          const tipText = item.tip[0]
+          let targetGroup = null
+          
+          if (tipText && tipText.includes('Актив')) {
+            targetGroup = 'Актив'
+          } else if (tipText && tipText.includes('Капитал')) {
+            targetGroup = 'Капитал'
+          } else if (tipText && tipText.includes('Обязательства')) {
+            targetGroup = 'Обязательства'
+          }
+          
+          if (targetGroup) {
+            // Add item itself
+            groupedByType[targetGroup].add(item.guid)
+            // Add all descendants
+            const descendants = getAllDescendants(item.guid)
+            descendants.forEach(guid => groupedByType[targetGroup].add(guid))
+          }
+        }
+      })
+      
+      // Build tree for each type
+      const result = []
+      
+      Object.entries(groupedByType).forEach(([typeName, itemGuids]) => {
+        if (itemGuids.size === 0) return
+        
+        // Get items for this type
+        const typeItems = Array.from(itemGuids).map(guid => itemsMap.get(guid)).filter(Boolean)
+        
+        // Build child items map for this type only
+        const typeChildItemsMap = new Map()
+        typeItems.forEach(item => {
+          if (item.chart_of_accounts_id_2 && itemGuids.has(item.chart_of_accounts_id_2)) {
+            const parentGuid = item.chart_of_accounts_id_2
+            if (!typeChildItemsMap.has(parentGuid)) {
+              typeChildItemsMap.set(parentGuid, [])
+            }
+            typeChildItemsMap.get(parentGuid).push(item)
+          }
+        })
+        
+        // Build tree structure recursively
+        const buildTree = (item) => {
+          const children = typeChildItemsMap.get(item.guid) || []
+          const hasChildren = children.length > 0
+          
+          const treeNode = {
+            value: item.guid,
+            title: item.nazvanie || 'Без названия',
+            selectable: !hasChildren,
+            expanded: hasChildren,
+            tip: item.tip,
+            children: hasChildren 
+              ? children.map(child => buildTree(child))
+              : undefined
+          }
+          return treeNode
+        }
+        
+        // Find root items for this type (items that don't have parent in this type)
+        const rootItems = typeItems.filter(item => 
+          !item.chart_of_accounts_id_2 || !itemGuids.has(item.chart_of_accounts_id_2)
+        )
+        
+        // Create type group node
+        const typeNode = {
+          value: `type_${typeName}`,
+          title: typeName,
+          selectable: false,
+          expanded: true,
+          tip: [typeName],
+          children: rootItems.map(root => buildTree(root))
+        }
+        
+        result.push(typeNode)
+      })
+      
+      return result
+    }
+    
+    // For other tabs, use existing logic
     // Build a map for quick lookup
     const itemsMap = new Map()
     items.forEach(item => {
@@ -1295,7 +1418,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                         Статья списания <span className={styles.required}>*</span>
                       </label>
                       <div className={styles.fieldWrapper}>
-                        <GroupedSelect
+                        <TreeSelect
                           data={filteredChartOfAccountsTree}
                           value={formData.expenseItem}
                           onChange={(value) => {
@@ -1307,6 +1430,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                           placeholder="Выберите статью списания..."
                           loading={loadingChartOfAccounts}
                           hasError={!!errors.expenseItem}
+                          alwaysExpanded={true}
                         />
                         {errors.expenseItem && (
                           <span className={styles.errorText}>{errors.expenseItem}</span>

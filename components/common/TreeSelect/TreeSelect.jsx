@@ -4,10 +4,34 @@ import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/app/lib/utils'
 import styles from './TreeSelect.module.scss'
 
-function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, toggleNode, alwaysExpanded = false }) {
+function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, toggleNode, alwaysExpanded = false, showTypeBadge = false }) {
   const hasChildren = node.children && node.children.length > 0
   const isExpanded = expandedNodes.has(node.value)
   const isSelected = selectedValue === node.value
+  
+  // Get type badge info - only show if showTypeBadge is true
+  const getTypeBadge = () => {
+    if (!showTypeBadge) return null
+    if (!node.tip || !Array.isArray(node.tip) || node.tip.length === 0) return null
+    
+    const tipText = node.tip[0]
+    if (!tipText) return null
+    
+    if (tipText.includes('Актив')) {
+      return { text: 'Актив', className: styles.badgeAsset }
+    } else if (tipText.includes('Капитал')) {
+      return { text: 'Капитал', className: styles.badgeCapital }
+    } else if (tipText.includes('Обязательства')) {
+      return { text: 'Обязательства', className: styles.badgeLiability }
+    } else if (tipText.includes('Доход')) {
+      return { text: 'Доходы', className: styles.badgeIncome }
+    } else if (tipText.includes('Расход')) {
+      return { text: 'Расходы', className: styles.badgeExpense }
+    }
+    return null
+  }
+  
+  const typeBadge = getTypeBadge()
 
   return (
     <div>
@@ -57,6 +81,11 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
               disabled={!node.selectable}
             >
               <span className={styles.treeNodeText}>{node.title}</span>
+              {typeBadge && (
+                <span className={cn(styles.typeBadge, typeBadge.className)}>
+                  {typeBadge.text}
+                </span>
+              )}
             </button>
           </>
         ) : (
@@ -74,6 +103,11 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
           >
             <span className={styles.treeNodeSpacer} />
             <span className={styles.treeNodeText}>{node.title}</span>
+            {typeBadge && (
+              <span className={cn(styles.typeBadge, typeBadge.className)}>
+                {typeBadge.text}
+              </span>
+            )}
           </button>
         )}
       </div>
@@ -90,6 +124,7 @@ function TreeNode({ node, level = 0, selectedValue, onSelect, expandedNodes, tog
               expandedNodes={expandedNodes}
               toggleNode={toggleNode}
               alwaysExpanded={alwaysExpanded}
+              showTypeBadge={false}
             />
           ))}
         </div>
@@ -307,7 +342,7 @@ export function TreeSelect({
 
   // Auto-expand nodes when searching
   useEffect(() => {
-    if (search) {
+    if (search && filteredData.length > 0) {
       const expandAll = (nodes) => {
         const expanded = new Set()
         const traverse = (items) => {
@@ -321,9 +356,17 @@ export function TreeSelect({
         traverse(nodes)
         return expanded
       }
-      setExpandedNodes(expandAll(filteredData))
+      const newExpanded = expandAll(filteredData)
+      
+      // Only update if different
+      const currentKeys = Array.from(expandedNodes).sort().join(',')
+      const newKeys = Array.from(newExpanded).sort().join(',')
+      if (currentKeys !== newKeys) {
+        setExpandedNodes(newExpanded)
+      }
     }
-  }, [search, filteredData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
 
   const toggleNode = (nodeValue) => {
     if (alwaysExpanded) {
@@ -479,6 +522,7 @@ export function TreeSelect({
                     expandedNodes={expandedNodes}
                     toggleNode={toggleNode}
                     alwaysExpanded={alwaysExpanded}
+                    showTypeBadge={true}
                   />
                 ))}
                 

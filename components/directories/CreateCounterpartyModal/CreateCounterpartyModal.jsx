@@ -6,6 +6,7 @@ import { cn } from '@/app/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChartOfAccountsV2, useCreateCounterparty, useCreateCounterpartiesGroup, useCounterpartiesGroupsV2, useUpdateCounterpartiesGroup, useDeleteCounterpartiesGroups } from '@/hooks/useDashboard'
 import { GroupedSelect } from '@/components/common/GroupedSelect/GroupedSelect'
+import { TreeSelect } from '@/components/common/TreeSelect/TreeSelect'
 import EditCounterpartyGroupModal from '@/components/directories/EditCounterpartyGroupModal/EditCounterpartyGroupModal'
 import { DeleteGroupConfirmModal } from '@/components/directories/DeleteGroupConfirmModal/DeleteGroupConfirmModal'
 import styles from './CreateCounterpartyModal.module.scss'
@@ -58,6 +59,76 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
       label: item.nazvanie || '',
       group: (Array.isArray(item.tip) && item.tip.length > 0) ? item.tip[0] : 'Без группы'
     }))
+  }, [chartOfAccounts])
+  
+  // Build tree for chart of accounts (only Доходы and Расходы)
+  const chartOfAccountsTree = useMemo(() => {
+    if (chartOfAccounts.length === 0) return []
+    
+    // Build a map for quick lookup
+    const itemsMap = new Map()
+    chartOfAccounts.forEach(item => {
+      itemsMap.set(item.guid, item)
+    })
+    
+    // Build child items map: parentGuid -> [children]
+    const childItemsMap = new Map()
+    chartOfAccounts.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        const parentGuid = item.chart_of_accounts_id_2
+        if (!childItemsMap.has(parentGuid)) {
+          childItemsMap.set(parentGuid, [])
+        }
+        childItemsMap.get(parentGuid).push(item)
+      }
+    })
+    
+    // Helper to check if item or any of its descendants match the filter
+    const hasMatchingDescendants = (item) => {
+      const children = childItemsMap.get(item.guid) || []
+      
+      // Check if item itself matches the filter
+      const itemMatches = item.tip && Array.isArray(item.tip) && item.tip.length > 0 && 
+        item.tip.some(t => t && (t.includes('Доход') || t.includes('Расход')))
+      
+      // If item has children, check if any child matches
+      if (children.length > 0) {
+        const hasMatchingChild = children.some(child => hasMatchingDescendants(child))
+        return itemMatches || hasMatchingChild
+      }
+      
+      return itemMatches
+    }
+    
+    // Build tree structure recursively
+    const buildTree = (item) => {
+      const children = childItemsMap.get(item.guid) || []
+      
+      // Filter children - only include those that match or have matching descendants
+      const filteredChildren = children.filter(child => hasMatchingDescendants(child))
+      
+      const hasChildren = filteredChildren.length > 0
+      
+      const treeNode = {
+        value: item.guid,
+        title: item.nazvanie || 'Без названия',
+        selectable: !hasChildren,
+        expanded: hasChildren,
+        tip: item.tip,
+        children: hasChildren 
+          ? filteredChildren.map(child => buildTree(child))
+          : undefined
+      }
+      return treeNode
+    }
+    
+    // Find root items
+    const rootItems = chartOfAccounts.filter(item => !item.chart_of_accounts_id_2)
+    
+    // Filter root items - only include those that have matching descendants
+    const filteredRootItems = rootItems.filter(root => hasMatchingDescendants(root))
+    
+    return filteredRootItems.map(buildTree)
   }, [chartOfAccounts])
 
   // Transform counterparties groups for GroupedSelect
@@ -397,16 +468,12 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
                 <div className={styles.formRow}>
                   <label className={styles.label}>Статья для поступлений</label>
                   <div className={styles.inputContainer}>
-                    <GroupedSelect
-                      data={chartOfAccountsOptions}
+                    <TreeSelect
+                      data={chartOfAccountsTree}
                       value={formData.chart_of_accounts_id}
                       onChange={(value) => setFormData({ ...formData, chart_of_accounts_id: value })}
                       placeholder="Выберите статью"
-                      groupBy={true}
-                      labelKey="label"
-                      valueKey="guid"
-                      groupKey="group"
-                      className="flex-1"
+                      alwaysExpanded={true}
                     />
                   </div>
                 </div>
@@ -414,16 +481,12 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
                 <div className={styles.formRow}>
                   <label className={styles.label}>Статья для выплат</label>
                   <div className={styles.inputContainer}>
-                    <GroupedSelect
-                      data={chartOfAccountsOptions}
+                    <TreeSelect
+                      data={chartOfAccountsTree}
                       value={formData.chart_of_accounts_id_2}
                       onChange={(value) => setFormData({ ...formData, chart_of_accounts_id_2: value })}
                       placeholder="Выберите статью"
-                      groupBy={true}
-                      labelKey="label"
-                      valueKey="guid"
-                      groupKey="group"
-                      className="flex-1"
+                      alwaysExpanded={true}
                     />
                   </div>
                 </div>
