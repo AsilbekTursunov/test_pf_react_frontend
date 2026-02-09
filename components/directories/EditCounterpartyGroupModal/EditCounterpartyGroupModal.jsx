@@ -85,12 +85,12 @@ export default function EditCounterpartyGroupModal({ isOpen, onClose, group }) {
       <div 
         className={cn(styles.overlay, isClosing ? styles.closing : styles.opening)}
         onClick={handleClose}
-        style={{ zIndex: 60 }}
+        style={{ zIndex: 1100 }}
       />
 
       <div 
         className={cn(styles.modal, isClosing ? styles.closing : styles.opening)}
-        style={{ zIndex: 70 }}
+        style={{ zIndex: 1101 }}
       >
         <div className={styles.header}>
           <h2 className={styles.title}>Редактировать группу контрагентов</h2>

@@ -8,7 +8,7 @@ import { useChartOfAccountsV2 } from '@/hooks/useDashboard'
 import { TreeSelect } from '@/components/common/TreeSelect/TreeSelect'
 import styles from './CreateChartOfAccountsModal.module.scss'
 
-export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab = 'income' }) {
+export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab = 'income', parentCategory = null }) {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState(initialTab)
   const [formData, setFormData] = useState({
@@ -57,20 +57,40 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
   ]
 
   // Build tree structure for TreeSelect - filter by active tab
-  // For 'income' and 'expense' tabs: allow selecting 1st generation (root items)
-  // For other tabs: only allow selecting 2nd generation and below
   const treeData = useMemo(() => {
     const currentTip = tabToTipMap[activeTab]
     if (!currentTip || allAccounts.length === 0) return []
 
-    // Check if this is income or expense tab (allow root selection)
-    const allowRootSelection = activeTab === 'income' || activeTab === 'expense'
-
-    // Filter accounts by current tab tip
-    const filteredAccounts = allAccounts.filter(item => {
-      if (!item.tip || !Array.isArray(item.tip)) return false
-      return item.tip.includes(currentTip)
+    // Build child map once for all items
+    const childMap = new Map()
+    allAccounts.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        if (!childMap.has(item.chart_of_accounts_id_2)) {
+          childMap.set(item.chart_of_accounts_id_2, [])
+        }
+        childMap.get(item.chart_of_accounts_id_2).push(item)
+      }
     })
+
+    // Helper to check if item or any of its descendants match the filter
+    const hasMatchingDescendants = (item) => {
+      const children = childMap.get(item.guid) || []
+      
+      // If item has children, check if any child matches (groups should be included if they have matching children)
+      if (children.length > 0) {
+        return children.some(child => hasMatchingDescendants(child))
+      }
+      
+      // If no children (leaf node), check if item itself matches the filter
+      if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
+        return item.tip.includes(currentTip)
+      }
+      
+      return false
+    }
+
+    // Filter accounts by current tab tip (including parent groups with matching children)
+    const filteredAccounts = allAccounts.filter(item => hasMatchingDescendants(item))
 
     if (filteredAccounts.length === 0) return []
 
@@ -117,14 +137,13 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
     })
 
     // Build tree structure
-    // For income/expense: 1st generation (level 0) is selectable
-    // For others: only 2nd generation (level 1) and below are selectable
+    // All items are selectable
     const buildTree = (item, level = 0) => {
       const children = childItemsMap.get(item.guid) || []
       const treeNode = {
         value: item.guid,
         title: item.nazvanie,
-        selectable: allowRootSelection ? true : level >= 1, // Income/expense: all levels selectable, others: only level 1+
+        selectable: true, // All items are selectable
         children: children.length > 0 ? children.map(child => buildTree(child, level + 1)) : undefined
       }
       
@@ -134,7 +153,6 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
     const result = rootItems.map(item => buildTree(item, 0))
     
     console.log('TreeSelect data for tab', activeTab, ':', {
-      allowRootSelection,
       filteredCount: filteredAccounts.length,
       rootItemsCount: rootItems.length,
       treeStructure: JSON.stringify(result, null, 2)
@@ -149,14 +167,14 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
       setIsVisible(true)
       setFormData({
         nazvanie: '',
-        chart_of_accounts_id_2: '',
+        chart_of_accounts_id_2: parentCategory?.guid || '',
         komentariy: '',
         tip_operatsii: []
       })
       setErrors({})
       setActiveTab(initialTab)
     }
-  }, [isOpen, initialTab])
+  }, [isOpen, initialTab, parentCategory?.guid])
 
   const handleClose = () => {
     setIsClosing(true)

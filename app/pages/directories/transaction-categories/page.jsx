@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/app/lib/utils'
-import { useChartOfAccounts, useChartOfAccountsV2, useDeleteChartOfAccounts } from '@/hooks/useDashboard'
+import { useChartOfAccountsV2, useDeleteChartOfAccounts } from '@/hooks/useDashboard'
 import { getProjectId } from '@/lib/config/api'
 import CreateChartOfAccountsModal from '@/components/directories/CreateChartOfAccountsModal/CreateChartOfAccountsModal'
 import EditChartOfAccountsModal from '@/components/directories/EditChartOfAccountsModal/EditChartOfAccountsModal'
@@ -23,6 +23,7 @@ function CategoryTreeItem({
   onSelectCategory,
   onEditCategory,
   onDeleteCategory,
+  onAddChild,
   styles,
   cn,
   isLast = false
@@ -54,7 +55,8 @@ function CategoryTreeItem({
         data-category-card
         className={cn(
           styles.categoryCard,
-          isSelected && styles.selected
+          isSelected && styles.selected,
+          category.isStatic && styles.staticCard
         )}
         onClick={(e) => {
           // Don't trigger if click was on menu container or menu button
@@ -133,6 +135,7 @@ function CategoryTreeItem({
               category={category}
               onEdit={onEditCategory}
               onDelete={onDeleteCategory}
+              onAddChild={onAddChild}
             />
           </div>
         )}
@@ -160,6 +163,7 @@ function CategoryTreeItem({
                 onSelectCategory={onSelectCategory}
                 onEditCategory={onEditCategory}
                 onDeleteCategory={onDeleteCategory}
+                onAddChild={onAddChild}
                 styles={styles}
                 cn={cn}
                 isLast={childIndex === category.children.length - 1 && !child.children}
@@ -382,12 +386,15 @@ export default function TransactionCategoriesPage() {
       // Recursively build children, which will include their own children
       const children = directChildren.map(child => buildCategory(child, level + 1))
       
+      const isStatic = item.static === true
+      
       const category = {
       id: item.guid,
         guid: item.guid, // Ensure guid is correctly set from API response
       name: item.nazvanie,
-        hasMenu: level >= 2, // Only show menu for 3rd generation and below (level 0 = 1st gen, level 1 = 2nd gen, level 2+ = 3rd gen+)
-      hasLock: false,
+        hasMenu: true, // Always show menu
+      hasLock: isStatic, // Show lock icon for static items
+        isStatic: isStatic, // Store static flag
         children: children.length > 0 ? children : undefined,
         // Additional data from API response
         balans: item.balans,
@@ -532,6 +539,10 @@ export default function TransactionCategoriesPage() {
                   onDeleteCategory={(cat) => {
                     setCategoryToDelete(cat)
                     setIsDeleteModalOpen(true)
+                  }}
+                  onAddChild={(cat) => {
+                    setCategoryToEdit(cat)
+                    setIsCreateModalOpen(true)
                   }}
                   styles={styles}
                   cn={cn}
@@ -747,8 +758,12 @@ export default function TransactionCategoriesPage() {
       {/* Create Modal */}
       <CreateChartOfAccountsModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false)
+          setCategoryToEdit(null)
+        }}
         initialTab={activeTab}
+        parentCategory={categoryToEdit}
       />
 
       {/* Edit Modal */}

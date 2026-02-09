@@ -61,8 +61,8 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
     }))
   }, [chartOfAccounts])
   
-  // Build tree for chart of accounts (only Доходы and Расходы)
-  const chartOfAccountsTree = useMemo(() => {
+  // Build tree for chart of accounts - separate trees for income and expenses
+  const chartOfAccountsTreeIncome = useMemo(() => {
     if (chartOfAccounts.length === 0) return []
     
     // Build a map for quick lookup
@@ -83,13 +83,13 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
       }
     })
     
-    // Helper to check if item or any of its descendants match the filter
+    // Helper to check if item or any of its descendants match the filter (Доходы)
     const hasMatchingDescendants = (item) => {
       const children = childItemsMap.get(item.guid) || []
       
       // Check if item itself matches the filter
       const itemMatches = item.tip && Array.isArray(item.tip) && item.tip.length > 0 && 
-        item.tip.some(t => t && (t.includes('Доход') || t.includes('Расход')))
+        item.tip.some(t => t && t.includes('Доход'))
       
       // If item has children, check if any child matches
       if (children.length > 0) {
@@ -101,7 +101,7 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
     }
     
     // Build tree structure recursively
-    const buildTree = (item) => {
+    const buildTree = (item, level = 0) => {
       const children = childItemsMap.get(item.guid) || []
       
       // Filter children - only include those that match or have matching descendants
@@ -112,11 +112,12 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
       const treeNode = {
         value: item.guid,
         title: item.nazvanie || 'Без названия',
-        selectable: !hasChildren,
-        expanded: hasChildren,
+        selectable: true, // Allow selecting any node
+        expanded: false, // Collapsed by default
         tip: item.tip,
+        level: level,
         children: hasChildren 
-          ? filteredChildren.map(child => buildTree(child))
+          ? filteredChildren.map(child => buildTree(child, level + 1))
           : undefined
       }
       return treeNode
@@ -128,7 +129,77 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
     // Filter root items - only include those that have matching descendants
     const filteredRootItems = rootItems.filter(root => hasMatchingDescendants(root))
     
-    return filteredRootItems.map(buildTree)
+    return filteredRootItems.map(item => buildTree(item, 0))
+  }, [chartOfAccounts])
+
+  const chartOfAccountsTreeExpense = useMemo(() => {
+    if (chartOfAccounts.length === 0) return []
+    
+    // Build a map for quick lookup
+    const itemsMap = new Map()
+    chartOfAccounts.forEach(item => {
+      itemsMap.set(item.guid, item)
+    })
+    
+    // Build child items map: parentGuid -> [children]
+    const childItemsMap = new Map()
+    chartOfAccounts.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        const parentGuid = item.chart_of_accounts_id_2
+        if (!childItemsMap.has(parentGuid)) {
+          childItemsMap.set(parentGuid, [])
+        }
+        childItemsMap.get(parentGuid).push(item)
+      }
+    })
+    
+    // Helper to check if item or any of its descendants match the filter (Расходы)
+    const hasMatchingDescendants = (item) => {
+      const children = childItemsMap.get(item.guid) || []
+      
+      // Check if item itself matches the filter
+      const itemMatches = item.tip && Array.isArray(item.tip) && item.tip.length > 0 && 
+        item.tip.some(t => t && t.includes('Расход'))
+      
+      // If item has children, check if any child matches
+      if (children.length > 0) {
+        const hasMatchingChild = children.some(child => hasMatchingDescendants(child))
+        return itemMatches || hasMatchingChild
+      }
+      
+      return itemMatches
+    }
+    
+    // Build tree structure recursively
+    const buildTree = (item, level = 0) => {
+      const children = childItemsMap.get(item.guid) || []
+      
+      // Filter children - only include those that match or have matching descendants
+      const filteredChildren = children.filter(child => hasMatchingDescendants(child))
+      
+      const hasChildren = filteredChildren.length > 0
+      
+      const treeNode = {
+        value: item.guid,
+        title: item.nazvanie || 'Без названия',
+        selectable: true, // Allow selecting any node
+        expanded: false, // Collapsed by default
+        tip: item.tip,
+        level: level,
+        children: hasChildren 
+          ? filteredChildren.map(child => buildTree(child, level + 1))
+          : undefined
+      }
+      return treeNode
+    }
+    
+    // Find root items
+    const rootItems = chartOfAccounts.filter(item => !item.chart_of_accounts_id_2)
+    
+    // Filter root items - only include those that have matching descendants
+    const filteredRootItems = rootItems.filter(root => hasMatchingDescendants(root))
+    
+    return filteredRootItems.map(item => buildTree(item, 0))
   }, [chartOfAccounts])
 
   // Transform counterparties groups for GroupedSelect
@@ -469,11 +540,10 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
                   <label className={styles.label}>Статья для поступлений</label>
                   <div className={styles.inputContainer}>
                     <TreeSelect
-                      data={chartOfAccountsTree}
+                      data={chartOfAccountsTreeIncome}
                       value={formData.chart_of_accounts_id}
                       onChange={(value) => setFormData({ ...formData, chart_of_accounts_id: value })}
                       placeholder="Выберите статью"
-                      alwaysExpanded={true}
                     />
                   </div>
                 </div>
@@ -482,11 +552,10 @@ export default function CreateCounterpartyModal({ isOpen, onClose, preselectedGr
                   <label className={styles.label}>Статья для выплат</label>
                   <div className={styles.inputContainer}>
                     <TreeSelect
-                      data={chartOfAccountsTree}
+                      data={chartOfAccountsTreeExpense}
                       value={formData.chart_of_accounts_id_2}
                       onChange={(value) => setFormData({ ...formData, chart_of_accounts_id_2: value })}
                       placeholder="Выберите статью"
-                      alwaysExpanded={true}
                     />
                   </div>
                 </div>

@@ -68,6 +68,34 @@ export default function EditChartOfAccountsModal({ isOpen, onClose, category }) 
     const currentTip = tabToTipMap[activeTab]
     if (!currentTip || allAccounts.length === 0) return []
 
+    // Build child map once for all items
+    const childMap = new Map()
+    allAccounts.forEach(item => {
+      if (item.chart_of_accounts_id_2) {
+        if (!childMap.has(item.chart_of_accounts_id_2)) {
+          childMap.set(item.chart_of_accounts_id_2, [])
+        }
+        childMap.get(item.chart_of_accounts_id_2).push(item)
+      }
+    })
+
+    // Helper to check if item or any of its descendants match the filter
+    const hasMatchingDescendants = (item) => {
+      const children = childMap.get(item.guid) || []
+      
+      // If item has children, check if any child matches (groups should be included if they have matching children)
+      if (children.length > 0) {
+        return children.some(child => hasMatchingDescendants(child))
+      }
+      
+      // If no children (leaf node), check if item itself matches the filter
+      if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
+        return item.tip.includes(currentTip)
+      }
+      
+      return false
+    }
+
     // Filter accounts by current tab tip, excluding the current category and its descendants
     const excludeGuids = new Set()
     if (category?.guid) {
@@ -85,9 +113,8 @@ export default function EditChartOfAccountsModal({ isOpen, onClose, category }) 
     }
 
     const filteredAccounts = allAccounts.filter(item => {
-      if (!item.tip || !Array.isArray(item.tip)) return false
       if (excludeGuids.has(item.guid)) return false
-      return item.tip.includes(currentTip)
+      return hasMatchingDescendants(item)
     })
 
     if (filteredAccounts.length === 0) return []
@@ -138,7 +165,7 @@ export default function EditChartOfAccountsModal({ isOpen, onClose, category }) 
       return {
         value: item.guid,
         title: item.nazvanie,
-        selectable: true,
+        selectable: true, // All items are selectable
         children: children.length > 0 ? children.map(buildTree) : undefined
       }
     }

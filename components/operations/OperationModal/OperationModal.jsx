@@ -314,8 +314,8 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
           const treeNode = {
             value: item.guid,
             title: item.nazvanie || 'Без названия',
-            selectable: !hasChildren,
-            expanded: hasChildren,
+            selectable: true, // Allow selecting any node
+            expanded: false, // Collapsed by default
             tip: item.tip,
             children: hasChildren 
               ? children.map(child => buildTree(child))
@@ -334,7 +334,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
           value: `type_${typeName}`,
           title: typeName,
           selectable: false,
-          expanded: true,
+          expanded: false, // Collapsed by default
           tip: [typeName],
           children: rootItems.map(root => buildTree(root))
         }
@@ -394,15 +394,11 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
       
       const hasChildren = filteredChildren.length > 0
       
-      // Determine if this item is selectable
-      // Only leaf nodes (items without children after filtering) are selectable
-      const isSelectable = !hasChildren
-      
       const treeNode = {
         value: item.guid,
         title: item.nazvanie || 'Без названия',
-        selectable: isSelectable,
-        expanded: hasChildren, // Always expanded if has children
+        selectable: true, // Allow selecting any node
+        expanded: false, // Collapsed by default
         tip: item.tip,
         children: hasChildren 
           ? filteredChildren.map(child => buildTree(child))
@@ -945,7 +941,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                   placeholder="Выберите статью..."
                       loading={loadingChartOfAccounts}
                   className="flex-1"
-                      alwaysExpanded={true}
                 />
               </div>
 
@@ -1093,7 +1088,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                       placeholder="Выберите статью..."
                       loading={loadingChartOfAccounts}
                   className="flex-1"
-                      alwaysExpanded={true}
                 />
               </div>
 
@@ -1430,7 +1424,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                           placeholder="Выберите статью списания..."
                           loading={loadingChartOfAccounts}
                           hasError={!!errors.expenseItem}
-                          alwaysExpanded={true}
                         />
                         {errors.expenseItem && (
                           <span className={styles.errorText}>{errors.expenseItem}</span>
@@ -1507,7 +1500,6 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
                           }}
                           placeholder="Выберите статью зачисления..."
                           loading={loadingChartOfAccounts}
-                          alwaysExpanded={true}
                           hasError={!!errors.creditItem}
                         />
                         {errors.creditItem && (
