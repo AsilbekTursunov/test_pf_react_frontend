@@ -68,11 +68,10 @@
 
 .container {
   display: flex;
-  height: calc(100vh - 64px);
-  background-color: #f9fafb;
+  background-color: #fff;
   position: fixed;
-  top: 64px;
-  left: 90px;
+  top: 57px;
+  left: 81px;
   right: 0;
   bottom: 0;
   overflow: hidden;
@@ -187,8 +186,8 @@
 }
 
 .checkboxChecked {
-  background-color: #6366f1;
-  border-color: #6366f1;
+  background-color: #0F51B9;
+  border-color: #0F51B9;
 }
 
 .checkboxIcon {
@@ -429,7 +428,7 @@
   }
 
   &.selected {
-    background-color: #6366f1;
+    background-color: #0F51B9;
     color: white;
     font-weight: 600;
     cursor: pointer;
@@ -454,7 +453,7 @@
   transition: all 0.2s;
 
   &.active {
-    border-color: #6366f1;
+    border-color: #0F51B9;
     background-color: #f0f9fa;
   }
 
@@ -509,13 +508,9 @@
 
   &.apply {
     padding: 0.25rem 1rem;
-    background-color: #6366f1;
+    background-color: #0F51B9;
     color: white;
     border-radius: 0.25rem;
-
-    &:hover {
-      background-color: #138496;
-    }
   }
 }
 
@@ -679,8 +674,8 @@
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #6366f1;
-    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #0F51B9;
+    border-color: #0F51B9;
   }
 }
 
@@ -700,7 +695,6 @@
 
 .header {
   background-color: white;
-  border-bottom: 1px solid #e5e7eb;
   padding: 0.875rem 1.5rem;
   flex-shrink: 0;
 }
@@ -755,8 +749,8 @@
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #6366f1;
-    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #0F51B9;
+    border-color: #0F51B9;
   }
 }
 
@@ -802,25 +796,14 @@
 }
 
 .tableArea {
-  flex: 1;
-  overflow: hidden;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  display: flex;
+  background: #fff;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
-  padding: 1.5rem;
-  padding-bottom: 80px;
+  padding: 0 16px 80px;
+  display: flex;
   position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(226, 232, 240, 0.5), transparent);
-  }
+  overflow: hidden;
 }
 
 .tableWrapper {
@@ -828,7 +811,6 @@
   overflow-y: auto;
   overflow-x: auto;
   position: relative;
-  border-radius: 0.75rem;
   min-height: 0;
   
   /* Стилизация скроллбара для Webkit (Chrome, Safari, Edge) */
@@ -940,7 +922,6 @@
   background-color: white;
   border-collapse: separate;
   border-spacing: 0;
-  border-radius: 0.5rem;
   overflow: visible;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
@@ -976,14 +957,15 @@
 }
 
 .tableHeaderCell {
-  padding: 0.625rem 0.625rem;
+  padding: 19px 8px;
   text-align: left;
   white-space: nowrap;
   min-width: fit-content;
-  font-weight: 600;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0%;
   color: #6b7280;
   background: transparent;
   border-bottom: none;
@@ -997,8 +979,8 @@
   }
   
   &:has(.tableHeaderButton) {
-    font-weight: 600;
-    color: #4b5563;
+    font-weight: 500;
+    color: #6b7280;
   }
 }
 
@@ -1010,15 +992,16 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 10px;
-  font-weight: 600;
-  color: #4b5563;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0%;
+  color: #6b7280;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   transition: color 0.2s;
   
   &:hover {
@@ -1057,7 +1040,7 @@
 
   &.selected {
     background-color: #eff6ff !important;
-    border-left: 3px solid #6366f1;
+    border-left: 3px solid #0F51B9;
     
     &:hover {
       background-color: #dbeafe !important;
@@ -1536,8 +1519,8 @@
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 1px #6366f1;
-    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #0F51B9;
+    border-color: #0F51B9;
   }
 }
 
@@ -1546,7 +1529,7 @@
 }
 
 .modalFormInputBordered {
-  border: 2px solid #6366f1;
+  border: 2px solid #0F51B9;
 }
 
 .modalFormInputWithButton {
@@ -1776,4 +1759,8 @@
   font-weight: 500;
   color: #6b7280;
   font-size: 12px;
+}
+
+.tableHeaderCellRight {
+  text-align: right;
 }

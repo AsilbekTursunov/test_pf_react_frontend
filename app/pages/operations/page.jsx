@@ -576,6 +576,7 @@ export default function OperationsPage() {
               setIsModalOpening(false)
             }, 50)
           }}
+          selectedCount={selectedOperations.length}
         />
 
         {/* Table */}
@@ -610,40 +611,40 @@ export default function OperationsPage() {
             <thead className={styles.tableHeader}>
               <tr className={styles.tableHeaderRow}>
                 <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellIndex)}>
-                  №
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={toggleSelectAll}
+                    className={styles.tableCheckbox}
+                  />
                 </th>
-                <th className={styles.tableHeaderCell}>Тип</th>
-                <th className={styles.tableHeaderCell}>Дата начисления</th>
                 <th className={styles.tableHeaderCell}>
                   <button className={styles.tableHeaderButton}>
-                    Дата операции
+                    Дата
                     <svg className={styles.tableHeaderIcon} fill="currentColor" viewBox="0 0 20 20">
                       <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                     </svg>
                   </button>
                 </th>
-                <th className={styles.tableHeaderCell}>Оплата</th>
-                <th className={styles.tableHeaderCell}>Сумма</th>
-                <th className={styles.tableHeaderCell}>Валюта</th>
-                <th className={styles.tableHeaderCell}>Описание</th>
-                <th className={styles.tableHeaderCell}>Статья</th>
                 <th className={styles.tableHeaderCell}>Счет</th>
+                <th className={styles.tableHeaderCell}>Тип</th>
                 <th className={styles.tableHeaderCell}>Контрагент</th>
-                <th className={styles.tableHeaderCell}>Дата создания</th>
-                <th className={styles.tableHeaderCell}>Дата обновления</th>
+                <th className={styles.tableHeaderCell}>Статья</th>
+                <th className={styles.tableHeaderCell}>Проект</th>
+                <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellRight)}>Сумма</th>
                 <th className={cn(styles.tableHeaderCell, styles.tableHeaderCellActions)}></th>
               </tr>
             </thead>
             <tbody style={{ backgroundColor: 'white' }}>
               {isLoadingOperations ? (
                 <tr className={styles.emptyRow}>
-                  <td colSpan="14" className={styles.emptyCell}>
+                  <td colSpan="9" className={styles.emptyCell}>
                     Загрузка данных...
                   </td>
                 </tr>
               ) : operations.length === 0 ? (
                 <tr className={styles.emptyRow}>
-                  <td colSpan="14" className={styles.emptyCell}>
+                  <td colSpan="9" className={styles.emptyCell}>
                     Нет данных
                   </td>
                 </tr>
@@ -652,7 +653,7 @@ export default function OperationsPage() {
               {/* Сегодня - Section Header */}
               {operations.filter(op => op.section === 'today').length > 0 && (
                 <tr className={styles.sectionHeader}>
-                  <td colSpan="14" className={styles.sectionHeaderCell}>
+                  <td colSpan="9" className={styles.sectionHeaderCell}>
                     <h3 className={styles.sectionHeaderTitle}>Сегодня</h3>
                   </td>
                 </tr>
@@ -666,7 +667,17 @@ export default function OperationsPage() {
                       }
                     }}>
                       <td className={cn(styles.tableCell, styles.tableCellIndex)}>
-                        {index + 1}
+                        <input
+                          type="checkbox"
+                          checked={selectedOperations.includes(op.id)}
+                          onChange={() => toggleOperation(op.id)}
+                          className={styles.tableCheckbox}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
+                      <td className={styles.tableCell}>{op.operationDate || '-'}</td>
+                      <td className={cn(styles.tableCell, styles.accountCell)}>
+                        {op.bankAccount || '-'}
                       </td>
                       <td className={styles.tableCell}>
                         {op.typeLabel ? (
@@ -692,23 +703,14 @@ export default function OperationsPage() {
                           </div>
                         ) : null}
                       </td>
-                      <td className={styles.tableCell}>{op.accrualDate || '-'}</td>
-                      <td className={styles.tableCell}>
-                        <div className={styles.dateCell}>
-                          <span className={styles.datePrimary}>{op.date}</span>
-                          {op.dateSecondary && (
-                            <span className={styles.dateSecondary}>{op.dateSecondary}</span>
-                          )}
-                        </div>
+                      <td className={cn(styles.tableCell, styles.counterpartyCell)}>
+                        {op.counterparty || '-'}
+                      </td>
+                      <td className={cn(styles.tableCell, styles.statusCell)}>
+                        {op.chartOfAccounts || '-'}
                       </td>
                       <td className={styles.tableCell}>
-                        <div className={cn(
-                          styles.paymentStatus,
-                          op.oplata_podtverzhdena ? styles.paymentStatusConfirmed : styles.paymentStatusNotConfirmed
-                        )}>
-                          <span className={styles.paymentStatusDot}></span>
-                          {op.oplata_podtverzhdena ? 'Да' : 'Нет'}
-                        </div>
+                        -
                       </td>
                       <td className={cn(
                         styles.tableCell,
@@ -719,23 +721,6 @@ export default function OperationsPage() {
                       )}>
                         {op.amount}
                       </td>
-                      <td className={cn(styles.tableCell, styles.currencyCell)}>
-                        {op.currency || 'RUB'}
-                      </td>
-                      <td className={cn(styles.tableCell, styles.descriptionCell)}>
-                        {op.description || '-'}
-                      </td>
-                      <td className={cn(styles.tableCell, styles.statusCell)}>
-                        {op.status}
-                      </td>
-                      <td className={cn(styles.tableCell, styles.accountCell)}>
-                        {op.account}
-                      </td>
-                      <td className={cn(styles.tableCell, styles.counterpartyCell)}>
-                        {op.counterparty}
-                      </td>
-                      <td className={styles.tableCell}>{op.createdAt || '-'}</td>
-                      <td className={styles.tableCell}>{op.updatedAt || '-'}</td>
                       <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                         <OperationMenu
                           operation={op}
@@ -749,7 +734,7 @@ export default function OperationsPage() {
               {/* Вчера и ранее - Section Header */}
               {operations.filter(op => op.section === 'yesterday').length > 0 && (
               <tr className={styles.sectionHeader}>
-                  <td colSpan="14" className={styles.sectionHeaderCell}>
+                  <td colSpan="9" className={styles.sectionHeaderCell}>
                   <h3 className={styles.sectionHeaderTitle}>Вчера и ранее</h3>
                   </td>
                 </tr>
@@ -763,7 +748,17 @@ export default function OperationsPage() {
                   }
                 }}>
                   <td className={cn(styles.tableCell, styles.tableCellIndex)}>
-                    {operations.filter(o => o.section === 'today').length + index + 1}
+                    <input
+                      type="checkbox"
+                      checked={selectedOperations.includes(op.id)}
+                      onChange={() => toggleOperation(op.id)}
+                      className={styles.tableCheckbox}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                  <td className={styles.tableCell}>{op.operationDate || '-'}</td>
+                  <td className={cn(styles.tableCell, styles.accountCell)}>
+                    {op.bankAccount || '-'}
                   </td>
                   <td className={styles.tableCell}>
                     {op.typeLabel ? (
@@ -789,18 +784,14 @@ export default function OperationsPage() {
                       </div>
                     ) : null}
                   </td>
-                  <td className={styles.tableCell}>{op.accrualDate || null}</td>
-                  <td className={styles.tableCell}>{op.operationDate || null}</td>
+                  <td className={cn(styles.tableCell, styles.counterpartyCell)}>
+                    {op.counterparty || '-'}
+                  </td>
+                  <td className={cn(styles.tableCell, styles.statusCell)}>
+                    {op.chartOfAccounts || '-'}
+                  </td>
                   <td className={styles.tableCell}>
-                    {op.paymentConfirmed !== undefined ? (
-                      <div className={cn(
-                        styles.paymentStatus,
-                        op.paymentConfirmed ? styles.paymentStatusConfirmed : styles.paymentStatusNotConfirmed
-                      )}>
-                        <div className={styles.paymentStatusDot}></div>
-                        <span>{op.paymentConfirmed ? 'Да' : 'Нет'}</span>
-                      </div>
-                    ) : null}
+                    -
                   </td>
                   <td className={cn(
                     styles.tableCell,
@@ -809,15 +800,8 @@ export default function OperationsPage() {
                     op.typeCategory === 'out' && styles.negative,
                     op.typeCategory === 'transfer' && styles.neutral
                   )}>
-                    {op.amount || null}
+                    {op.amount}
                   </td>
-                  <td className={styles.tableCell}>{op.currency || null}</td>
-                  <td className={styles.tableCell}>{op.description || null}</td>
-                  <td className={styles.tableCell}>{op.chartOfAccounts || null}</td>
-                  <td className={styles.tableCell}>{op.bankAccount || null}</td>
-                  <td className={styles.tableCell}>{op.counterparty || null}</td>
-                  <td className={styles.tableCell}>{op.createdAt || null}</td>
-                  <td className={styles.tableCell}>{op.updatedAt || null}</td>
                   <td className={cn(styles.tableCell, styles.tableCellActions)} onClick={(e) => e.stopPropagation()}>
                     <OperationMenu
                       operation={op}
@@ -831,7 +815,7 @@ export default function OperationsPage() {
               )}
             </tbody>
           </table>
-          </div>
+        </div>
         </div>
         
         {/* Footer Stats */}

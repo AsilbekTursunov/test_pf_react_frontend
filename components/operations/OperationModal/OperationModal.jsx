@@ -158,15 +158,18 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     // Find root items (groups and ungrouped counterparties)
     const rootItems = []
     
-    // Add groups with their children
+    // Add groups with their children - only if they have children
     groups.forEach(group => {
       const children = childItemsMap.get(group.guid) || []
-      rootItems.push({
-        guid: group.guid,
-        nazvanie: group.nazvanie_gruppy || 'Без названия',
-        isGroup: true,
-        children: children
-      })
+      // Only add group if it has children
+      if (children.length > 0) {
+        rootItems.push({
+          guid: group.guid,
+          nazvanie: group.nazvanie_gruppy || 'Без названия',
+          isGroup: true,
+          children: children
+        })
+      }
     })
     
     // Add ungrouped counterparties as root items
@@ -223,17 +226,20 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     const items = chartOfAccountsData?.data?.data?.response || []
     if (items.length === 0) return []
     
+    // Filter out items without tip (type)
+    const itemsWithType = items.filter(item => item.tip && Array.isArray(item.tip) && item.tip.length > 0)
+    
     // For accrual tab, group by type
     if (activeTab === 'accrual') {
       // Build a map for quick lookup
       const itemsMap = new Map()
-      items.forEach(item => {
+      itemsWithType.forEach(item => {
         itemsMap.set(item.guid, item)
       })
       
       // Build child items map: parentGuid -> [children]
       const childItemsMap = new Map()
-      items.forEach(item => {
+      itemsWithType.forEach(item => {
         if (item.chart_of_accounts_id_2) {
           const parentGuid = item.chart_of_accounts_id_2
           if (!childItemsMap.has(parentGuid)) {
@@ -262,7 +268,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
         'Обязательства': new Set()
       }
       
-      items.forEach(item => {
+      itemsWithType.forEach(item => {
         if (item.tip && Array.isArray(item.tip) && item.tip.length > 0) {
           const tipText = item.tip[0]
           let targetGroup = null
@@ -348,13 +354,13 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     // For other tabs, use existing logic
     // Build a map for quick lookup
     const itemsMap = new Map()
-    items.forEach(item => {
+    itemsWithType.forEach(item => {
       itemsMap.set(item.guid, item)
     })
     
     // Build child items map: parentGuid -> [children]
     const childItemsMap = new Map()
-    items.forEach(item => {
+    itemsWithType.forEach(item => {
       if (item.chart_of_accounts_id_2) {
         const parentGuid = item.chart_of_accounts_id_2
         if (!childItemsMap.has(parentGuid)) {
@@ -408,7 +414,7 @@ export function OperationModal({ operation, modalType, isClosing, isOpening, onC
     }
     
     // Find root items (level 1)
-    const rootItems = items.filter(item => !item.chart_of_accounts_id_2)
+    const rootItems = itemsWithType.filter(item => !item.chart_of_accounts_id_2)
     
     // Filter root items - only include those that have matching descendants
     const filteredRootItems = rootItems.filter(root => hasMatchingDescendants(root))

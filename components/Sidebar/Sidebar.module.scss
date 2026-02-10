@@ -6,7 +6,7 @@
   width: 80px;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1a1f2e 0%, #1f2937 100%);
+  background: #2D3282;
   color: #9ca3af;
   z-index: 40;
   overflow-y: auto;
@@ -19,13 +19,12 @@
 .header {
   height: 3.5rem;
   width: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b7dff 100%);
+  background: #2D3282;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .logo {
@@ -33,7 +32,6 @@
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s;
   
   &:hover {
@@ -54,7 +52,7 @@
   position: absolute;
   left: 0.25rem;
   right: 0.25rem;
-  background: linear-gradient(135deg, #2d313a 0%, #252932 100%);
+  background: #F5F5F533;
   border-radius: 0.5rem;
   box-shadow: 
     0 4px 12px rgba(0, 0, 0, 0.15),
@@ -175,7 +173,7 @@
 .submenu {
   position: fixed;
   left: 80px;
-  background: linear-gradient(180deg, #1f2937 0%, #1a1f2e 100%);
+  background: #2D3282;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0 0.5rem 0.5rem 0;
   box-shadow: 
@@ -215,7 +213,7 @@
 }
 
 .submenuLinkActive {
-  background: linear-gradient(135deg, #2d313a 0%, #252932 100%);
+  background: #F5F5F533;
   color: white;
   
   &::before {

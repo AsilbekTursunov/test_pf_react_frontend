@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/app/lib/utils'
 import styles from './OperationsFiltersSidebar.module.scss'
 
@@ -26,6 +27,7 @@ export function OperationsFiltersSidebar({
   onCounterAgentToggle,
   onSelectAllCounterAgents
 }) {
+  const [activeTab, setActiveTab] = useState('general') // 'general' или 'quick'
   const [isDatePaymentModalOpen, setIsDatePaymentModalOpen] = useState(false)
   const [isDateStartModalOpen, setIsDateStartModalOpen] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0))
@@ -49,6 +51,14 @@ export function OperationsFiltersSidebar({
   const counterAgentsDropdownRef = useRef(null)
   const justOpenedRef = useRef(false)
   const justOpenedStartRef = useRef(false)
+  const startInputRef = useRef(null)
+  const endInputRef = useRef(null)
+  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 })
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   
   // Функция для определения направления открытия
   const calculateOpenDirection = useCallback((ref, modalHeight) => {
@@ -100,6 +110,58 @@ export function OperationsFiltersSidebar({
       window.removeEventListener('scroll', handleResize, true)
     }
   }, [isDatePaymentModalOpen, isDateStartModalOpen, activeInput, activeInputStart, calculateOpenDirection])
+
+  // Обновление позиции календаря при изменении activeInput
+  useEffect(() => {
+    if (activeInput && (startInputRef.current || endInputRef.current)) {
+      const inputRef = activeInput === 'start' ? startInputRef : endInputRef
+      if (inputRef.current) {
+        const rect = inputRef.current.getBoundingClientRect()
+        const calendarHeight = 350 // примерная высота календаря
+        const spaceBelow = window.innerHeight - rect.bottom
+        const spaceAbove = rect.top
+        
+        // Если снизу недостаточно места, показываем сверху
+        if (spaceBelow < calendarHeight && spaceAbove > spaceBelow) {
+          setCalendarPosition({
+            top: rect.top - calendarHeight - 8,
+            left: rect.left
+          })
+        } else {
+          setCalendarPosition({
+            top: rect.bottom + 8,
+            left: rect.left
+          })
+        }
+      }
+    }
+  }, [activeInput])
+
+  // Обработчик клика вне календаря
+  useEffect(() => {
+    if (!activeInput || !isDatePaymentModalOpen) return
+
+    const handleClickOutsideCalendar = (event) => {
+      // Проверяем, что клик был вне календаря и вне кнопок выбора даты
+      const clickedInsideCalendar = event.target.closest(`.${styles.calendar}`)
+      const clickedInsideDateInput = startInputRef.current?.contains(event.target) || 
+                                      endInputRef.current?.contains(event.target)
+      
+      if (!clickedInsideCalendar && !clickedInsideDateInput) {
+        setActiveInput(null)
+      }
+    }
+
+    // Добавляем небольшую задержку, чтобы избежать немедленного закрытия
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutsideCalendar)
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('mousedown', handleClickOutsideCalendar)
+    }
+  }, [activeInput, isDatePaymentModalOpen])
 
   const closeDatePaymentModal = useCallback(() => {
     setIsClosing(true)
@@ -236,6 +298,7 @@ export function OperationsFiltersSidebar({
   if (!isOpen) return null
 
   return (
+    <>
     <div className={styles.sidebar}>
       <div className={styles.sidebarContent}>
         <div className={styles.sidebarHeader}>
@@ -244,12 +307,42 @@ export function OperationsFiltersSidebar({
             onClick={onClose}
             className={styles.sidebarCloseButton}
           >
-            ✕
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </div>
 
-        {/* Тип операции - Начисление */}
-        <div className={styles.filterSection}>
+        {/* Табы фильтров */}
+        <div className={styles.filterTabs}>
+          <button 
+            className={cn(styles.filterTab, activeTab === 'general' ? styles.active : styles.inactive)}
+            onClick={() => setActiveTab('general')}
+          >
+            Общие
+          </button>
+          <button 
+            className={cn(styles.filterTab, activeTab === 'quick' ? styles.active : styles.inactive)}
+            onClick={() => setActiveTab('quick')}
+          >
+            Быстрые
+          </button>
+        </div>
+
+        {/* Контент табов с анимацией */}
+        {activeTab === 'general' && (
+          <div className={styles.filterContent} key="general">
+            {/* Тип операции */}
+            <div className={styles.filterSection}>
+              <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.875rem' }}>
+                Тип операции
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 11.5V8M8 5.5H8.005" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </h3>
+              
+              {/* Начисление */}
           <div className={styles.filterSectionHeader}>
             <label className={styles.checkboxWrapper} style={{ cursor: 'pointer' }}>
               <input
@@ -268,8 +361,8 @@ export function OperationsFiltersSidebar({
                   onFilterChange('type', 'nachisleniye')
                 }}
                 style={{
-                  '--checkbox-bg': selectedFilters.nachisleniye ? '#6366f1' : 'white',
-                  '--checkbox-border': selectedFilters.nachisleniye ? '#6366f1' : '#d1d5db',
+                  '--checkbox-bg': selectedFilters.nachisleniye ? '#307FE2' : 'white',
+                  '--checkbox-border': selectedFilters.nachisleniye ? '#307FE2' : '#d1d5db',
                   '--checkbox-hover-border': '#9ca3af',
                   cursor: 'pointer'
                 }}
@@ -281,13 +374,12 @@ export function OperationsFiltersSidebar({
                 )}
               </div>
             </label>
-            <h3 
-              className={styles.filterSectionTitle}
+            <span 
+              className={styles.filterSectionHeaderTitle}
               onClick={() => onFilterChange('type', 'nachisleniye')}
-              style={{ cursor: 'pointer' }}
             >
               Начисление
-            </h3>
+            </span>
           </div>
           <div className={styles.filterOptions}>
             {[
@@ -308,8 +400,8 @@ export function OperationsFiltersSidebar({
                       selectedFilters[item.key] && styles.checkboxChecked
                     )}
                     style={{
-                      '--checkbox-bg': selectedFilters[item.key] ? '#6366f1' : 'white',
-                      '--checkbox-border': selectedFilters[item.key] ? '#6366f1' : '#d1d5db',
+                      '--checkbox-bg': selectedFilters[item.key] ? '#307FE2' : 'white',
+                      '--checkbox-border': selectedFilters[item.key] ? '#307FE2' : '#d1d5db',
                       '--checkbox-hover-border': '#9ca3af'
                     }}
                   >
@@ -328,7 +420,13 @@ export function OperationsFiltersSidebar({
 
         {/* Дата оплаты - упрощенная версия, полная версия будет в отдельном компоненте */}
         <div className={styles.filterSection}>
-          <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.75rem' }}>Дата оплаты</h3>
+          <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.75rem' }}>
+            Дата оплаты
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M8 11.5V8M8 5.5H8.005" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </h3>
           <div className={styles.filterOptions}>
             {[
               { key: 'podtverzhdena', label: 'Подтверждена' },
@@ -348,8 +446,8 @@ export function OperationsFiltersSidebar({
                       dateFilters[item.key] && styles.checkboxChecked
                     )}
                     style={{
-                      '--checkbox-bg': dateFilters[item.key] ? '#6366f1' : 'white',
-                      '--checkbox-border': dateFilters[item.key] ? '#6366f1' : '#d1d5db',
+                      '--checkbox-bg': dateFilters[item.key] ? '#307FE2' : 'white',
+                      '--checkbox-border': dateFilters[item.key] ? '#307FE2' : '#d1d5db',
                       '--checkbox-hover-border': '#9ca3af'
                     }}
                   >
@@ -403,11 +501,17 @@ export function OperationsFiltersSidebar({
                 }}
                 className={styles.datePickerButtonInner}
               >
-                <svg className={styles.datePickerIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                <svg className={styles.datePickerIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g clipPath="url(#clip0_1_53706)">
+                    <path d="M12 1.33325V2.66659M4 1.33325V2.66659" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M1.6665 8.16216C1.6665 5.25729 1.6665 3.80486 2.50125 2.90243C3.336 2 4.6795 2 7.3665 2H8.63317C11.3202 2 12.6637 2 13.4984 2.90243C14.3332 3.80486 14.3332 5.25729 14.3332 8.16216V8.5045C14.3332 11.4094 14.3332 12.8618 13.4984 13.7642C12.6637 14.6667 11.3202 14.6667 8.63317 14.6667H7.3665C4.6795 14.6667 3.336 14.6667 2.50125 13.7642C1.6665 12.8618 1.6665 11.4094 1.6665 8.5045V8.16216Z" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 5.33325H14" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_1_53706">
+                      <rect width="16" height="16" fill="white"/>
+                    </clipPath>
+                  </defs>
                 </svg>
                 Указать период
               </button>
@@ -439,8 +543,6 @@ export function OperationsFiltersSidebar({
                   }}
                 >
                   <div className={styles.datePickerModalContent}>
-                    <h3 className={styles.datePickerModalTitle}>Укажите период</h3>
-                    
                     <div className={styles.datePickerModalBody}>
                       {/* Quick Ranges */}
                       <div className={styles.quickRanges}>
@@ -458,91 +560,29 @@ export function OperationsFiltersSidebar({
                           </button>
                         ))}
                       </div>
-
-                      {/* Calendar - показывается только когда активен инпут */}
-                      {activeInput && (
-                        <div className={styles.calendar}>
-                          <div className={styles.calendarHeader}>
-                            <button 
-                              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                              className={styles.calendarNavButton}
-                            >
-                              «
-                            </button>
-                            <span className={styles.calendarMonth}>
-                              {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
-                            </span>
-                            <button 
-                              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                              className={styles.calendarNavButton}
-                            >
-                              »
-                            </button>
-                          </div>
-
-                          <div className={styles.calendarWeekdays}>
-                            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
-                              <div key={day} className={styles.calendarWeekday}>
-                                {day}
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className={styles.calendarDays}>
-                            {Array.from({ length: 35 }, (_, i) => {
-                              const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-                              const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
-                              const dayNum = i - startDay + 1
-                              const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum)
-                              const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
-                              const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
-                              const isSelected = (tempStartDate && date.toDateString() === tempStartDate.toDateString()) || 
-                                                   (tempEndDate && date.toDateString() === tempEndDate.toDateString())
-
-                              return (
-                                <button
-                                  key={i}
-                                  disabled={!isCurrentMonth}
-                                  onClick={() => {
-                                    if (isCurrentMonth) {
-                                      if (activeInput === 'start') {
-                                        setTempStartDate(date)
-                                      } else if (activeInput === 'end') {
-                                        setTempEndDate(date)
-                                      }
-                                    }
-                                  }}
-                                  className={cn(
-                                    styles.calendarDay,
-                                    !isCurrentMonth && styles.disabled,
-                                    isCurrentMonth && !isToday && !isSelected && styles.normal,
-                                    isToday && !isSelected && styles.today,
-                                    isSelected && styles.selected
-                                  )}
-                                >
-                                  {isCurrentMonth ? dayNum : ''}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     {/* Date Inputs */}
                     <div className={styles.dateInputs}>
                       <button
-                        onClick={() => setActiveInput('start')}
+                        ref={startInputRef}
+                        onClick={() => setActiveInput(activeInput === 'start' ? null : 'start')}
                         className={cn(
                           styles.dateInput,
                           activeInput === 'start' ? styles.active : styles.inactive
                         )}
                       >
-                        <svg className={styles.dateInputIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <svg className={styles.dateInputIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clipPath="url(#clip0_2_55889)">
+                            <path d="M12 1.33325V2.66659M4 1.33325V2.66659" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M1.66675 8.16216C1.66675 5.25729 1.66675 3.80486 2.50149 2.90243C3.33624 2 4.67974 2 7.36675 2H8.63341C11.3204 2 12.6639 2 13.4987 2.90243C14.3334 3.80486 14.3334 5.25729 14.3334 8.16216V8.5045C14.3334 11.4094 14.3334 12.8618 13.4987 13.7642C12.6639 14.6667 11.3204 14.6667 8.63341 14.6667H7.36675C4.67974 14.6667 3.33624 14.6667 2.50149 13.7642C1.66675 12.8618 1.66675 11.4094 1.66675 8.5045V8.16216Z" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 5.33325H14" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_2_55889">
+                              <rect width="16" height="16" fill="white"/>
+                            </clipPath>
+                          </defs>
                         </svg>
                         <span className={styles.dateInputText}>
                           {tempStartDate ? tempStartDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Начало периода'}
@@ -550,17 +590,24 @@ export function OperationsFiltersSidebar({
                       </button>
                       <span className={styles.dateInputSeparator}>—</span>
                       <button
-                        onClick={() => setActiveInput('end')}
+                        ref={endInputRef}
+                        onClick={() => setActiveInput(activeInput === 'end' ? null : 'end')}
                         className={cn(
                           styles.dateInput,
                           activeInput === 'end' ? styles.active : styles.inactive
                         )}
                       >
-                        <svg className={styles.dateInputIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <svg className={styles.dateInputIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clipPath="url(#clip0_2_55889_end)">
+                            <path d="M12 1.33325V2.66659M4 1.33325V2.66659" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M1.66675 8.16216C1.66675 5.25729 1.66675 3.80486 2.50149 2.90243C3.33624 2 4.67974 2 7.36675 2H8.63341C11.3204 2 12.6639 2 13.4987 2.90243C14.3334 3.80486 14.3334 5.25729 14.3334 8.16216V8.5045C14.3334 11.4094 14.3334 12.8618 13.4987 13.7642C12.6639 14.6667 11.3204 14.6667 8.63341 14.6667H7.36675C4.67974 14.6667 3.33624 14.6667 2.50149 13.7642C1.66675 12.8618 1.66675 11.4094 1.66675 8.5045V8.16216Z" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 5.33325H14" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_2_55889_end">
+                              <rect width="16" height="16" fill="white"/>
+                            </clipPath>
+                          </defs>
                         </svg>
                         <span className={styles.dateInputText}>
                           {tempEndDate ? tempEndDate.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Конец периода'}
@@ -599,288 +646,15 @@ export function OperationsFiltersSidebar({
           )}
         </div>
 
-        {/* Дата начисления - аналогично */}
-        <div className={styles.filterSection}>
-          <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.75rem' }}>Дата начисления</h3>
-          <div className={styles.filterOptions}>
-            {[
-              { key: 'podtverzhdena', label: 'Подтверждена' },
-              { key: 'nePodtverzhdena', label: 'Не подтверждена' }
-            ].map(item => (
-              <label key={item.key} className={styles.filterOption}>
-                <div className={styles.checkboxWrapper}>
-                  <input
-                    type="checkbox"
-                    checked={dateStartFilters[item.key]}
-                    onChange={() => onDateStartFilterChange(item.key)}
-                    className={styles.checkboxInput}
-                  />
-                  <div 
-                    className={cn(
-                      styles.checkbox,
-                      dateStartFilters[item.key] && styles.checkboxChecked
-                    )}
-                    style={{
-                      '--checkbox-bg': dateStartFilters[item.key] ? '#6366f1' : 'white',
-                      '--checkbox-border': dateStartFilters[item.key] ? '#6366f1' : '#d1d5db',
-                      '--checkbox-hover-border': '#9ca3af'
-                    }}
-                  >
-                    {dateStartFilters[item.key] && (
-                      <svg className={styles.checkboxIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-                <span className={styles.filterOptionLabel}>{item.label}</span>
-              </label>
-            ))}
-          </div>
-          
-          {selectedDateStartRange ? (
-            <div className={styles.dateRangeDisplay}>
-              <div className={styles.dateRangeDisplayInner}>
-                <svg className={styles.dateRangeIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <span className={styles.dateRangeText}>{formatDateRange(selectedDateStartRange)}</span>
-                <button 
-                  onClick={() => onDateStartRangeChange(null)}
-                  className={styles.dateRangeClear}
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.datePickerButton} ref={dateStartPickerRef}>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (!isDateStartModalOpen) {
-                    justOpenedStartRef.current = true
-                    setIsDateStartModalOpen(true)
-                    if (isDatePaymentModalOpen) {
-                      closeDatePaymentModal()
-                    }
-                    setTempStartDateStart(null)
-                    setTempEndDateStart(null)
-                    setActiveInputStart(null)
-                  } else {
-                    closeDateStartModal()
-                  }
-                }}
-                className={styles.datePickerButtonInner}
-              >
-                <svg className={styles.datePickerIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                Указать период
-              </button>
-
-              {/* Date Picker Dropdown */}
-              {isDateStartModalOpen && (
-                <div 
-                  key="date-start-modal"
-                  ref={dateStartPickerModalRef}
-                  className={cn(
-                    styles.datePickerModal,
-                    openUpwardStart ? styles.openUpward : ''
-                  )}
-                  style={{ 
-                    top: (() => {
-                      if (!dateStartPickerRef.current) return 'auto'
-                      const buttonRect = dateStartPickerRef.current.getBoundingClientRect()
-                      const modalHeight = activeInputStart ? 400 : 200
-                      if (openUpwardStart) {
-                        return (buttonRect.top - modalHeight - 8) + 'px'
-                      }
-                      return (buttonRect.bottom + 8) + 'px'
-                    })(),
-                    left: '280px',
-                    '--modal-width': activeInputStart ? '600px' : '440px',
-                    '--modal-animation': isClosing 
-                      ? (openUpwardStart ? 'fadeSlideOutUp 0.2s ease-in' : 'fadeSlideOut 0.2s ease-in')
-                      : (openUpwardStart ? 'fadeSlideInUp 0.25s ease-out' : 'fadeSlideIn 0.25s ease-out')
-                  }}
-                >
-                  <div className={styles.datePickerModalContent}>
-                    <h3 className={styles.datePickerModalTitle}>Укажите период</h3>
-                    
-                    <div className={styles.datePickerModalBody}>
-                      {/* Quick Ranges */}
-                      <div className={styles.quickRanges}>
-                        {quickDateRanges.map((range, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              const dateRange = range.getValue()
-                              onDateStartRangeChange(dateRange)
-                              closeDateStartModal()
-                            }}
-                            className={styles.quickRangeButton}
-                          >
-                            {range.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Calendar - показывается только когда активен инпут */}
-                      {activeInputStart && (
-                        <div className={styles.calendar}>
-                          <div className={styles.calendarHeader}>
-                            <button 
-                              onClick={() => setCurrentMonthStart(new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() - 1))}
-                              className={styles.calendarNavButton}
-                            >
-                              «
-                            </button>
-                            <span className={styles.calendarMonth}>
-                              {currentMonthStart.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
-                            </span>
-                            <button 
-                              onClick={() => setCurrentMonthStart(new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1))}
-                              className={styles.calendarNavButton}
-                            >
-                              »
-                            </button>
-                          </div>
-
-                          <div className={styles.calendarWeekdays}>
-                            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
-                              <div key={day} className={styles.calendarWeekday}>
-                                {day}
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className={styles.calendarDays}>
-                            {Array.from({ length: 35 }, (_, i) => {
-                              const firstDay = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth(), 1)
-                              const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
-                              const dayNum = i - startDay + 1
-                              const date = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth(), dayNum)
-                              const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 0).getDate()
-                              const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
-                              const isSelected = (tempStartDateStart && date.toDateString() === tempStartDateStart.toDateString()) || 
-                                                   (tempEndDateStart && date.toDateString() === tempEndDateStart.toDateString())
-
-                              return (
-                                <button
-                                  key={i}
-                                  disabled={!isCurrentMonth}
-                                  onClick={() => {
-                                    if (isCurrentMonth) {
-                                      if (activeInputStart === 'start') {
-                                        setTempStartDateStart(date)
-                                      } else if (activeInputStart === 'end') {
-                                        setTempEndDateStart(date)
-                                      }
-                                    }
-                                  }}
-                                  className={cn(
-                                    styles.calendarDay,
-                                    !isCurrentMonth && styles.disabled,
-                                    isCurrentMonth && !isToday && !isSelected && styles.normal,
-                                    isToday && !isSelected && styles.today,
-                                    isSelected && styles.selected
-                                  )}
-                                >
-                                  {isCurrentMonth ? dayNum : ''}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Date Inputs */}
-                    <div className={styles.dateInputs}>
-                      <button
-                        onClick={() => {
-                          setActiveInputStart('start')
-                          if (activeInput) setActiveInput(null)
-                        }}
-                        className={cn(
-                          styles.dateInput,
-                          activeInputStart === 'start' ? styles.active : styles.inactive
-                        )}
-                      >
-                        <svg className={styles.dateInputIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        <span className={styles.dateInputText}>
-                          {tempStartDateStart ? tempStartDateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Начало периода'}
-                        </span>
-                      </button>
-                      <span className={styles.dateInputSeparator}>—</span>
-                      <button
-                        onClick={() => {
-                          setActiveInputStart('end')
-                          if (activeInput) setActiveInput(null)
-                        }}
-                        className={cn(
-                          styles.dateInput,
-                          activeInputStart === 'end' ? styles.active : styles.inactive
-                        )}
-                      >
-                        <svg className={styles.dateInputIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        <span className={styles.dateInputText}>
-                          {tempEndDateStart ? tempEndDateStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Конец периода'}
-                        </span>
-                      </button>
-                    </div>
-
-                    {/* Actions */}
-                    <div className={styles.datePickerActions}>
-                      <button
-                        onClick={() => {
-                          setTempStartDateStart(null)
-                          setTempEndDateStart(null)
-                          closeDateStartModal()
-                        }}
-                        className={cn(styles.datePickerActionButton, styles.cancel)}
-                      >
-                        Сбросить
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (tempStartDateStart && tempEndDateStart) {
-                            onDateStartRangeChange({ start: tempStartDateStart, end: tempEndDateStart })
-                          }
-                          closeDateStartModal()
-                        }}
-                        className={cn(styles.datePickerActionButton, styles.apply)}
-                      >
-                        Применить
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Параметры */}
         <div className={styles.filterSection}>
-          <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.75rem' }}>Параметры</h3>
+          <h3 className={styles.filterSectionTitle} style={{ marginBottom: '0.75rem' }}>
+            Параметры
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M8 11.5V8M8 5.5H8.005" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {/* Юрлица и счета */}
             <div className={styles.parameterDropdown} ref={accountsDropdownRef}>
@@ -1024,8 +798,8 @@ export function OperationsFiltersSidebar({
                                       onAccountToggle(account.guid)
                                     }}
                                     style={{
-                                      '--checkbox-bg': selectedAccounts[account.guid] ? '#6366f1' : 'white',
-                                      '--checkbox-border': selectedAccounts[account.guid] ? '#6366f1' : '#d1d5db',
+                                      '--checkbox-bg': selectedAccounts[account.guid] ? '#307FE2' : 'white',
+                                      '--checkbox-border': selectedAccounts[account.guid] ? '#307FE2' : '#d1d5db',
                                       '--checkbox-hover-border': '#9ca3af'
                                     }}
                                   >
@@ -1194,8 +968,8 @@ export function OperationsFiltersSidebar({
                                     onCounterAgentToggle(ca.guid)
                                   }}
                                   style={{
-                                    '--checkbox-bg': selectedCounterAgents[ca.guid] ? '#6366f1' : 'white',
-                                    '--checkbox-border': selectedCounterAgents[ca.guid] ? '#6366f1' : '#d1d5db',
+                                    '--checkbox-bg': selectedCounterAgents[ca.guid] ? '#307FE2' : 'white',
+                                    '--checkbox-border': selectedCounterAgents[ca.guid] ? '#307FE2' : '#d1d5db',
                                     '--checkbox-hover-border': '#9ca3af'
                                   }}
                                 >
@@ -1224,8 +998,104 @@ export function OperationsFiltersSidebar({
 
           </div>
         </div>
+        </div>
+        )}
+
+        {/* Таб "Быстрые" */}
+        {activeTab === 'quick' && (
+          <div className={styles.filterContent} key="quick">
+            <div className={styles.filterSection}>
+              <p style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', padding: '2rem 1rem' }}>
+                Быстрые фильтры будут доступны в следующей версии
+              </p>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
+    
+    {/* Calendar Portal - показывается поверх всего */}
+    {mounted && activeInput && isDatePaymentModalOpen && createPortal(
+      <div 
+        className={styles.calendarPortal}
+        style={{
+          position: 'fixed',
+          top: `${calendarPosition.top}px`,
+          left: `${calendarPosition.left}px`,
+          zIndex: 10000
+        }}
+      >
+        <div className={styles.calendar}>
+          <div className={styles.calendarHeader}>
+            <button 
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+              className={styles.calendarNavButton}
+            >
+              «
+            </button>
+            <span className={styles.calendarMonth}>
+              {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/^./, str => str.toUpperCase())}
+            </span>
+            <button 
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+              className={styles.calendarNavButton}
+            >
+              »
+            </button>
+          </div>
+
+          <div className={styles.calendarWeekdays}>
+            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
+              <div key={day} className={styles.calendarWeekday}>
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.calendarDays}>
+            {Array.from({ length: 35 }, (_, i) => {
+              const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+              const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
+              const dayNum = i - startDay + 1
+              const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum)
+              const isCurrentMonth = dayNum > 0 && dayNum <= new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
+              const isToday = date.toDateString() === new Date(2026, 0, 14).toDateString()
+              const isSelected = (tempStartDate && date.toDateString() === tempStartDate.toDateString()) || 
+                                   (tempEndDate && date.toDateString() === tempEndDate.toDateString())
+
+              return (
+                <button
+                  key={i}
+                  disabled={!isCurrentMonth}
+                  onClick={() => {
+                    if (isCurrentMonth) {
+                      if (activeInput === 'start') {
+                        setTempStartDate(date)
+                        setActiveInput(null)
+                      } else if (activeInput === 'end') {
+                        setTempEndDate(date)
+                        setActiveInput(null)
+                      }
+                    }
+                  }}
+                  className={cn(
+                    styles.calendarDay,
+                    !isCurrentMonth && styles.disabled,
+                    isCurrentMonth && !isToday && !isSelected && styles.normal,
+                    isToday && !isSelected && styles.today,
+                    isSelected && styles.selected
+                  )}
+                >
+                  {isCurrentMonth ? dayNum : ''}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,25 +9,26 @@ import {
 } from '@tanstack/react-table'
 import { DateRangePicker } from '@/components/directories/DateRangePicker/DateRangePicker'
 import { GroupedSelect } from '@/components/common/GroupedSelect/GroupedSelect'
+import { getCashFlowReport } from '@/lib/api/ucode/cashflow'
 import styles from './cashflow.module.scss'
-import { cashflowMockData } from './mockData'
 
 export default function CashFlowReportPage() {
   const [expanded, setExpanded] = useState({})
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [reportData, setReportData] = useState(null)
   
   // Filter states
   const [selectedPeriod, setSelectedPeriod] = useState('all')
   const [selectedEntity, setSelectedEntity] = useState('all')
   const [dateRange, setDateRange] = useState(null)
-  const [selectedGrouping, setSelectedGrouping] = useState('periods')
+  const [selectedGrouping, setSelectedGrouping] = useState('monthly')
 
   // Mock data for selects
   const groupingOptions = [
-    { guid: 'periods', label: 'По периодам' },
-    { guid: 'months', label: 'По месяцам' },
-    { guid: 'quarters', label: 'По кварталам' },
-    { guid: 'years', label: 'По годам' }
+    { guid: 'monthly', label: 'По месяцам' },
+    { guid: 'quarterly', label: 'По кварталам' },
+    { guid: 'yearly', label: 'По годам' }
   ]
   
   const periodOptions = [
@@ -45,141 +46,83 @@ export default function CashFlowReportPage() {
     { guid: 'entity3', label: 'ИП Иванов И.И.' }
   ]
 
-  // Extract unique months from data
-  const months = useMemo(() => {
-    const monthSet = new Set()
-    cashflowMockData.data.rows.forEach(row => {
-      const месяц = row[4]
-      if (месяц) {
-        monthSet.add(месяц)
-      }
-    })
-    return Array.from(monthSet).sort()
-  }, [])
-
-  // Transform mock data into hierarchical structure with month columns
-  const data = useMemo(() => {
-    const rows = cashflowMockData.data.rows
-    const hierarchyMap = new Map()
-    
-    rows.forEach(row => {
-      const [поток, направление, категория, статья, месяц, , sum] = row
-      
-      if (!поток) return
-      
-      // Level 1: Поток
-      const level1Key = поток
-      if (!hierarchyMap.has(level1Key)) {
-        const monthData = {}
-        months.forEach(m => { monthData[m] = 0 })
-        
-        hierarchyMap.set(level1Key, {
-          id: level1Key,
-          name: поток,
-          total: 0,
-          months: monthData,
-          level: 0,
-          subRows: []
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const response = await getCashFlowReport({
+          periodStartDate: '2025-01-01',
+          periodEndDate: '2026-12-31',
+          periodType: selectedGrouping,
+          currencyCode: 'RUB'
         })
+        
+        console.log('API Response:', response)
+        console.log('Data path check:', {
+          'response.data': response?.data,
+          'response.data.data': response?.data?.data,
+          'response.data.data.data': response?.data?.data?.data
+        })
+        
+        // Структура ответа: response.data.data.data
+        if (response?.data?.data?.data) {
+          console.log('Setting report data:', response.data.data.data)
+          setReportData(response.data.data.data)
+        } else {
+          console.error('Data not found in expected path')
+        }
+      } catch (error) {
+        console.error('Error fetching cash flow report:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [selectedGrouping])
+
+  // Extract months from legend
+  const months = useMemo(() => {
+    if (!reportData?.legend) return []
+    return reportData.legend.map(item => item.key)
+  }, [reportData])
+
+  // Transform API data into hierarchical structure
+  const data = useMemo(() => {
+    if (!reportData?.rows) return []
+    
+    const transformRow = (row, depth = 0) => {
+      const monthData = {}
+      months.forEach(monthKey => {
+        monthData[monthKey] = row.values?.[monthKey] || 0
+      })
+      
+      const node = {
+        id: row.id,
+        name: row.name,
+        total: row.totalValue || 0,
+        months: monthData,
+        level: depth,
+        subRows: []
       }
       
-      // Level 2: Направление
-      if (направление) {
-        const level2Key = `${поток}|${направление}`
-        const parent1 = hierarchyMap.get(level1Key)
-        
-        if (!hierarchyMap.has(level2Key)) {
-          const monthData = {}
-          months.forEach(m => { monthData[m] = 0 })
-          
-          const node = {
-            id: level2Key,
-            name: направление,
-            total: 0,
-            months: monthData,
-            level: 1,
-            subRows: []
-          }
-          hierarchyMap.set(level2Key, node)
-          parent1.subRows.push(node)
-        }
-        
-        // Level 3: Категория
-        if (категория) {
-          const level3Key = `${поток}|${направление}|${категория}`
-          const parent2 = hierarchyMap.get(level2Key)
-          
-          if (!hierarchyMap.has(level3Key)) {
-            const monthData = {}
-            months.forEach(m => { monthData[m] = 0 })
-            
-            const node = {
-              id: level3Key,
-              name: категория,
-              total: 0,
-              months: monthData,
-              level: 2,
-              subRows: []
-            }
-            hierarchyMap.set(level3Key, node)
-            parent2.subRows.push(node)
-          }
-          
-          // Level 4: Статья (leaf with value)
-          if (статья && sum !== null) {
-            const parent3 = hierarchyMap.get(level3Key)
-            const monthData = {}
-            months.forEach(m => { monthData[m] = 0 })
-            
-            // Set value for specific month
-            if (месяц) {
-              monthData[месяц] = sum
-            }
-            
-            const node = {
-              id: `${level3Key}|${статья}`,
-              name: статья,
-              total: sum,
-              months: monthData,
-              level: 3,
-              isLeaf: true
-            }
-            parent3.subRows.push(node)
-            
-            // Aggregate sums up the hierarchy
-            parent3.total = (parent3.total || 0) + sum
-            if (месяц) {
-              parent3.months[месяц] = (parent3.months[месяц] || 0) + sum
-            }
-            
-            const parent2 = hierarchyMap.get(`${поток}|${направление}`)
-            if (parent2) {
-              parent2.total = (parent2.total || 0) + sum
-              if (месяц) {
-                parent2.months[месяц] = (parent2.months[месяц] || 0) + sum
-              }
-            }
-            
-            const parent1 = hierarchyMap.get(level1Key)
-            if (parent1) {
-              parent1.total = (parent1.total || 0) + sum
-              if (месяц) {
-                parent1.months[месяц] = (parent1.months[месяц] || 0) + sum
-              }
-            }
-          }
-        }
+      // Проверяем наличие details (дочерних элементов)
+      if (row.details && Array.isArray(row.details) && row.details.length > 0) {
+        node.subRows = row.details.map(detail => transformRow(detail, depth + 1))
       }
-    })
+      
+      return node
+    }
     
-    return Array.from(hierarchyMap.values()).filter(node => node.level === 0)
-  }, [months])
+    return reportData.rows.map(row => transformRow(row, 0))
+  }, [reportData, months])
 
   // Format month for display
-  const formatMonth = (monthStr) => {
-    if (!monthStr) return ''
-    const date = new Date(monthStr)
-    return date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })
+  const formatMonth = (monthKey) => {
+    if (!reportData?.legend) return monthKey
+    const legendItem = reportData.legend.find(item => item.key === monthKey)
+    return legendItem?.title || monthKey
   }
 
   // Format number
@@ -191,21 +134,17 @@ export default function CashFlowReportPage() {
     }).format(value)
   }
 
-  // Check if value is actually negative (not just empty)
-  const isNegativeNumber = (value) => {
-    return value !== null && value !== undefined && value !== 0 && value < 0
-  }
-
   const columns = useMemo(
     () => [
       {
         accessorKey: 'name',
-        header: 'Денежные средства и потоки',
+        header: 'По статьям учета',
         size: 400,
         minSize: 400,
         cell: ({ row, getValue }) => {
           const value = getValue()
           const hasSubRows = row.subRows?.length > 0
+          const isExpanded = row.getIsExpanded()
           
           return (
             <div
@@ -213,32 +152,27 @@ export default function CashFlowReportPage() {
                 paddingLeft: `${row.depth * 1.5}rem`,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem'
+                gap: '0.5rem',
+                cursor: hasSubRows ? 'pointer' : 'default'
               }}
+              onClick={hasSubRows ? row.getToggleExpandedHandler() : undefined}
             >
               {hasSubRows && (
                 <button
-                  onClick={row.getToggleExpandedHandler()}
                   className={styles.expandButton}
                 >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    style={{
-                      transform: row.getIsExpanded() ? 'rotate(90deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s'
-                    }}
-                  >
-                    <path
-                      d="M4 2L8 6L4 10"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {isExpanded ? (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.6665 7.99996C1.6665 5.0144 1.6665 3.52162 2.594 2.59412C3.52149 1.66663 5.01428 1.66663 7.99984 1.66663C10.9854 1.66663 12.4782 1.66663 13.4057 2.59412C14.3332 3.52162 14.3332 5.0144 14.3332 7.99996C14.3332 10.9855 14.3332 12.4783 13.4057 13.4058C12.4782 14.3333 10.9854 14.3333 7.99984 14.3333C5.01428 14.3333 3.52149 14.3333 2.594 13.4058C1.6665 12.4783 1.6665 10.9855 1.6665 7.99996Z" stroke="#667085" strokeLinejoin="round"/>
+                      <path d="M10.6668 8L5.3335 8" stroke="#667085" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.6665 7.99996C1.6665 5.0144 1.6665 3.52162 2.594 2.59412C3.52149 1.66663 5.01428 1.66663 7.99984 1.66663C10.9854 1.66663 12.4782 1.66663 13.4057 2.59412C14.3332 3.52162 14.3332 5.0144 14.3332 7.99996C14.3332 10.9855 14.3332 12.4783 13.4057 13.4058C12.4782 14.3333 10.9854 14.3333 7.99984 14.3333C5.01428 14.3333 3.52149 14.3333 2.594 13.4058C1.6665 12.4783 1.6665 10.9855 1.6665 7.99996Z" stroke="#667085" strokeLinejoin="round"/>
+                      <path d="M10.6668 8L5.3335 8" stroke="#667085" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M8 5.33337L8 10.6667" stroke="#667085" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
                 </button>
               )}
               <span className={row.depth === 0 ? styles.boldText : ''}>{value}</span>
@@ -251,9 +185,9 @@ export default function CashFlowReportPage() {
         accessorFn: row => row.months?.[month],
         id: month,
         header: formatMonth(month),
-        size: 150,
-        minSize: 150,
-        maxSize: 150,
+        size: 100,
+        minSize: 100,
+        maxSize: 100,
         cell: ({ getValue, row }) => {
           const value = getValue()
           const isTopLevel = row.depth === 0
@@ -267,9 +201,9 @@ export default function CashFlowReportPage() {
       {
         accessorKey: 'total',
         header: 'Итого',
-        size: 130,
-        minSize: 130,
-        maxSize: 130,
+        size: 100,
+        minSize: 100,
+        maxSize: 100,
         cell: ({ getValue, row }) => {
           const value = getValue()
           const isTopLevel = row.depth === 0
@@ -281,7 +215,7 @@ export default function CashFlowReportPage() {
         },
       },
     ],
-    [months]
+    [months, reportData]
   )
 
   const table = useReactTable({
@@ -300,6 +234,14 @@ export default function CashFlowReportPage() {
     setSelectedPeriod('all')
     setSelectedEntity('all')
     setDateRange(null)
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>Загрузка данных...</div>
+      </div>
+    )
   }
 
   return (
@@ -357,15 +299,14 @@ export default function CashFlowReportPage() {
           <div className={styles.header}>
             <div className={styles.headerContent}>
               <div className={styles.titleRow}>
-                <button
-                  className={`${styles.filterToggleButton} ${isFilterOpen ? styles.filterToggleButtonActive : ''}`}
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
-                >
-                  <svg className={styles.filterToggleIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                <h1 className={styles.title}>Отчет о движении денежных средств</h1>
+                <button className={styles.infoButton}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="7" stroke="#9CA3AF" strokeWidth="1.5"/>
+                    <path d="M8 7V11" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="8" cy="5" r="0.5" fill="#9CA3AF"/>
                   </svg>
                 </button>
-                <h1 className={styles.title}>Отчет о движении денежных средств</h1>
                 <span className={styles.currency}>RUB</span>
               </div>
               <div className={styles.headerRight}>
@@ -373,14 +314,33 @@ export default function CashFlowReportPage() {
                   data={groupingOptions}
                   value={selectedGrouping}
                   onChange={(value) => setSelectedGrouping(value)}
-                  placeholder="Группировка"
+                  placeholder="Способ построения"
                   className={styles.groupingSelect}
                 />
+                <button
+                  className={`${styles.filterToggleButton} ${isFilterOpen ? styles.filterToggleButtonActive : ''}`}
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span>Отображение</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                <button className={styles.moreButton}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="3" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="13" r="1" fill="currentColor"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
           
-          <div className={styles.tableContainer}>
+          <div className={`${styles.tableContainer} ${isFilterOpen ? styles.tableContainerWithFilter : ''}`}>
             <table className={styles.table}>
               <thead className={styles.thead}>
                 {table.getHeaderGroups().map(headerGroup => (
@@ -403,8 +363,11 @@ export default function CashFlowReportPage() {
                 ))}
               </thead>
               <tbody className={styles.tbody}>
-                {table.getRowModel().rows.map(row => (
-                  <tr key={row.id} className={styles.tr}>
+                {table.getRowModel().rows.map((row, index) => (
+                  <tr 
+                    key={row.id} 
+                    className={`${styles.tr} ${row.depth === 0 && index > 0 ? styles.topLevelRow : ''}`}
+                  >
                     {row.getVisibleCells().map(cell => (
                       <td 
                         key={cell.id} 
