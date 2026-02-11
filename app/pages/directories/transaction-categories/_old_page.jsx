@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { cn } from '@/app/lib/utils'
 import { useDeleteChartOfAccounts } from '@/hooks/useDashboard'
+import { getProjectId } from '@/lib/config/api'
 import CreateChartOfAccountsModal from '@/components/directories/CreateChartOfAccountsModal/CreateChartOfAccountsModal'
 import EditChartOfAccountsModal from '@/components/directories/EditChartOfAccountsModal/EditChartOfAccountsModal'
 import { CategoryMenu } from '@/components/directories/CategoryMenu/CategoryMenu'
 import { DeleteCategoryConfirmModal } from '@/components/directories/DeleteCategoryConfirmModal/DeleteCategoryConfirmModal'
 import { showSuccessNotification, showErrorNotification } from '@/lib/utils/notifications'
 import styles from './transaction-categories.module.scss'
-import { useChartOfAccountsPlanFact, useChartOfAccountsV2 } from '../../../../hooks/useDashboard'
+import { useChartOfAccounts } from '../../../../hooks/useDashboard'
+import { chartOfAccountsAPI } from '@/lib/api/ucode/chartOfAccounts'
 
 // Recursive component for rendering category tree
 function CategoryTreeItem({
@@ -34,15 +36,15 @@ function CategoryTreeItem({
 	const isSelected = selectedCategory === category.id
 
 	// Debug: log category data for children
-	// if (level > 0) {
-	// 	console.log(`CategoryTreeItem level ${level}:`, {
-	// 		name: category.name,
-	// 		guid: category.guid,
-	// 		id: category.id,
-	// 		hasMenu: category.hasMenu,
-	// 		hasChildren,
-	// 	})
-	// }
+	if (level > 0) {
+		console.log(`CategoryTreeItem level ${level}:`, {
+			name: category.name,
+			guid: category.guid,
+			id: category.id,
+			hasMenu: category.hasMenu,
+			hasChildren,
+		})
+	}
 
 	return (
 		<div
@@ -191,6 +193,9 @@ function CategoryTreeItem({
 }
 
 export default function TransactionCategoriesPage() {
+	// Get project ID from global config
+	const projectId = getProjectId()
+
 	const [activeTab, setActiveTab] = useState('income')
 	const [expandedCategories, setExpandedCategories] = useState([1, 2, 3])
 	const [closingCategories, setClosingCategories] = useState([])
@@ -238,59 +243,66 @@ export default function TransactionCategoriesPage() {
 	const tabs = [
 		{ key: 'income', label: 'Доходы' },
 		{ key: 'expense', label: 'Расходы' },
-		{ key: 'assets', label: 'Актив' },
+		{ key: 'assets', label: 'Активы' },
 		{ key: 'liabilities', label: 'Обязательства' },
 		{ key: 'capital', label: 'Капитал' },
 	]
 
 	// Map tab keys to API tip values
-	const tabToTipMap = useMemo(
-		() => ({
-			income: 'Доходы',
-			expense: 'Расходы',
-			assets: 'Актив',
-			liabilities: 'Обязательства',
-			capital: 'Капитал',
-		}),
-		[],
-	)
+	const tabToTipMap = {
+		income: 'Доходы',
+		expense: 'Расходы',
+		assets: 'Актив',
+		liabilities: 'Обязательства',
+		capital: 'Капитал',
+	}
+
+	// Fetch chart of accounts data using v2 endpoint (GET request with empty data)
+	// const { data: chartOfAccountsDataV1, isLoading: isLoadingChartOfAccountsV1, error: chartOfAccountsErrorV1 } = useChartOfAccountsV2({
+	//   data: {}
+	// })
+
+	// One-time request to invoke_function get_chart_of_accounts (tree response)
+	const hasFetchedChartOfAccountsTree = useRef(false)
+	useEffect(() => {
+		if (hasFetchedChartOfAccountsTree.current) return
+		hasFetchedChartOfAccountsTree.current = true
+
+		chartOfAccountsAPI
+			.getChartOfAccountsInvokeFunction({ page: 1, limit: 100 })
+			.then(responseData => {
+				console.log('get_chart_of_accounts response data:', responseData)
+			})
+			.catch(error => {
+				console.error('get_chart_of_accounts request error:', error)
+			})
+	}, [])
 
 	const {
-		data: chartOfAccountsData,
-		isLoading: isLoadingChartOfAccounts,
-		error: chartOfAccountsError,
-	} = useChartOfAccountsV2()
+		data: chartOfAccountsDataV2,
+		isLoading: isLoadingChartOfAccountsV2,
+		error: chartOfAccountsErrorV2,
+	} = useChartOfAccounts()
 
-	// Compatibility aliases (old variable names used in JSX below)
-	const isLoadingChartOfAccountsV2 = isLoadingChartOfAccounts
-	const chartOfAccountsErrorV2 = chartOfAccountsError
- 
-	const chartOfAccountsTree = useMemo(() => {
-		return chartOfAccountsData?.data?.data?.data || []
-	}, [chartOfAccountsData])
+	const chartOfAccountsItems = useMemo(
+		() => chartOfAccountsDataV2?.data?.data?.response || [],
+		[chartOfAccountsDataV2],
+	)
 
-	// Flatten tree to match existing page logic (flat list with parent links in chart_of_accounts_id_2)
-	const chartOfAccountsItems = useMemo(() => {
-		if (!Array.isArray(chartOfAccountsTree)) return []
+	console.log('chartOfAccountsItems:', chartOfAccountsItems)
 
-		const flat = []
-		const visit = node => {
-			if (!node || typeof node !== 'object') return
-
-			const { children, ...item } = node
-			const childrenArr = Array.isArray(children) ? children : []
-
-			// Some responses include group/root nodes with empty guid - skip them but still traverse children
-			if (item.guid) {
-				flat.push(item)
-			}
-
-			childrenArr.forEach(visit)
-		}
-
-		chartOfAccountsTree.forEach(visit)
-		return flat
-	}, [chartOfAccountsTree])
+	// Debug logging
+	useEffect(() => {
+		console.log('Chart of accounts data:', chartOfAccountsDataV2)
+		console.log('Chart of accounts items:', chartOfAccountsItems)
+		console.log('Is loading:', isLoadingChartOfAccountsV2)
+		console.log('Error:', chartOfAccountsErrorV2)
+	}, [
+		chartOfAccountsDataV2,
+		chartOfAccountsItems,
+		isLoadingChartOfAccountsV2,
+		chartOfAccountsErrorV2,
+	])
 
 	// Filter items by active tab
 	const filteredItems = useMemo(() => {
@@ -327,8 +339,17 @@ export default function TransactionCategoriesPage() {
 
 		const filtered = chartOfAccountsItems.filter(item => hasMatchingDescendants(item))
 
+		console.log('Filtered items for tab', activeTab, ':', filtered)
+		console.log('Filtered items count:', filtered.length)
+		console.log(
+			'Child map:',
+			Array.from(childMap.entries()).map(([guid, children]) => ({
+				parent: chartOfAccountsItems.find(i => i.guid === guid)?.nazvanie,
+				children: children.map(c => c.nazvanie),
+			})),
+		)
 		return filtered
-	}, [chartOfAccountsItems, activeTab, tabToTipMap])
+	}, [chartOfAccountsItems, activeTab])
 
 	// Convert chart of accounts items to category format for display
 	// Build proper hierarchy: items with chart_of_accounts_id_2 are children
@@ -369,7 +390,15 @@ export default function TransactionCategoriesPage() {
 			}
 		})
 
-		//
+		console.log(
+			'Child items map after building:',
+			Array.from(childItemsMap.entries()).map(([guid, children]) => ({
+				parent: allItemsMap.get(guid)?.nazvanie || guid,
+				parentGuid: guid,
+				children: children.map(c => ({ name: c.nazvanie, guid: c.guid })),
+			})),
+		)
+		console.log('All child GUIDs:', Array.from(allChildGuids))
 
 		// Find items that should be displayed as root items
 		// These are items that are in filtered items AND either:
@@ -401,6 +430,11 @@ export default function TransactionCategoriesPage() {
 			}
 		})
 
+		console.log(
+			'Root items after filtering:',
+			rootItems.map(r => ({ name: r.nazvanie, guid: r.guid, parent: r.chart_of_accounts_id_2 })),
+		)
+
 		// Build category tree recursively
 		// This function builds the tree and includes all children, even nested ones
 		const buildCategory = (item, level = 0) => {
@@ -428,10 +462,59 @@ export default function TransactionCategoriesPage() {
 				level: level, // Store level for debugging
 			}
 
+			// Debug: log category structure
+			if (children.length > 0) {
+				console.log('Built category with children:', {
+					name: category.name,
+					guid: category.guid,
+					level: category.level,
+					hasMenu: category.hasMenu,
+					childrenCount: children.length,
+					children: children.map(c => ({
+						name: c.name,
+						guid: c.guid,
+						level: c.level,
+						hasMenu: c.hasMenu,
+					})),
+				})
+			}
+
 			return category
 		}
 
 		const categories = rootItems.map(item => buildCategory(item, 0))
+
+		// Debug: check if all items are included
+		const allProcessedGuids = new Set()
+		const collectGuids = item => {
+			allProcessedGuids.add(item.id)
+			if (item.children) {
+				item.children.forEach(collectGuids)
+			}
+		}
+		categories.forEach(collectGuids)
+
+		const missingItems = filteredItems.filter(item => !allProcessedGuids.has(item.guid))
+
+		console.log('Built categories:', categories)
+		console.log('Root items count:', rootItems.length)
+		console.log(
+			'Root items:',
+			rootItems.map(r => ({ name: r.nazvanie, guid: r.guid })),
+		)
+		console.log('Child items map size:', childItemsMap.size)
+		console.log(
+			'Child items map:',
+			Array.from(childItemsMap.entries()).map(([guid, children]) => ({
+				parent: allItemsMap.get(guid)?.nazvanie || guid,
+				children: children.map(c => ({ name: c.nazvanie, guid: c.guid })),
+			})),
+		)
+		console.log('All processed GUIDs:', Array.from(allProcessedGuids))
+		console.log(
+			'Missing items (not in tree):',
+			missingItems.map(i => ({ name: i.nazvanie, guid: i.guid, parent: i.chart_of_accounts_id_2 })),
+		)
 
 		return categories
 	}, [filteredItems, chartOfAccountsItems])
@@ -439,7 +522,6 @@ export default function TransactionCategoriesPage() {
 	// Use chart of accounts data
 	const categories = chartOfAccountsCategories
 
-	console.log('categories:', categories)
 	const handleTabChange = tabKey => {
 		setActiveTab(tabKey)
 		setExpandedCategories([])

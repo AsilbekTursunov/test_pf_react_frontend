@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCorsHeaders } from '@/lib/api/ucode/base'
-import { makePlanFactRequest } from '../../utils/ucode_v2_new'
+import { makeUcodeV2Request } from '@/app/api/utils/ucode-v2'
 
 /**
  * POST /api/chart-of-accounts/create
@@ -55,14 +55,15 @@ export async function POST(request) {
       ...(data.data_obnovleniya && { data_obnovleniya: data.data_obnovleniya }),
       ...(data.plan_fakt_admins_id && { plan_fakt_admins_id: data.plan_fakt_admins_id }),
       ...(data.komentariy && { komentariy: data.komentariy }),
-      ...(data.chart_of_accounts_id_2 && { chart_of_accounts_id_2: data.chart_of_accounts_id_2 }), 
+      ...(data.chart_of_accounts_id_2 && { chart_of_accounts_id_2: data.chart_of_accounts_id_2 }),
+      attributes: data.attributes || {}
     }
 
-
-    return makePlanFactRequest({
+    return makeUcodeV2Request({
       request,
-      method: 'create_chart_of_account',
-      objectData: requestData
+      endpoint: 'chart_of_accounts',
+      method: 'POST',
+      data: requestData
     })
   } catch (error) {
     console.error('Create chart of accounts error:', error)

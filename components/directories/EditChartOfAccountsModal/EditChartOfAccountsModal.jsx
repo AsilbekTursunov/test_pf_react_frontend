@@ -173,25 +173,34 @@ export default function EditChartOfAccountsModal({ isOpen, onClose, category }) 
     return rootItems.map(buildTree)
   }, [allAccounts, activeTab, category])
 
-  useEffect(() => {
-    if (isOpen && category) {
-      setIsClosing(false)
-      setIsVisible(true)
-      
-      // Determine active tab from category tip
-      const categoryTip = category.tip && category.tip.length > 0 ? category.tip[0] : 'Доходы'
-      const tab = tipToTabMap[categoryTip] || 'income'
-      setActiveTab(tab)
-      
-      setFormData({
-        nazvanie: category.name || '',
-        chart_of_accounts_id_2: category.chart_of_accounts_id_2 || '',
-        komentariy: category.komentariy || '',
-        tip_operatsii: category.tip_operatsii || []
-      })
-      setErrors({})
-    }
-  }, [isOpen, category])
+  // React 19 pattern: adjust state during render when props change
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevCategory, setPrevCategory] = useState(null)
+  const [prevIsOpen, setPrevIsOpen] = useState(false)
+
+  if (isOpen && category && (!prevIsOpen || prevCategory !== category)) {
+    setPrevIsOpen(true)
+    setPrevCategory(category)
+    setIsClosing(false)
+    setIsVisible(true)
+
+    const categoryTip = category.tip && category.tip.length > 0 ? category.tip[0] : 'Доходы'
+    const tab = tipToTabMap[categoryTip] || 'income'
+    setActiveTab(tab)
+
+    setFormData({
+      nazvanie: category.name || '',
+      chart_of_accounts_id_2: category.chart_of_accounts_id_2 || '',
+      komentariy: category.komentariy || '',
+      tip_operatsii: category.tip_operatsii || [],
+    })
+    setErrors({})
+  }
+
+  if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false)
+    setPrevCategory(null)
+  }
 
   const handleClose = () => {
     setIsClosing(true)
@@ -223,7 +232,6 @@ export default function EditChartOfAccountsModal({ isOpen, onClose, category }) 
         ...(formData.chart_of_accounts_id_2 && { chart_of_accounts_id_2: formData.chart_of_accounts_id_2 }),
         ...(formData.komentariy && { komentariy: formData.komentariy }),
         ...(formData.tip_operatsii && formData.tip_operatsii.length > 0 && { tip_operatsii: formData.tip_operatsii }),
-        attributes: {}
       }
 
       await updateMutation.mutateAsync(submitData)
