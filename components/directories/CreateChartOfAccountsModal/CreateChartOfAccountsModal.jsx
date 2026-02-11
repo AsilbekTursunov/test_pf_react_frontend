@@ -212,8 +212,7 @@ export default function CreateChartOfAccountsModal({ isOpen, onClose, initialTab
         ...(formData.chart_of_accounts_id_2 && { chart_of_accounts_id_2: formData.chart_of_accounts_id_2 }),
         ...(formData.komentariy && { komentariy: formData.komentariy }),
         ...(formData.tip_operatsii && formData.tip_operatsii.length > 0 && { tip_operatsii: formData.tip_operatsii }),
-        attributes: {}
-      }
+      } 
 
       await dashboardAPI.createChartOfAccounts(submitData)
       

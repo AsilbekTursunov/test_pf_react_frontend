@@ -1,19 +1,19 @@
-
 import { NextResponse } from 'next/server'
 import { apiConfig } from '@/lib/config/api'
 import { makeUcodeViewsRequest, handleUcodeResponse, getCorsHeaders, createOptionsResponse } from '@/lib/api/ucode/base'
-import { makePlanFactRequest } from '../utils/ucode_v2_new'
+import { makeUcodeV2Request, parseDataParam } from '@/app/api/utils/ucode-v2'
 
 export async function POST(request) {
   try {
     const body = await request.json()
+    console.log('Chart of accounts request body:', JSON.stringify(body, null, 2))
 
     const { projectId, menuId, viewId, ...requestBody } = body
-
+    
     // Get default values from config
     const finalMenuId = menuId || apiConfig.ucode.chartOfAccounts.menuId
     const finalViewId = viewId || apiConfig.ucode.chartOfAccounts.viewId
-
+    
     // Prepare additional headers if needed
     const additionalHeaders = {}
     if (requestBody['environment-id']) {
@@ -22,7 +22,7 @@ export async function POST(request) {
     if (requestBody['resource-id']) {
       additionalHeaders['resource-id'] = requestBody['resource-id']
     }
-
+    
     // Prepare bodyData - convert empty array tip to null
     const bodyData = {
       offset: requestBody.offset,
@@ -55,30 +55,27 @@ export async function POST(request) {
 
     // Handle response
     const data = await handleUcodeResponse(response, 'Chart of accounts')
-    console.log('Chart of accounts response:=', await data?.response)
-
+    
     return NextResponse.json(data, {
       status: response.status,
       headers: getCorsHeaders(),
     })
-
-
   } catch (error) {
     console.error('Chart of accounts error:', error)
     // Handle network errors or API errors
     const statusCode = error.status || 500
-    const errorDetails = error.isNetworkError
-      ? error.details
+    const errorDetails = error.isNetworkError 
+      ? error.details 
       : (error.details || error.message || String(error))
-
+    
     return NextResponse.json(
-      {
-        error: 'Failed to fetch data',
+      { 
+        error: 'Failed to fetch data', 
         details: errorDetails,
         status: statusCode,
         url: error.url
       },
-      {
+      { 
         status: statusCode,
         headers: getCorsHeaders()
       }
@@ -91,10 +88,14 @@ export async function POST(request) {
  * Get chart of accounts list using v2/items/chart_of_accounts endpoint
  */
 export async function GET(request) {
-  return makePlanFactRequest({
+  const dataParams = parseDataParam(request)
+  return makeUcodeV2Request({
     request,
-    method: 'get_chart_of_accounts',
-    objectData: { page: 1, limit: 100 }
+    endpoint: 'chart_of_accounts',
+    method: 'GET',
+    queryParams: {
+      data: JSON.stringify(dataParams)
+    }
   })
 }
 
@@ -118,14 +119,15 @@ export async function DELETE(request) {
       )
     }
 
-    return makePlanFactRequest({
+    return makeUcodeV2Request({
       request,
-      method: 'delete_chart_of_account',
-      objectData: { guid: ids }
+      endpoint: 'chart_of_accounts',
+      method: 'DELETE',
+      data: { ids }
     })
   } catch (error) {
     console.error('Delete chart of accounts error:', error)
-
+    
     return NextResponse.json(
       {
         status: 'ERROR',

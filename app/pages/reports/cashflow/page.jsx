@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -117,6 +117,26 @@ export default function CashFlowReportPage() {
     
     return reportData.rows.map(row => transformRow(row, 0))
   }, [reportData, months])
+
+  // Auto-expand every top-level row that has children on first load
+  const didAutoExpand = useRef(false)
+  useEffect(() => {
+    if (didAutoExpand.current) return
+    if (!Array.isArray(data) || data.length === 0) return
+
+    // TanStack Table uses index-based row IDs by default: "0", "1", "2", …
+    const initial = {}
+    data.forEach((row, index) => {
+      if (Array.isArray(row.subRows) && row.subRows.length > 0) {
+        initial[String(index)] = true
+      }
+    })
+
+    if (Object.keys(initial).length > 0) {
+      setExpanded(initial)
+      didAutoExpand.current = true
+    }
+  }, [data])
 
   // Format month for display
   const formatMonth = (monthKey) => {

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCorsHeaders } from '@/lib/api/ucode/base'
 import { makeUcodeV2Request } from '@/app/api/utils/ucode-v2'
-import { makePlanFactRequest } from '../../utils/ucode_v2_new'
 
 export async function PUT(request) {
   try {
@@ -48,13 +47,13 @@ export async function PUT(request) {
       ...(data.data_sozdaniya && { data_sozdaniya: data.data_sozdaniya }),
       ...(data.data_obnovleniya && { data_obnovleniya: data.data_obnovleniya }),
       ...(data.plan_fakt_admins_id && { plan_fakt_admins_id: data.plan_fakt_admins_id }),
+      attributes: data.attributes || {}
     }
 
-    console.log('requestData', JSON.stringify(requestData, null, 2))
-
-    return makePlanFactRequest({
+    return makeUcodeV2Request({
       request,
-      method: 'update_counterparties_group',
+      endpoint: 'counterparties_group',
+      method: 'PUT',
       data: requestData
     })
   } catch (error) {
@@ -71,7 +70,7 @@ export async function PUT(request) {
 }
 
 export function OPTIONS() {
-  return NextResponse.json({}, {
+  return NextResponse.json({}, { 
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',

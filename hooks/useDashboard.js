@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dashboardAPI } from '@/lib/api/dashboard'
+import { chartOfAccountsAPI } from '@/lib/api/ucode/chartOfAccounts'
 import { showSuccessNotification, showErrorNotification } from '@/lib/utils/notifications'
 
 // Get dashboard data
@@ -130,6 +131,28 @@ export const useChartOfAccountsV2 = (params = {}) => {
           status: 'ERROR',
           data: { data: { count: 0, response: [] } }
         }
+      }
+    },
+    enabled: true,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  })
+}
+
+// Get chart of accounts tree using invoke_function planfact-plan-fact (POST)
+export const useChartOfAccountsPlanFact = (params = {}) => {
+  return useQuery({
+    queryKey: ['chartOfAccountsPlanFact', params],
+    queryFn: async () => {
+      console.log('useChartOfAccountsPlanFact: Making request with params:', params)
+      try {
+        const result = await chartOfAccountsAPI.getChartOfAccountsInvokeFunction(params)
+        console.log('useChartOfAccountsPlanFact: Response received:', result)
+        return result
+      } catch (error) {
+        console.error('useChartOfAccountsPlanFact: Error:', error)
+        console.error('useChartOfAccountsPlanFact: Error response:', error.response?.data)
+        return { status: 'ERROR', data: { data: [] } }
       }
     },
     enabled: true,
